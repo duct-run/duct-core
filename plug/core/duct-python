@@ -1,0 +1,185 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-python
+# Python operations.
+
+# python pip
+
+# Python pip options (defaults).
+declare -a -r _DUCT_PYTHON_PIP_OPTIONS=(
+  --isolated
+  --no-cache-dir
+  --no-compile
+  --no-input
+  --prefer-binary
+  --upgrade
+)
+
+# Python pip requirements to install (defaults).
+declare -a -r _DUCT_PYTHON_PIP_REQUIREMENTS=()
+
+# Python pip options.
+declare -g -a DUCT_PYTHON_PIP_OPTIONS=( "${DUCT_PYTHON_PIP_OPTIONS[@]:-${_DUCT_PYTHON_PIP_OPTIONS[@]}}" )
+
+# shellcheck disable=SC2206
+# Python pip requirements to install (may also be a requirements file).
+declare -g -a DUCT_PYTHON_PIP_REQUIREMENTS=( ${DUCT_PYTHON_PIP_REQUIREMENTS[@]:-${_DUCT_PYTHON_PIP_REQUIREMENTS[@]}} )
+
+# deps: duct-msg duct-run
+# intl: false
+# life: core
+# desc: Install or upgrade Python packages in a virtual environment (uses `DUCT_PYTHON_VENV_PATH`).
+# opts: [requirements|requirements-file]
+__duct_python_pip() {
+  local -a PIP_REQ=( "${@:-${DUCT_PYTHON_PIP_REQUIREMENTS[@]}}" )
+  local -a PIP_REQ_FILES=()
+
+  if [[ "${#PIP_REQ}" -eq 0 ]]
+  then
+    __duct_msg w "no requirements"
+    return 0
+  fi
+
+  if [[ -z "$DUCT_PYTHON_VENV_PATH" ]]
+  then
+    __duct_msg e "no venv path!"
+    return 1
+  fi
+
+  if [[ ! -d "$DUCT_PYTHON_VENV_PATH" ]]
+  then
+    __duct_msg e "$DUCT_PYTHON_VENV_PATH not found!"
+    return 1
+  fi
+
+  if [[ ! -f "${DUCT_PYTHON_VENV_PATH}/bin/activate" ]]
+  then
+    __duct_msg e "$DUCT_PYTHON_VENV_PATH not a python venv!"
+    return 1
+  else
+    __duct_msg n "activating $DUCT_PYTHON_VENV_PATH"
+    __duct_run source "${DUCT_PYTHON_VENV_PATH}/bin/activate"
+  fi
+
+  for REQ in "${PIP_REQ[@]}"
+  do
+    if [[ -f "$REQ" ]]
+    then
+      __duct_msg d "adding requirements file $REQ"
+      PIP_REQ_FILES+=( "$REQ" )
+      readarray -t PIP_REQ < <( __duct_striparray "^${REQ}$" "${PIP_REQ[@]}" )
+    fi
+  done
+
+  if [[ "${#PIP_REQ[@]}" -gt 0 ]]
+  then
+    __duct_msg n "installing ${PIP_REQ[*]}"
+    __duct_run pip install "${DUCT_PYTHON_PIP_OPTIONS[@]}" "${PIP_REQ[@]}"
+  fi
+
+  for REQ_FILE in "${PIP_REQ_FILES[@]}"
+  do
+    __duct_msg n "installing from $REQ_FILE"
+    __duct_run pip install "${DUCT_PYTHON_PIP_OPTIONS[@]}" --requirement "$REQ_FILE"
+  done
+}
+readonly -f __duct_python_pip
+
+# python venv
+
+# Python venv options (defaults).
+declare -a -r _DUCT_PYTHON_VENV_OPTIONS=(
+  --copies
+)
+
+# Base packages to install or upgrade in the venv (defaults).
+declare -a -r _DUCT_PYTHON_VENV_PACKAGES=(
+  pip
+  setuptools
+  wheel
+)
+
+# Clear/remove existing Python venv.
+declare -g DUCT_PYTHON_VENV_CLEAR=${DUCT_PYTHON_VENV_CLEAR:-false}
+
+# Deactivate Python venv after creation.
+declare -g DUCT_PYTHON_VENV_DEACTIVATE=${DUCT_PYTHON_VENV_DEACTIVATE:-false}
+
+# Python interpreter.
+declare -g DUCT_PYTHON_VENV_INTERPRETER=${DUCT_PYTHON_VENV_INTERPRETER:-"python3"}
+
+# Python venv options.
+declare -g -a DUCT_PYTHON_VENV_OPTIONS=( "${DUCT_PYTHON_VENV_OPTIONS[@]:-${_DUCT_PYTHON_VENV_OPTIONS[@]}}" )
+
+# Base packages to install or upgrade in the venv.
+declare -g -a DUCT_PYTHON_VENV_PACKAGES=( "${DUCT_PYTHON_VENV_PACKAGES[@]:-${_DUCT_PYTHON_VENV_PACKAGES[@]}}" )
+
+# Path to the Python venv
+declare -g DUCT_PYTHON_VENV_PATH="${TMPDIR:-"/tmp"}/duct-python-venv"
+
+# deps: duct-msg duct-run duct-util
+# intl: false
+# life: core
+# desc: Create or upgrade a Python **v**irtual **env**ironment and install base packages.
+# opts: [venv-path]
+__duct_python_venv() {
+  local VENV_PATH="${1:-"$DUCT_PYTHON_VENV_PATH"}"
+  local -a VENV_OPTS=()
+  local VENV_RC=0
+  local VENV_MSG="creating"
+
+  if [[ -z "$VENV_PATH" ]]
+  then
+    __duct_msg e "no venv path!"
+    return 1
+  fi
+
+  if [[ -d "$VENV_PATH" ]]
+  then
+    if [[ "$DUCT_PYTHON_VENV_CLEAR" == true ]]
+    then
+      __duct_msg w "$VENV_PATH exists, clearing!"
+      VENV_OPTS+=( --clear )
+      VENV_MSG="clearing"
+    else
+      VENV_OPTS+=( --upgrade )
+      VENV_MSG="upgrading"
+    fi
+  fi
+
+  __duct_checkbin "${DUCT_PYTHON_VENV_INTERPRETER}"
+
+  __duct_msg n "$VENV_MSG $VENV_PATH"
+  __duct_run "$DUCT_PYTHON_VENV_INTERPRETER" -m venv "${DUCT_PYTHON_VENV_OPTIONS[@]}" "${VENV_OPTS[@]}" "$VENV_PATH" || VENV_RC=$?
+
+  if [[ "${#DUCT_PYTHON_VENV_PACKAGES}" -gt 0 ]]
+  then
+    __duct_python_pip "${DUCT_PYTHON_VENV_PACKAGES[@]}"
+  fi
+
+  if [[ "$DUCT_PYTHON_VENV_DEACTIVATE" == true ]] && [[ "$VIRTUAL_ENV" == "$VENV_PATH" ]]
+  then
+    __duct_msg n "deactivating $VENV_PATH"
+    deactivate
+  fi
+
+  return $VENV_RC
+}
+readonly -f __duct_python_venv

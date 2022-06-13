@@ -1,0 +1,62 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+# shellcheck disable=SC2183
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-core
+# Handle duct core version.
+
+# duct ascii with rgb ansi color
+declare -g -r _DUCT_CORE_ASCII="ICAgICAgIBtbMzg7MjswOzA7MTcwbeKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhBtbMG0gICAgICAgICAgICAgICAgICAbWzM4OzI7MDswOzE3MG3iloTiloTiloTiloTiloQbWzBtCiAgICAgICAbWzQ4OzI7MDsxMzY7MjU1bRtbMzg7MjswOzA7MTcwbeKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paE4paE4paE4paE4paE4paE4paEIBtbMzg7MjswOzA7MTcwbeKWiBtbMG0gICAgICAgICAgICAgICAgICAbWzQ4OzI7MDsxMzY7MjU1bRtbMzg7MjswOzA7MTcwbeKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paEIBtbMzg7MjswOzA7MTcwbeKWiBtbMG0KICAgICAgIBtbNDg7MjswOzEzNjsyNTVtG1szODsyOzA7MDsxNzBt4paIIBtbMzg7MjsxNzA7MjU1OzIzOG3iloggG1szODsyOzA7MDsxNzBt4paE4paE4paEIBtbMzg7MjsxNzA7MjU1OzIzOG3iloggG1szODsyOzA7MDsxNzBt4paIG1swbSAbWzM4OzI7MDswOzE3MG3iloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloQbWzQ4OzI7MDsxMzY7MjU1beKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paIIBtbMzg7MjswOzA7MTcwbeKWiBtbNDlt4paE4paE4paE4paE4paEG1swbQogG1s0ODsyOzA7MTM2OzI1NW0bWzM4OzI7MDswOzE3MG3ilojiloDiloDiloDiloDiloDiloAgG1szODsyOzE3MDsyNTU7MjM4beKWiCAbWzM4OzI7MDswOzE3MG3ilogbWzBtIBtbNDg7MjswOzEzNjsyNTVtG1szODsyOzA7MDsxNzBt4paIIBtbMzg7MjsxNzA7MjU1OzIzOG3iloggG1szODsyOzA7MDsxNzBt4paIG1swbSAbWzQ4OzI7MDsxMzY7MjU1bRtbMzg7MjswOzA7MTcwbeKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE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"
+
+# duct minimal ascii
+declare -g -r _DUCT_CORE_ASCII_MIN="ICAgIHx8ICAgX19ffF9fCiBbb298fF98fF9fIHwK"
+
+# core
+
+# shellcheck disable=SC2155
+# Current duct version.
+declare -g -r _DUCT_CORE_VERSION="$( <"${DUCT_ROOT_DIR}/.duct-version" )"
+
+# shellcheck disable=SC2034
+declare -g -r _DUCT_CORE_URL="https://duct.run"
+
+# shellcheck disable=SC2034
+declare -g -r _DUCT_CORE_GITHUB="https://github.com/duct-run"
+
+# Enable/disable logo.
+declare -g DUCT_CORE_LOGO="${DUCT_CORE_LOGO:-true}"
+
+# deps:
+# intl: no
+# life: core
+# desc: Show duct core version information.
+# opts:
+__duct_core() {
+  if [[ "$DUCT_CORE_LOGO" == true ]]
+  then
+    if [[ "$TERM" != "dumb" ]]
+    then
+      printf "%b%s\n" "$_DUCT_CORE_ASCII" | base64 -d
+    else
+      printf "%b%s\n" "$_DUCT_CORE_ASCII_MIN" | base64 -d
+    fi
+    printf "%b%s\n" "   $DUCT_SELF_NAME $_DUCT_CORE_VERSION (${_DUCT_CORE_URL}/)"
+  fi
+}
+readonly -f __duct_core

@@ -1,0 +1,162 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-apt
+# Debian Linux flavoured APT operations.
+
+# APT options (defaults).
+declare -a -r _DUCT_APT_OPTIONS=(
+  --purge
+  --yes
+)
+
+# APT packages (defaults).
+declare -a -r _DUCT_APT_PACKAGES=()
+
+# APT binary to use.
+declare -g DUCT_APT_BIN="${DUCT_APT_BIN:-"apt-get"}"
+
+# Use `sudo` for APT operations (auto disabled for uid 0).
+declare -g DUCT_APT_SUDO="${DUCT_APT_SUDO:-true}"
+
+# Enable/disable APT update run.
+declare -g DUCT_APT_UPDATE="${DUCT_APT_UPDATE:-true}"
+
+# Enable/disable APT upgrade run.
+declare -g DUCT_APT_UPGRADE="${DUCT_APT_UPGRADE:-true}"
+
+# Enable/disable APT dist-upgrade run.
+declare -g DUCT_APT_DISTUPGRADE="${DUCT_APT_DISTUPGRADE:-false}"
+
+# Enable/disable APT autoremove run.
+declare -g DUCT_APT_AUTOREMOVE="${DUCT_APT_AUTOREMOVE:-true}"
+
+# Enable/disable APT clean run.
+declare -g DUCT_APT_CLEAN="${DUCT_APT_CLEAN:-true}"
+
+# APT options.
+declare -g -a DUCT_APT_OPTIONS=( "${DUCT_APT_OPTIONS[@]:-${_DUCT_APT_OPTIONS[@]}}" )
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# APT packages to install.
+declare -g -a DUCT_APT_PACKAGES=( ${DUCT_APT_PACKAGES[@]:-${_DUCT_APT_PACKAGES[@]}} )
+
+# apt support
+
+# deps: duct-msg duct-util
+# intl: true
+# life: beta
+# desc: Detect OS and check APT binary.
+# opts:
+__duct_apt_support() {
+  __duct_ostype
+
+  case "$DUCT_OSTYPE"
+  in
+    linux*)
+      __duct_source /etc/os-release OS_RELEASE
+      __duct_msg n "$OS_RELEASE_PRETTY_NAME"
+
+      if ! __duct_checkbin "$DUCT_APT_BIN"
+      then
+        __duct_msg e "unsupported linux distribution!"
+        return 1
+      fi
+    ;;
+    *)
+      __duct_msg e "$DUCT_OSTYPE is unsupported!"
+      return 127
+    ;;
+  esac
+}
+readonly -f __duct_apt_support
+
+# apt
+
+# dependencies: duct-msg duct-run
+# internal: false
+# lifecycle: beta
+# description: Update, (dist-)upgrade & install APT packages.
+# options: [packages]
+__duct_apt() {
+  # shellcheck disable=SC2206
+  local -a APT_PACKAGES=( ${DUCT_APT_PACKAGES[@]:-$@} )
+  local APT_RC=0
+  local APT_SUDO=""
+
+  __duct_apt_support || APT_RC=$?
+
+  if [[ "$APT_RC" -gt 0 ]]
+  then
+    return $APT_RC
+  fi
+
+  if [[ "$DUCT_APT_SUDO" == true ]]
+  then
+    APT_SUDO="sudo"
+
+  elif [[ "$UID" -gt 0 ]]
+  then
+    __duct_msg d "forcing sudo for $UID"
+    APT_SUDO="sudo"
+  fi
+
+  if [[ "$UID" -eq 0 ]]
+  then
+    __duct_msg d "disable sudo for $UID"
+    APT_SUDO=""
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "$DUCT_APT_UPDATE"  == true ]] || [[ "$DUCT_APT_UPGRADE" == true ]]
+  then
+    __duct_run $APT_SUDO "$DUCT_APT_BIN" update
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "$DUCT_APT_UPGRADE" == true ]]
+  then
+    if [[ "$DUCT_APT_DISTUPGRADE" == true ]]
+    then
+      __duct_run $APT_SUDO "$DUCT_APT_BIN" dist-upgrade "${DUCT_APT_OPTIONS[@]}"
+    else
+      __duct_run $APT_SUDO "$DUCT_APT_BIN" upgrade "${DUCT_APT_OPTIONS[@]}"
+    fi
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "${#APT_PACKAGES[@]}" -gt 0 ]]
+  then
+    __duct_run $APT_SUDO "$DUCT_APT_BIN" install "${DUCT_APT_OPTIONS[@]}" "${APT_PACKAGES[@]}"
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "$DUCT_APT_AUTOREMOVE" == true ]]
+  then
+    __duct_run $APT_SUDO "$DUCT_APT_BIN" autoremove "${DUCT_APT_OPTIONS[@]}"
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "$DUCT_APT_CLEAN" == true ]]
+  then
+    __duct_run $APT_SUDO "$DUCT_APT_BIN" clean
+  fi
+}
+readonly -f __duct_apt

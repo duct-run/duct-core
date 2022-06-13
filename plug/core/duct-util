@@ -1,0 +1,1573 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-util
+# Collection of core utilities.
+
+# basename
+
+# deps:
+# intl: false
+# life: core
+# desc: Return filename portion of pathname, with optional suffix removal.
+# opts: <pathname> [suffix]
+__duct_basename() {
+  local PATHNAME="$1"
+  local SUFFIX="${2:-}"
+
+  __duct_msg d "$PATHNAME $SUFFIX"
+
+  PATHNAME="${PATHNAME##*/}"
+  PATHNAME="${PATHNAME%"${SUFFIX}"}"
+
+  echo "$PATHNAME"
+}
+readonly -f __duct_basename
+
+# dirname
+
+# deps:
+# intl: false
+# life: core
+# desc: Return directory portion of pathname.
+# opts: <pathname>
+__duct_dirname() {
+  local PATHNAME="$1"
+
+  __duct_msg d "$PATHNAME"
+
+  echo "${PATHNAME%/*}"
+}
+readonly -f __duct_dirname
+
+# lower
+
+# deps:
+# intl: false
+# life: core
+# desc: Return string to lower.
+# opts: <string>
+__duct_lower() {
+  local STRING="$1"
+
+  __duct_msg d "$STRING"
+
+  echo "${STRING,,}"
+}
+readonly -f __duct_lower
+
+# upper
+
+# deps:
+# intl: false
+# life: core
+# desc: Return string to upper.
+# opts: <string>
+__duct_upper() {
+  local STRING="$1"
+
+  __duct_msg d "$STRING"
+
+  echo "${STRING^^}"
+}
+readonly -f __duct_upper
+
+# slug
+
+# deps:
+# intl: false
+# life: core
+# desc: Slugify a string.
+# opts: <string>
+__duct_slug() {
+  local STRING="$1"
+
+  __duct_msg d "$STRING"
+
+  STRING="${STRING,,}"    # lower
+  STRING="${STRING// /-}" # whitespace to '-'
+
+  echo "$STRING"
+}
+readonly -f __duct_slug
+
+# trim
+
+# deps:
+# intl: false
+# life: core
+# desc: Remove leading and trailing whitespaces from string.
+# opts: <string>
+__duct_trim() {
+  local STRING="$1"
+
+  __duct_msg d "$STRING"
+
+  shopt -s extglob
+  STRING="${STRING##*([[:space:]])}"
+  STRING="${STRING%%*([[:space:]])}"
+  shopt -u extglob
+
+  echo "$STRING"
+}
+readonly -f __duct_trim
+
+# addarray
+
+# deps:
+# intl: false
+# life: core
+# desc: Add element to array if not present.
+# opts: <element> <array@>
+__duct_addarray() {
+  local ELEMENT="${1:-}"
+  shift
+  local -a ARRAY=( "$@" )
+
+  if [[ ! "${ARRAY[*]}" =~ $ELEMENT ]]
+  then
+    ARRAY+=( "$ELEMENT" )
+  fi
+
+  printf "%q\n" "${ARRAY[@]}"
+}
+readonly -f __duct_addarray
+
+# joinarray
+
+# deps:
+# intl: false
+# life: core
+# desc: Joins an array with given string.
+# opts: <join-string> <array@>
+__duct_joinarray() {
+  local IFS="${1:-""}"
+  shift
+  local -a ARRAY=( "$@" )
+
+  echo "${ARRAY[*]}"
+}
+readonly -f __duct_joinarray
+
+# striparray
+
+# deps:
+# intl: false
+# life: core
+# desc: Find and strip a regex from an array.
+# opts: <strip-regex> <array[@]>
+__duct_striparray() {
+  local STRIP="$1"
+  shift
+  local -a ARRAY=( "$@" )
+  local _ARRAY
+
+  for _ARRAY in "${ARRAY[@]}"
+  do
+    if [[ ! "$_ARRAY" =~ $STRIP ]]
+    then
+      echo "$_ARRAY"
+    fi
+  done
+}
+readonly -f __duct_striparray
+
+# sortarray
+
+# deps:
+# intl: false
+# life: core
+# desc: Sort an array.
+# opts: <array[@]>
+__duct_sortarray() {
+  local -a ARRAY=( "$@" )
+  local IFS=$'\n'
+
+  readarray -t ARRAY < <( sort --version-sort <<< "${ARRAY[*]}" )
+  echo "${ARRAY[*]}"
+}
+readonly -f __duct_sortarray
+
+# strip
+
+# deps:
+# intl: false
+# life: core
+# desc: Strip elements from a string.
+# opts: <strip> <string>
+__duct_strip() {
+  local IFS=" "
+  local -a STRIP
+  local -a STRING
+
+  IFS=" " read -r -a STRIP <<< "$1"
+  IFS=" " read -r -a STRING <<< "$2"
+
+  __duct_msg d "'${STRIP[*]}' from '${STRING[*]}'"
+
+  for S in "${STRIP[@]}"
+  do
+    for I in "${!STRING[@]}"
+    do
+      if [[ "${STRING[I]}" == "$S" ]]
+      then
+        unset 'STRING[I]'
+      fi
+    done
+  done
+  echo "${STRING[*]}"
+}
+readonly -f __duct_strip
+
+# debase64
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Decode a base64 string to plain-text, or simply output the plain-text input value.
+# opts: <string>
+__duct_debase64() {
+  local DEBASE64
+  local DEBASE64_RC=0
+  local DEBASE64_STRING="${1:-}"
+
+  if [[ -z "$DEBASE64_STRING" ]]
+  then
+    __duct_msg e "empty string!"
+    return 1
+  fi
+
+  set +e
+  DEBASE64="$( echo "$DEBASE64_STRING" | base64 -d 2>/dev/null )"
+  DEBASE64_RC=$?
+  set -e
+
+  if [[ "$DEBASE64_RC" -gt 0 ]]
+  then
+    __duct_msg d "plain string"
+    echo "$DEBASE64_STRING"
+  else
+    if [[ ! "$DEBASE64" =~ [[:alpha:]] ]]
+    then
+      __duct_msg d "plain string"
+      echo "$DEBASE64_STRING"
+    else
+      __duct_msg d "base64 string"
+      echo "$DEBASE64"
+    fi
+  fi
+}
+readonly -f __duct_debase64
+
+# sfile
+
+# Enable/disable masking of content (WARNING!).
+declare -g DUCT_SFILE_MASK=${DUCT_SFILE_MASK:-true}
+
+# String used to mask the content.
+declare -g DUCT_SFILE_MASK_STRING=${DUCT_SFILE_MASK_STRING:-"[SECRET]"}
+
+# Enable/disable overwriting the file.
+declare -g DUCT_SFILE_OVERWRITE=${DUCT_SFILE_OVERWRITE:-false}
+
+# Filename to use.
+declare -g DUCT_SFILE_FILENAME=${DUCT_SFILE_FILENAME:-}
+
+# Default file mode.
+declare -g DUCT_SFILE_FILEMODE=${DUCT_SFILE_FILEMODE:-0600}
+
+# File content.
+declare -g DUCT_SFILE_CONTENT=${DUCT_SFILE_CONTENT:-}
+
+# deps: duct-msg duct-run
+# intl: false
+# life: core
+# desc: Write a file masking the content from messages.
+# opts: [filename] [content]
+__duct_sfile() {
+  local FILE="${1:-"${DUCT_SFILE_FILENAME}"}"
+  local CONT="${2:-"${DUCT_SFILE_CONTENT}"}"
+  local MASK="$CONT"
+
+  if [[ -z "$FILE" ]]
+  then
+    __duct_msg e "no filename!"
+    return 1
+  fi
+
+  if [[ -s "$FILE" ]]
+  then
+    if [[ "$DUCT_SFILE_OVERWRITE" == true ]]
+    then
+      __duct_msg w "$FILE exists, overwriting!"
+    else
+      __duct_msg w "$FILE exists, not changing!"
+      return 0
+    fi
+  fi
+
+  if [[ "$DUCT_SFILE_MASK" == true ]]
+  then
+    MASK="$DUCT_SFILE_MASK_STRING"
+  else
+    MASK="$CONT"
+  fi
+
+  if [[ "$DUCT_RUN_SIMULATE" == true ]]
+  then
+    __duct_msg x "[SIMULATE] creating $FILE with content: $MASK"
+  else
+    __duct_msg n "creating $FILE with content: $MASK"
+    :> "$FILE"
+    __duct_run chmod "$DUCT_SFILE_FILEMODE" "$FILE"
+    printf "%s\n" "$CONT" > "$FILE"
+  fi
+}
+readonly -f __duct_sfile
+
+# cleanup
+
+# List of directories and files to cleanup (defaults).
+declare -a -r _DUCT_CLEANUP_LIST=()
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# List of directories and files to cleanup.
+declare -g -a DUCT_CLEANUP_LIST=( ${DUCT_CLEANUP_LIST[@]:-${_DUCT_CLEANUP_LIST[@]}} )
+
+# deps: duct-msg duct-run
+# intl: false
+# life:
+# desc: Cleanup and remove a list of directories and files.
+# opts: [cleanup-list[@]]
+__duct_cleanup() {
+  local CLEANUP
+  # shellcheck disable=SC2206
+  local CLEANUP_LIST=( ${DUCT_CLEANUP_LIST[@]:-$@} )
+
+  if [[ ${#CLEANUP_LIST[@]} -eq 0 ]]
+  then
+    __duct_msg w "empty cleanup list!"
+    return 0
+  fi
+
+  for CLEANUP in "${CLEANUP_LIST[@]}"
+  do
+    if [[ -d "${CLEANUP:?}" ]]
+    then
+      __duct_msg n "removing dir ${CLEANUP:?}"
+      __duct_run rm -fr "${CLEANUP:?}"
+
+    elif [[ -f "${CLEANUP:?}" ]]
+    then
+      __duct_msg n "removing file ${CLEANUP:?}"
+      __duct_run rm -f "${CLEANUP:?}"
+    else
+      __duct_msg w "${CLEANUP:?} not found!"
+    fi
+  done
+}
+readonly -f __duct_cleanup
+
+# random
+
+# Default random character list.
+declare -a _DUCT_RANDOM_CHARS=(
+  "ABCDEFGHJKLMNPQRSTUVWX"
+  "abcdefghijkmnpqrstuvwx"
+  "123456789"
+  "!$%,."
+)
+
+# Random character list.
+declare -g -a DUCT_RANDOM_CHARS=( "${DUCT_RANDOM_CHARS[@]:-${_DUCT_RANDOM_CHARS[@]}}" )
+
+# desc: Default random length.
+declare -g DUCT_RANDOM_LENGTH=${DUCT_RANDOM_LENGTH:-16}
+
+# deps:
+# intl: false
+# life:
+# desc: Create a random string from given character list.
+# opts: [length]
+__duct_random() {
+  local -a RANDOM_CHARS=( "${DUCT_RANDOM_CHARS[@]}" )
+  local RANDOM_LEN="${1:-${DUCT_RANDOM_LENGTH}}"
+  local RANDOM_STR=""
+
+  readarray -t RANDOM_CHARS < <( __duct_gnu_grep -Po '[^\s]' <<< "${RANDOM_CHARS[*]}" )
+
+  _RANDOM_CHARS="${RANDOM_CHARS[*]}"
+  _RANDOM_CHARS="${_RANDOM_CHARS// }"
+
+  __duct_msg d "$RANDOM_LEN chars out of '${_RANDOM_CHARS}'"
+
+  for ((I=0; I<RANDOM_LEN; I++))
+  do
+    if [[ "$DUCT_BASH_SRANDOM" == true ]]
+    then
+      RANDOM_STR+="${RANDOM_CHARS[$((SRANDOM%${#RANDOM_CHARS[@]}))]}"
+    else
+      RANDOM_STR+="${RANDOM_CHARS[$((RANDOM%${#RANDOM_CHARS[@]}))]}"
+    fi
+  done
+  echo "$RANDOM_STR"
+}
+readonly -f __duct_random
+
+# tmpgen
+
+# Prefix of tmp.
+declare -g DUCT_TMPGEN_PREFIX="${DUCT_TMPGEN_PREFIX:-"duct-"}"
+
+# Tmp directory.
+declare -g DUCT_TMPGEN_PATH="${DUCT_TMPGEN_PATH:-${TMPDIR:-"/tmp"}}"
+
+# Length of random part.
+declare -g DUCT_TMPGEN_LENGTH="${DUCT_TMPGEN_LENGTH:-9}"
+
+# deps:
+# intl: false
+# life:
+# desc: Generate a temporary path, without creating it.
+# opts: [prefix] [path]
+__duct_tmpgen() {
+  local TMP_PREFIX="${1:-"$DUCT_TMPGEN_PREFIX"}"
+  local TMP_PATH="${2:-"$DUCT_TMPGEN_PATH"}"
+  local TMP_GEN
+  local TMP_RC=0
+
+  TMP_GEN="${TMP_PATH}/${TMP_PREFIX}$(
+    export DUCT_RANDOM_CHARS=(
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz"
+      "0123456789"
+    )
+    __duct_random "$DUCT_TMPGEN_LENGTH"
+  )" || TMP_RC=$?
+
+  echo "$TMP_GEN"
+}
+readonly -f __duct_tmpgen
+
+# mktmpdir
+
+# Prefix.
+declare -g DUCT_MKTMPDIR_PREFIX="${DUCT_MKTMPDIR_PREFIX:-"duct-"}"
+
+# Tmp path.
+declare -g DUCT_MKTMPDIR_PATH="${DUCT_MKTMPDIR_PATH:-${TMPDIR:-"/tmp"}}"
+
+# Mode of directory.
+declare -g DUCT_MKTMPDIR_MODE="${DUCT_MKTMPDIR_MODE:-0700}"
+
+# deps: duct-msg duct-run
+# intl: false
+# life: core
+# desc: Create a temporary directory using `duct tmpgen`.
+# opts: [prefix] [path]
+__duct_mktmpdir() {
+  local TMP_PREFIX="${1:-"$DUCT_MKTMPDIR_PREFIX"}"
+  local TMP_PATH="${2:-"$DUCT_MKTMPDIR_PATH"}"
+  local TMP_DIR
+  local TMP_RC=0
+
+  TMP_DIR="$( __duct_tmpgen "$TMP_PREFIX" "$TMP_PATH" )"
+  __duct_msg n "creating ${TMP_DIR}"
+  __duct_run mkdir -m "$DUCT_MKTMPDIR_MODE" -p "$TMP_DIR" || TMP_RC=$?
+  echo "$TMP_DIR"
+  return $TMP_RC
+}
+readonly -f __duct_mktmpdir
+
+# mktmpfile
+
+# Prefix
+declare -g DUCT_MKTMPFILE_PREFIX="${DUCT_MKTMPDIR_PREFIX:-"duct-"}"
+
+# Tmp path.
+declare -g DUCT_MKTMPFILE_PATH="${DUCT_MKTMPFILE_PATH:-${TMPDIR:-"/tmp"}}"
+
+# Mode of file
+declare -g DUCT_MKTMPFILE_MODE="${DUCT_MKTMPFILE_MODE:-0600}"
+
+# deps: duct-msg duct-run
+# intl: false
+# life:
+# desc: Create a temporay file using `duct tmpgen`.
+# opts: [prefix] [path]
+__duct_mktmpfile() {
+  local TMP_PREFIX="${1:-"$DUCT_MKTMPFILE_PREFIX"}"
+  local TMP_PATH="${2:-"$DUCT_MKTMPFILE_PATH"}"
+  local TMP_FILE
+  local TMP_RC=0
+
+  TMP_FILE="$( __duct_tmpgen "$TMP_PREFIX" "$TMP_PATH" )"
+  __duct_msg n "creating ${TMP_FILE}"
+  (
+    __duct_run touch "$TMP_FILE" || TMP_RC=$?
+    __duct_run chmod "$DUCT_MKTMPFILE_MODE" "$TMP_FILE"
+  ) || TMP_RC=$?
+  echo "$TMP_FILE"
+  return $TMP_RC
+}
+readonly -f __duct_mktmpfile
+
+# date
+
+# Default date and time `strftime` format.
+declare -g DUCT_DATE_FORMAT=${DUCT_DATE_FORMAT:-"%F %T"}
+
+# deps:
+# intl: false
+# life: core
+# desc: Print current date and time.
+# opts: [format]
+__duct_date() {
+  local FORMAT="${1:-"$DUCT_DATE_FORMAT"}"
+
+  __duct_msg d "format $FORMAT"
+
+  printf "%($FORMAT)T\\n" "-1"
+}
+readonly -f __duct_date
+
+# find
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Simple `find` in pure Bash.
+# opts: <path> [type] [match|regex]
+__duct_find() {
+  local FIND_ROOT="${1:-"$PWD"}"
+  local FIND_TYPE="${2:-""}"
+  local FIND_MATCH="${3:-""}"
+
+  shopt -s globstar
+  shopt -s dotglob
+
+  __duct_msg d "searching $FIND_ROOT type:${FIND_TYPE:-"all"} match:${FIND_MATCH:-"all"}"
+
+  for FIND in "${FIND_ROOT}"/**/*
+  do
+
+    # type
+    if [[ -n "${FIND_TYPE}" ]]
+    then
+      case "$FIND_TYPE"
+      in
+        d|dir|directory)
+          if [[ ! -d "$FIND" ]]
+          then
+            continue
+          fi
+        ;;
+        f|file)
+          if [[ ! -f "$FIND" ]]
+          then
+            continue
+          fi
+        ;;
+      esac
+    fi
+
+    # match
+    if [[ -n "$FIND_MATCH" ]]
+    then
+      if [[ ! "$FIND" =~ $FIND_MATCH ]]
+      then
+        continue
+      fi
+    fi
+
+    echo "$FIND"
+  done
+
+  shopt -u globstar
+  shopt -u dotglob
+
+  __duct_msg d "runtime: ${SECONDS}s"
+}
+readonly -f __duct_find
+
+# find count
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Find files and directories returning count.
+# opts: <path> <@file-directory>
+__duct_find_count() {
+  local COUNT_ROOT="${1:-$PWD}"
+  shift
+  local -a COUNT_MATCH=( "$@" )
+
+  local MATCH
+  local COUNT=0
+
+  for MATCH in "${COUNT_MATCH[@]}"
+  do
+    _PATH="${COUNT_ROOT}/${MATCH}"
+    if [[ -e "$_PATH" ]]
+    then
+      if [[ -f "$_PATH" ]]
+      then
+        __duct_msg d "file found $_PATH"
+        (( COUNT+=1 ))
+      elif [[ -d "$_PATH" ]]
+      then
+        __duct_msg d "directory found $_PATH"
+        (( COUNT+=1 ))
+      fi
+    fi
+    unset _PATH
+  done
+  echo "$COUNT"
+}
+readonly -f __duct_find_count
+
+# checkbin
+
+# List of binaries to check (defaults).
+declare -a _DUCT_CHECKBIN_LIST=()
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# List of binaries to check.
+declare -g -a DUCT_CHECKBIN_LIST=( ${DUCT_CHECKBIN_LIST[@]:-${_DUCT_CHECKBIN_LIST[@]}} )
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Check a list of binaries/commands for availibility.
+# opts: [bin-list[@]]
+__duct_checkbin() {
+  local -a BIN_LIST=( "${@:-${DUCT_CHECKBIN_LIST[@]}}" )
+  local BIN_CMD
+  local BIN_PATH
+  local BIN_RC=0
+  local BIN_HELP_RC=0
+
+  if [[ ${#BIN_LIST[@]} -eq 0 ]]
+  then
+    __duct_msg w "empty binary list!"
+  fi
+
+  for BIN_CMD in "${BIN_LIST[@]}"
+  do
+    BIN_PATH=$(command -v "$BIN_CMD" || :)
+
+    if [[ -n "$BIN_PATH" ]]
+    then
+      # shellcheck disable=SC2034
+      command "$BIN_PATH" --help >/dev/null 2>&1 || BIN_HELP_RC=$?
+
+      case "$BIN_HELP_RC" in
+        0)
+          __duct_msg d "'$BIN_PATH' found"
+        ;;
+        127)
+          __duct_msg w "'$BIN_PATH' found, but command returned 127 (not found)!"
+        ;;
+        *)
+          __duct_msg d "'$BIN_PATH' found ($BIN_HELP_RC)"
+        ;;
+      esac
+    else
+      __duct_msg e "'$BIN_CMD' not found!"
+      (( BIN_RC+=1 ))
+    fi
+  done
+
+  if [[ "$BIN_RC" -gt 0 ]]
+  then
+    return 1
+  else
+    return 0
+  fi
+}
+readonly -f __duct_checkbin
+
+# checkvar
+
+# List of variables to check (defaults).
+declare -a _DUCT_CHECKVAR_LIST=()
+
+# shellcheck disable=SC2206
+# List of variables to check.
+declare -g -a DUCT_CHECKVAR_LIST=( ${DUCT_CHECKVAR_LIST[@]:-${_DUCT_CHECKVAR_LIST[@]}} )
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Check if variables are present and set.
+# opts:
+__duct_checkvar() {
+  local CHECK_VAR
+  local CHECK_RC=0
+
+  set +u
+
+  for CHECK_VAR in "${DUCT_CHECKVAR_LIST[@]}"
+  do
+    if [[ -n "${!CHECK_VAR}" ]]
+    then
+      __duct_msg d "$CHECK_VAR is set"
+    else
+      __duct_msg e "$CHECK_VAR unset!"
+      (( CHECK_RC+=1 ))
+    fi
+  done
+
+  set -u
+
+  if [[ "$CHECK_RC" -gt 0 ]]
+  then
+    return 1
+  fi
+}
+readonly -f __duct_checkvar
+
+# checkver
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: Check minimal required version.
+# opts: <command> <minimal-version> <match>
+__duct_checkver() {
+  local VER_CMD="$1"
+  local VER_MIN="$2"
+  local VER_MATCH="$3"
+
+  local -a VER_MININFO
+  local -a VER_VERSINFO
+  local VER_RC=0
+  local VER_VERSION
+
+  IFS="." read -r -a VER_MININFO <<< "$VER_MIN"
+
+  # shellcheck disable=SC2046
+  set -- $( $VER_CMD --version )
+  VER_VERSION="${!VER_MATCH}"
+
+  # remove *-
+  VER_VERSION="${VER_VERSION##*-}"
+
+  IFS="." read -r -a VER_VERSINFO <<< "$VER_VERSION"
+
+  if [[ "${VER_VERSINFO[0]}" -lt "${VER_MININFO[0]}" ]]
+  then
+    (( VER_RC+=1 ))
+  elif [[ "${VER_VERSINFO[0]}" -eq "${VER_MININFO[0]}" ]] && \
+       [[ "${VER_VERSINFO[1]}" -lt "${VER_MININFO[1]}" ]]
+  then
+    (( VER_RC+=1 ))
+  fi
+
+  if [[ "$VER_RC" -gt 0 ]]
+  then
+    __duct_msg e "$VER_CMD version $VER_VERSION is unsupported!"
+    __duct_msg e "minimal required version $VER_MIN"
+    return 1
+  else
+    __duct_msg d "$VER_CMD version $VER_VERSION"
+  fi
+}
+readonly -f __duct_checkver
+
+# textract
+
+# Filename to extract text from.
+declare -g DUCT_TEXTRACT_FILENAME=""
+
+# Marker begin.
+declare -g DUCT_TEXTRACT_MARKER_BEGIN=""
+
+# Marker end.
+declare -g DUCT_TEXTRACT_MARKER_END=""
+
+# deps: duct-msg
+# intl: false
+# life:
+# desc: Extract text between two markers.
+# opts: [filename] [marker-begin] [marker-end]
+__duct_textract() {
+  local TEXT_FILE="${1:-"$DUCT_TEXTRACT_FILENAME"}"
+  local TEXT_BEGIN="${2:-"$DUCT_TEXTRACT_MARKER_BEGIN"}"
+  local TEXT_END="${3:-"$DUCT_TEXTRACT_MARKER_END"}"
+  local -a TEXT_CONTENT
+  local TEXT_LINE
+  local TEXT_PRINT=0
+  local TEXT_ERROR=0
+
+  if [[ -z "$TEXT_FILE" ]]
+  then
+    __duct_msg e "no file!"
+    (( TEXT_ERROR+=1 ))
+  fi
+
+  if [[ -z "$TEXT_BEGIN" ]]
+  then
+    __duct_msg e "no marker begin!"
+    (( TEXT_ERROR+=1 ))
+  fi
+
+  if [[ -z "$TEXT_END" ]]
+  then
+    __duct_msg e "no marker end!"
+    (( TEXT_ERROR+=1 ))
+  fi
+
+  if [[ $TEXT_ERROR -gt 0 ]]
+  then
+    return 1
+  fi
+
+  if [[ ! -f "$TEXT_FILE" ]]
+  then
+    __duct_msg d "using variable input"
+    readarray -t TEXT_CONTENT <<< "$TEXT_FILE"
+  else
+    __duct_msg d "using file $TEXT_FILE"
+    readarray -t TEXT_CONTENT < "$TEXT_FILE"
+  fi
+
+  for TEXT_LINE in "${TEXT_CONTENT[@]}"
+  do
+    if [[ "$TEXT_PRINT" -eq 1 ]] && [[ "$TEXT_LINE" != "$TEXT_END" ]]
+    then
+      echo "$TEXT_LINE"
+    fi
+
+    if [[ $TEXT_LINE == "$TEXT_BEGIN" ]]
+    then
+      __duct_msg d "found $TEXT_BEGIN"
+      TEXT_PRINT=1
+    fi
+
+    if [[ $TEXT_LINE == "$TEXT_END" ]]
+    then
+      __duct_msg d "found $TEXT_END"
+      TEXT_PRINT=0
+    fi
+  done
+}
+readonly -f __duct_textract
+
+# compversion
+
+# deps:
+# intl: false
+# life:
+# desc: Compare two semantic versions, return newer or equal.
+# opts: <version1> <version2>
+__duct_compversion() {
+  local VERSION_1="${1:-}"
+  local VERSION_2="${2:-}"
+
+  local VERSION_1_PREFIX=""
+  local VERSION_2_PREFIX=""
+
+  local IFS=.
+  local I
+
+  if [[ "$VERSION_1" =~ ^v ]]
+  then
+    VERSION_1="${VERSION_1//v}"
+    VERSION_1_PREFIX="v"
+  fi
+
+  if [[ "$VERSION_2" =~ ^v ]]
+  then
+    VERSION_2="${VERSION_2//v}"
+    VERSION_2_PREFIX="v"
+  fi
+
+  # to array
+  read -ra VERSION_1 <<< "$VERSION_1"
+  read -ra VERSION_2 <<< "$VERSION_2"
+
+  for ((I=${#VERSION_1[@]}; I<${#VERSION_2[@]}; I++))
+  do
+    VERSION_1[I]=0
+  done
+
+  for ((I=0; I<${#VERSION_1[@]}; I++))
+  do
+    if [[ -z ${VERSION_2[I]} ]]
+    then
+      VERSION_2[I]=0
+    fi
+
+    if ((10#${VERSION_1[I]} > 10#${VERSION_2[I]}))
+    then
+      __duct_msg d "${VERSION_1_PREFIX}${VERSION_1[*]} > ${VERSION_2_PREFIX}${VERSION_2[*]}"
+      echo "${VERSION_1_PREFIX}${VERSION_1[*]}"
+      return
+    fi
+
+    if ((10#${VERSION_1[I]} < 10#${VERSION_2[I]}))
+    then
+      __duct_msg d "${VERSION_1_PREFIX}${VERSION_1[*]} < ${VERSION_2_PREFIX}${VERSION_2[*]}"
+      echo "${VERSION_2_PREFIX}${VERSION_2[*]}"
+      return
+    fi
+  done
+
+  __duct_msg d "${VERSION_1_PREFIX}${VERSION_1[*]} = ${VERSION_2_PREFIX}${VERSION_2[*]}"
+  echo "${VERSION_1_PREFIX}${VERSION_1[*]}"
+  return
+}
+readonly -f __duct_compversion
+
+# urlencode/decode
+
+# URL encoding map (hidden).
+declare -g -a -r _DUCT_URL_CODE_MAP=(
+  '%:%25'   # needs to be first
+  " :%20"
+  "!:%21"
+  '":%22'
+  "#:%23"
+  "$:%24"
+  "&:%26"
+  "':%27"
+  "(:%28"
+  "):%29"
+  '\*:%2A'
+  "+:%2B"
+  ",:%2C"
+  "-:%2D"
+  ".:%2E"
+  "/:%2F"
+  "::%3A"
+  ";:%3B"
+  "<:%3C"
+  "=:%3D"
+  ">:%3E"
+  '\?:%3F'
+  "@:%40"
+  "[:%5B"
+  "\\\:%5C"
+  "]:%5D"
+  "^:%5E"
+  "_:%5F"
+  '\`:%60'
+  "{:%7B"
+  "|:%7C"
+  "}:%7D"
+  "~:%7E"
+)
+
+# deps: duct-msg
+# intl: false
+# life: beta
+# desc: Encode to URL-encoded format.
+# opts: <url>
+__duct_urlencode() {
+  local URL="${1:-}"
+  local I
+
+  if [[ -z "$URL" ]]
+  then
+    __duct_msg e "no url!"
+    exit 1
+  fi
+
+  __duct_msg d "$URL"
+
+  for (( I=0; I<=${#_DUCT_URL_CODE_MAP[@]}-1; I++))
+  do
+    URL="${URL//${_DUCT_URL_CODE_MAP[I]%:*}/${_DUCT_URL_CODE_MAP[I]##*:}}"
+  done
+
+  echo "$URL"
+}
+readonly -f __duct_urlencode
+
+# deps: duct-msg
+# intl: false
+# life: beta
+# desc: Decode from URL-encoded format.
+# opts: <url>
+__duct_urldecode() {
+  local URL="${1:-}"
+  local I
+
+  if [[ -z "$URL" ]]
+  then
+    __duct_msg e "no url!"
+    exit 1
+  fi
+
+  __duct_msg d "$URL"
+
+  for (( I=${#_DUCT_URL_CODE_MAP[@]}-1; I>=0; I-- ))
+  do
+    URL="${URL//${_DUCT_URL_CODE_MAP[I]##*:}/${_DUCT_URL_CODE_MAP[I]%:*}}"
+  done
+
+  echo "$URL"
+}
+readonly -f __duct_urldecode
+
+# urlinfo
+
+# desc: Associative array of URL parts.
+declare -g -x -A DUCT_URLINFO=()
+
+# deps: duct-msg
+# intl: false
+# life: beta
+# desc: Explode a URL into parts and set `DUCT_URLINFO` (`scheme`, `host`, and `path` is supported).
+# opts: <url>
+__duct_urlinfo() {
+  local URL="${1:-""}"
+
+  if [[ -z "$URL" ]]
+  then
+    __duct_msg e "no url!"
+    return 1
+  fi
+
+  URL_SCHEME="${URL%%//*}"
+  URL_SCHEME="${URL_SCHEME//:}"
+
+  URL_AUTHPATH="${URL#*//}"
+
+  URL_HOST="${URL_AUTHPATH%%/*}"
+  URL_PATH="${URL_AUTHPATH#*/}"
+
+  if [[ "$URL_PATH" == "$URL_HOST" ]]
+  then
+    URL_PATH="/"
+  fi
+
+  __duct_msg d "set scheme: '$URL_SCHEME'"
+  DUCT_URLINFO["scheme"]="$URL_SCHEME"
+
+  __duct_msg d "set host: '$URL_HOST'"
+  DUCT_URLINFO["host"]="$URL_HOST"
+
+  __duct_msg d "set path: '$URL_PATH'"
+  DUCT_URLINFO["path"]="$URL_PATH"
+}
+readonly -f __duct_urlinfo
+
+# urlsplit
+
+# Array of URL splits.
+declare -g -x -a DUCT_URLSPLIT=()
+
+# deps: duct-msg
+# intl: false
+# life: beta
+# desc: Split a URL into parts and set `DUCT_URLSPLIT`.
+# opts: <url>
+__duct_urlsplit() {
+  local URL="${1:-}"
+
+  if [[ -z "$URL" ]]
+  then
+    __duct_msg e "no url!"
+    return 1
+  fi
+
+  IFS=" " read -r -a DUCT_URLSPLIT <<< "${URL//\// }"
+  __duct_msg d "${DUCT_URLSPLIT[*]}"
+}
+readonly -f __duct_urlsplit
+
+# ostype
+
+# Mapping of ostype source=destination (defaults).
+declare -a -r _DUCT_OSTYPE_MAP=()
+
+# Exported ostype mapping results (set at runtime).
+declare -g -x DUCT_OSTYPE="${DUCT_OSTYPE:-}"
+
+# Exported ostype extra information (set at runtime).
+declare -g -x DUCT_OSTYPE_EXTRA="${DUCT_OSTYPE_EXTRA:-}"
+
+# shellcheck disable=SC2206
+# Mapping of ostype source=destination.
+declare -g -a DUCT_OSTYPE_MAP=( ${DUCT_OSTYPE_MAP[@]:-${_DUCT_OSTYPE_MAP[@]}} )
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Process ostype mapping and set matching ostype to `DUCT_OSTYPE`.
+# opts:
+__duct_ostype() {
+  local MAP
+  local SRC
+  local DST
+  local _OSTYPE="$OSTYPE"
+
+  # name-extra
+  if [[ "$_OSTYPE" =~ ([a-z]+)-?([a-z]+)?$ ]]
+  then
+    DUCT_OSTYPE_EXTRA="${BASH_REMATCH[-1]}"
+    _OSTYPE="${BASH_REMATCH[-2]}"
+
+  # nameversion
+  elif [[ "$_OSTYPE" =~ ([a-z]+)([0-9.]+)?$ ]]
+  then
+    DUCT_OSTYPE_EXTRA="${BASH_REMATCH[-1]}"
+    _OSTYPE="${BASH_REMATCH[-2]}"
+  fi
+
+  if [[ "${#DUCT_OSTYPE_MAP[@]}" -eq 0 ]]
+  then
+    export DUCT_OSTYPE="$_OSTYPE"
+    return
+  fi
+
+  __duct_msg d "$_OSTYPE mapping '${DUCT_OSTYPE_MAP[*]}'"
+
+  for MAP in "${DUCT_OSTYPE_MAP[@]}"
+  do
+    SRC="${MAP%%=*}"
+    DST="${MAP##*=}"
+
+    if [[ "$_OSTYPE" == "$SRC" ]]
+    then
+      _OSTYPE="$DST"
+    fi
+  done
+
+  export DUCT_OSTYPE="$_OSTYPE"
+}
+readonly -f __duct_ostype
+
+# hosttype
+
+# Mapping of hosttype source=destination (defaults).
+declare -a -r _DUCT_HOSTTYPE_MAP=()
+
+# Exported hosttype mapping results (set at runtime).
+declare -g -x DUCT_HOSTTYPE=""
+
+# shellcheck disable=SC2206
+# Mapping of hosttype source=destination.
+declare -g -a DUCT_HOSTTYPE_MAP=( ${DUCT_HOSTTYPE_MAP[@]:-${_DUCT_HOSTTYPE_MAP[@]}} )
+
+# Exported hosttype common variants.
+declare -g -x -a DUCT_HOSTTYPE_COMMON=()
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Process hosttype mapping and set matching hosttype to `DUCT_HOSTTYPE`.
+# opts:
+__duct_hosttype() {
+  local DST
+  local MAP
+  local SRC
+  local _HOSTTYPE="$HOSTTYPE"
+
+  case "$_HOSTTYPE"
+  in
+    aarch64)  DUCT_HOSTTYPE_COMMON+=( "arm64" ) ;;
+    amd64)    DUCT_HOSTTYPE_COMMON+=( "x86_64" ) ;;
+    arm64)    DUCT_HOSTTYPE_COMMON+=( "aarch64" ) ;;
+    x86_64)   DUCT_HOSTTYPE_COMMON+=( "amd64" ) ;;
+
+    arm*)     DUCT_HOSTTYPE_COMMON+=( "arm" ) ;;
+  esac
+
+  DUCT_HOSTTYPE_COMMON+=( "$_HOSTTYPE" )
+
+  if [[ "${#DUCT_HOSTTYPE_MAP[@]}" -eq 0 ]]
+  then
+    export DUCT_HOSTTYPE="$_HOSTTYPE"
+    return
+  fi
+
+  __duct_msg d "$_HOSTTYPE mapping '${DUCT_HOSTTYPE_MAP[*]}'"
+
+  for MAP in "${DUCT_HOSTTYPE_MAP[@]}"
+  do
+    SRC="${MAP%%=*}"
+    DST="${MAP##*=}"
+
+    if [[ "$_HOSTTYPE" == "$SRC" ]]
+    then
+      _HOSTTYPE="$DST"
+    fi
+  done
+
+  export DUCT_HOSTTYPE="$_HOSTTYPE"
+}
+readonly -f __duct_hosttype
+
+# unpack
+
+# deps: duct-gnu duct-msg duct-run
+# intl: true
+# life:
+# desc: Unpack files from an archive.
+# opts:
+__duct_unpack() {
+  local ARCHIVE="$1"
+  shift
+  local DIR="$1"
+  shift
+  local MODE="$1"
+  shift
+  local -a FILES=( "$@" )
+  local FILE
+  local SRC_FILE
+  local DST_FILE
+
+  for FILE in "${FILES[@]}"
+  do
+    SRC_FILE="${FILE%%:*}"
+    DST_FILE="${FILE##*:}"
+
+    local STRIP_PATH=0
+    local -a EXTRA_OPTS=()
+    local TYPE
+
+    __duct_msg n "unpacking $SRC_FILE from $ARCHIVE to ${DIR}/${DST_FILE}"
+
+    case "$ARCHIVE" in
+      *.tar.gz|*.tar.xz|*.tgz|*.txz)
+        STRIP_PATH="$( awk -F"/" '{print NF-1}' <<< "$FILE" )" # get '/' count
+
+        if [[ $STRIP_PATH -ge 1 ]]
+        then
+          EXTRA_OPTS+=( --strip-components="$STRIP_PATH" --wildcards )
+        fi
+        __duct_gnu_tar -xf "$ARCHIVE" -C "$DIR" "${EXTRA_OPTS[@]}" "$SRC_FILE"
+      ;;
+
+      *.zip)
+        __duct_run unzip -oqq "$ARCHIVE" "$SRC_FILE" -d "$DIR" "${EXTRA_OPTS[@]}"
+      ;;
+
+      *)
+        TYPE="$( file -b --mime-type "$ARCHIVE" )"
+
+        if [[ "$TYPE" =~ (executable|binary) ]]
+        then
+          __duct_run install -m "$MODE" "$ARCHIVE" "${DIR}/${DST_FILE}"
+        else
+          __duct_msg e "unsuported archive type $ARCHIVE"
+          return 1
+        fi
+      ;;
+    esac
+
+    if [[ "$STRIP_PATH" -ge 1 ]]
+    then
+      SRC_FILE="${SRC_FILE##*/}"
+    fi
+
+    if [[ "$SRC_FILE" != "$DST_FILE" ]]
+    then
+      # shellcheck disable=SC2086
+      __duct_run mv ${DIR}/${SRC_FILE} "${DIR}/${DST_FILE}"
+    fi
+
+    __duct_run chmod "$MODE" "${DIR}/${DST_FILE}"
+  done
+
+  __duct_run rm -f "${ARCHIVE:?}"
+}
+readonly -f __duct_unpack
+
+# umask
+
+# TODO
+declare -g DUCT_UMASK="${DUCT_UMASK:-"$( umask )"}"
+
+# Directory TODO (set at runtime).
+declare -g -x DUCT_UMASK_DMODE=""
+
+# File TODO (set at runtime).
+declare -g -x DUCT_UMASK_FMODE=""
+
+# deps:
+# intl: true
+# life: experimental
+# desc: Set a duct wide umask to work with.
+# opts:
+__duct_umask() {
+  DUCT_UMASK_DMODE="$( printf '%#o' $(( 0777 & ~DUCT_UMASK )) )"
+  DUCT_UMASK_FMODE="$( printf '%#o' $(( 0777 & ~0111 & ~DUCT_UMASK )) )"
+
+  export DUCT_UMASK_DMODE
+  export DUCT_UMASK_FMODE
+}
+readonly -f __duct_umask
+
+# realpath
+
+# deps:
+# intl: false
+# life: beta
+# desc: Get real path of a file
+# opts: <file>
+__duct_realpath() {
+  local FILE="${1:-}"
+
+  if [[ -z "$FILE" ]]
+  then
+    echo duct msg e "no file!"
+    exit 1
+  fi
+
+  if [[ ! -e "$FILE" ]]
+  then
+    echo duct msg e "$FILE not found!"
+    exit 1
+  fi
+
+  if [[ ! -L "$FILE" ]]
+  then
+    __duct_msg d "$FILE is not a symlink"
+  fi
+
+  while [[ -L "$FILE" ]] && [[ "$(ls -l "$FILE" )" =~ -\>\ (.*) ]]
+  do
+    LINK="${BASH_REMATCH[1]}"
+    DIRNAME="$( __duct_dirname "$FILE" )"
+
+    if [[ ! "$LINK" =~ ^/ ]]
+    then
+      DIRNAME="${DIRNAME}/$( __duct_dirname "$LINK" )"
+    else
+      DIRNAME="$( __duct_dirname "$LINK" )"
+    fi
+
+    DIRNAME="$( __duct_dirname "$DIRNAME" )"
+    DIRNAME="$( cd "$DIRNAME" && echo "$PWD" )"
+    FILE="${DIRNAME}/${FILE##*/}"
+  done
+
+  echo "$FILE"
+}
+readonly -f __duct_realpath
+
+# source
+
+# deps: duct-msg
+# intl: false
+# life: testing
+# desc: Source a variables file and export with optional prefix.
+# opts: <source-file> [prefix]
+__duct_source() {
+  local SRC_FILE="$1"
+  local SRC_PREFIX="${2:-""}"
+  local -a SRC_CONTENT
+
+  local SRC
+  local VAR
+  local VAL
+
+  if [[ -z "$SRC_FILE" ]]
+  then
+    __duct_msg e "no source file!"
+    return 1
+  fi
+
+  if [[ -s "$SRC_FILE" ]]
+  then
+    # shellcheck disable=SC1090
+    readarray -t SRC_CONTENT < <( ( set -x; source "$SRC_FILE"; set +x ) 2>&1 )
+
+    for SRC in "${SRC_CONTENT[@]}"
+    do
+      if [[ "$SRC" =~ ([A-Z_]+)=([[:alnum:][:punct:][:blank:]]+) ]]
+      then
+        VAR="${BASH_REMATCH[1]:?}"
+        VAL="${BASH_REMATCH[2]:?}"
+
+        VAL="${VAL//"'"}"   # remove '
+
+        if [[ -n "$SRC_PREFIX" ]]
+        then
+          __duct_msg d "export ${SRC_PREFIX}_${VAR}=${VAL}"
+          export "${SRC_PREFIX}_${VAR}=${VAL}"
+        else
+          __duct_msg d "export ${VAR}=${VAL}"
+          export "${VAR}=${VAL}"
+        fi
+      fi
+    done
+
+  else
+    __duct_msg w "$SRC_FILE is empty!"
+  fi
+}
+readonly -f __duct_source
+
+# cat
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Bash `cat` alternative.
+# opts: <file(s)>
+__duct_cat() {
+  local CAT_FILES=( "$@" )
+
+  local -a CAT_DATA
+  local CAT_FILE
+
+  if [[ -z "${CAT_FILES[*]+x}" ]]
+  then
+    __duct_msg d "reading from stdin"
+    readarray -t -n 0 CAT_DATA
+    printf "%s\n" "${CAT_DATA[@]}"
+  else
+    for CAT_FILE in "${CAT_FILES[@]}"
+    do
+      if [[ -s "$CAT_FILE" ]]
+      then
+        __duct_msg d "reading from file $CAT_FILE"
+        mapfile -t -n 0 CAT_DATA < "$CAT_FILE"
+        printf "%s\n" "${CAT_DATA[@]}"
+      fi
+    done
+  fi
+}
+readonly -f __duct_cat
+
+# head
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Bash `head` alternative.
+# opts: <lines> <file>
+__duct_head() {
+  local HEAD_LINES="${1:-0}"
+  local HEAD_FILE="${2:-}"
+
+  local -a HEAD_DATA
+
+  if [[ -z "$HEAD_FILE" ]]
+  then
+    __duct_msg d "reading $HEAD_LINES from stdin"
+    readarray -t -n "$HEAD_LINES" HEAD_DATA
+  elif [[ -s "$HEAD_FILE" ]]
+  then
+    __duct_msg d "reading $HEAD_LINES from file $HEAD_FILE"
+    mapfile -t -n "$HEAD_LINES" HEAD_DATA < "$HEAD_FILE"
+  fi
+
+  if [[ -n "${HEAD_DATA[*]+x}" ]]
+  then
+    printf "%s\n" "${HEAD_DATA[@]}"
+  else
+    __duct_msg w "emtpy result!"
+  fi
+}
+readonly -f __duct_head
+
+# tail
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Bash `tail` alternative.
+# opts: <lines> <file>
+__duct_tail() {
+  local TAIL_LINES="${1:-0}"
+  local TAIL_FILE="${2:-}"
+
+  local -a TAIL_DATA
+
+  if [[ -z "$TAIL_FILE" ]]
+  then
+    __duct_msg d "reading $TAIL_LINES from stdin"
+    readarray -t -n 0 TAIL_DATA
+  elif [[ -s "$TAIL_FILE" ]]
+  then
+    __duct_msg d "reading $TAIL_LINES from file $TAIL_FILE"
+    mapfile -t -n 0 TAIL_DATA < "$TAIL_FILE"
+  fi
+
+  if [[ -n "${TAIL_DATA[*]+x}" ]]
+  then
+    printf "%s\n" "${TAIL_DATA[@]: -${TAIL_LINES}}"
+  else
+    __duct_msg w "empty result!"
+  fi
+}
+readonly -f __duct_tail
+
+# tee
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Bash `tee` alternative.
+# opts: <file> [append: true|false]
+__duct_tee() {
+  local TEE_FILE="${1:-}"
+  local TEE_APPEND="${2:-false}"
+  local TEE_LINE
+
+  if [[ -z "$TEE_FILE" ]]
+  then
+    __duct_msg e "no file!"
+    return 1
+  fi
+
+  if [[ "$TEE_APPEND" != true ]]
+  then
+    : > "$TEE_FILE"
+  fi
+
+  while read -r TEE_LINE
+  do
+    printf "%s\n" "$TEE_LINE"
+    printf "%s\n" "$TEE_LINE" >> "$TEE_FILE" 2>&1
+  done
+}
+readonly -f __duct_tee
+
+# grep
+
+# deps: duct-gnu
+# intl: false
+# life: core
+# desc: Alias of `duct gnu grep`.
+# opts: <grep-options>
+__duct_grep() {
+  __duct_gnu_grep "$@"
+}
+readonly -f __duct_grep
+
+# sed
+
+# deps: duct-gnu
+# intl: false
+# life: core
+# desc: Alias of `duct gnu sed`.
+# opts: <sed-options>
+__duct_sed() {
+  __duct_gnu_sed "$@"
+}
+readonly -f __duct_sed

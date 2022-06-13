@@ -1,0 +1,57 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-curl
+# curl operations.
+
+# curl
+
+# Options for `curl` (defaults).
+declare -a _DUCT_CURL_OPTIONS=(
+  --fail        # -f
+  --location    # -L
+  --retry 3
+  --show-error  # -S
+  --silent      # -s
+)
+
+# URL(s) to run `curl` at (defaults).
+declare -a _DUCT_CURL_URL=()
+
+# Options for `curl`.
+declare -g -a DUCT_CURL_OPTIONS=( "${DUCT_CURL_OPTIONS[@]:-${_DUCT_CURL_OPTIONS[@]}}" )
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# URL(s) to run `curl` at.
+declare -g DUCT_CURL_URL=( ${DUCT_CURL_URL[@]:-${_DUCT_CURL_URL[@]}} )
+
+# deps: duct-run
+# intl: false
+# life: core
+# desc: Run `curl` and mask secrets (see `duct-run`).
+# opts: [url]
+__duct_curl() {
+  local -a CURL_URL=( "${DUCT_CURL_URL[@]:-$@}" )
+  local CURL_RC=0
+
+  __duct_run curl "${DUCT_CURL_OPTIONS[@]}" "${CURL_URL[@]}" || CURL_RC=$?
+  return $CURL_RC
+}
+readonly -f __duct_curl
