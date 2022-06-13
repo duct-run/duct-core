@@ -1,0 +1,200 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-msg
+# The duct messaging system.
+
+# duct msg
+
+# ANSI color code for alert messages.
+declare -g DUCT_MSG_COLOR_ALERT="${DUCT_MSG_COLOR_ALERT:-"1;35"}"
+
+# ANSI color code for critical messages.
+declare -g DUCT_MSG_COLOR_CRITICAL="${DUCT_MSG_COLOR_CRITICAL:-"0;35"}"
+
+# ANSI color code for debug messages.
+declare -g DUCT_MSG_COLOR_DEBUG="${DUCT_MSG_COLOR_DEBUG:-"1;34"}"
+
+# ANSI color code for emergency messages.
+declare -g DUCT_MSG_COLOR_EMERGENCY="${DUCT_MSG_COLOR_EMERGENCY:-"1;31"}"
+
+# ANSI color code for error messages.
+declare -g DUCT_MSG_COLOR_ERROR="${DUCT_MSG_COLOR_ERROR:-"0;31"}"
+
+# ANSI color code for info messages.
+declare -g DUCT_MSG_COLOR_INFO="${DUCT_MSG_COLOR_INFO:-"1;36"}"
+
+# ANSI color code for notice messages.
+declare -g DUCT_MSG_COLOR_NOTICE="${DUCT_MSG_COLOR_NOTICE:-"0;37"}"
+
+# ANSI color code for other messages.
+declare -g DUCT_MSG_COLOR_OTHER="${DUCT_MSG_COLOR_OTHER:-"0;32"}"
+
+# ANSI color code for warning messages.
+declare -g DUCT_MSG_COLOR_WARNING="${DUCT_MSG_COLOR_WARNING:-"0;33"}"
+
+# Default message date format.
+declare -g DUCT_MSG_DATE_FORMAT="${DUCT_MSG_DATE_FORMAT:-"%F %T"}"
+
+# Enable/disable colorized messages.
+declare -g DUCT_MSG_ENABLE_COLOR="${DUCT_MSG_ENABLE_COLOR:-true}"
+
+# Enable/disable date output.
+declare -g DUCT_MSG_ENABLE_DATE="${DUCT_MSG_ENABLE_DATE:-true}"
+
+# Maximum level for messages (7 = debug).
+declare -g DUCT_MSG_MAX_LEVEL="${DUCT_MSG_MAX_LEVEL:-7}"
+
+# deps: duct-util
+# intl: false
+# life: core
+# desc: Print (colorized) message with the given level to stderr.
+# opts: <level> <message>
+__duct_msg() {
+  local MSG_LEVEL="${1:-"error"}"
+  shift
+  local MSG_OUTPUT=( "$@" )
+  local MSG_SELF="${FUNCNAME[0]}"
+  local -a MSG_FUNC=( "${FUNCNAME[@]}" )
+  local MSG_BASH="${BASH_SOURCE[-1]##*/}"
+  local MSG_CALL=""
+
+  local MSG_DATE=""
+  local MSG_COLOR=""
+  local MSG_COLOR_NONE="\033[0m"
+  local MSG_RC=0
+
+  local -a _CALL=()
+
+  case "$MSG_LEVEL"
+  in
+    em|emergency|0)
+      MSG_LEVEL="EMERGENCY"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_EMERGENCY}m"
+    ;;
+
+    a|alert|1)
+      MSG_LEVEL="ALERT"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_ALERT}m"
+    ;;
+
+    c|critical|2)
+      MSG_LEVEL="CRITICAL"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_CRITICAL}m"
+    ;;
+
+    e|error|3)
+      MSG_LEVEL="ERROR"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_ERROR}m"
+    ;;
+
+    w|warning|4)
+      MSG_LEVEL="WARNING"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_WARNING}m"
+    ;;
+
+    n|notice|5)
+      if [[ $DUCT_MSG_MAX_LEVEL -lt 5 ]]
+      then
+        return
+      fi
+      MSG_LEVEL="NOTICE"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_NOTICE}m"
+    ;;
+
+    i|info|6)
+      if [[ $DUCT_MSG_MAX_LEVEL -lt 6 ]]
+      then
+        return
+      fi
+      MSG_LEVEL="INFO"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_INFO}m"
+    ;;
+
+    d|debug|7)
+      if [[ $DUCT_MSG_MAX_LEVEL -lt 7 ]]
+      then
+        return
+      fi
+      MSG_LEVEL="DEBUG"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_DEBUG}m"
+    ;;
+
+    x|o|other|8)
+      MSG_LEVEL="OTHER"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_OTHER}m"
+    ;;
+
+    *)
+      MSG_LEVEL="ERROR"
+      MSG_COLOR="\033[${DUCT_MSG_COLOR_ERROR}m"
+
+      if [[ $DUCT_MSG_ENABLE_COLOR == false ]]
+      then
+        MSG_COLOR=""
+        MSG_COLOR_NONE=""
+      fi
+      # shellcheck disable=SC2183
+      >&2 printf "%b%s\n" "${MSG_COLOR}${MSG_DATE}[${MSG_LEVEL}] ${MSG_BASH}:${MSG_CALL} ${MSG_SELF//__duct_}: wrong level!${MSG_COLOR_NONE}"
+      return 1
+    ;;
+  esac
+
+  if [[ $DUCT_MSG_ENABLE_COLOR == false ]]
+  then
+    MSG_COLOR=""
+    MSG_COLOR_NONE=""
+  fi
+
+  if [[ $DUCT_MSG_ENABLE_DATE == true ]]
+  then
+    MSG_DATE="$( printf "%($DUCT_MSG_DATE_FORMAT)T\\n" -1 ) "
+  fi
+
+  #if [[ -z "${MSG_OUTPUT[*]}" ]]
+  #then
+  #  readarray -t MSG_OUTPUT || MSG_RC=$?
+  #fi
+
+  for (( IDX=${#MSG_FUNC[@]}-1; IDX>=0; IDX-- ))
+  do
+    if [[ "${MSG_FUNC[IDX]}" =~ ^(main|duct|${MSG_SELF})$ ]] # remove well known
+    then
+      unset 'MSG_FUNC[IDX]'
+    elif [[ "${MSG_FUNC[IDX]}" =~ ^(source)$ ]]
+    then
+      MSG_FUNC[IDX]="duct"
+      _CALL+=( "${MSG_FUNC[IDX]//__duct_}" )
+    else
+      _CALL+=( "${MSG_FUNC[IDX]//__duct_}" )
+    fi
+  done
+
+  if [[ -n "${_CALL[*]}" ]]
+  then
+    MSG_CALL="${_CALL[*]}"
+    MSG_CALL="${MSG_CALL// /\/}"
+    MSG_CALL=" ${MSG_CALL}:"
+  fi
+
+  # shellcheck disable=SC2145
+  >&2 printf "%b%s\n" "${MSG_COLOR}${MSG_DATE}[${MSG_LEVEL}] ${MSG_BASH}:${MSG_CALL} ${MSG_OUTPUT[@]}${MSG_COLOR_NONE}"
+  return $MSG_RC
+}
+readonly -f __duct_msg

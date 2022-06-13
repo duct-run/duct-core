@@ -1,0 +1,271 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-brew
+# Homebrew operations.
+
+# List of Tap to be tapped (defaults).
+declare -a -r _DUCT_BREW_TAP=()
+
+# List of Formula to be installed (defaults).
+declare -a -r _DUCT_BREW_FORMULA=()
+
+# List of Cask to be installed (defaults).
+declare -a -r _DUCT_BREW_CASK=()
+
+# Homebrew binary to use (set at run-time).
+declare -g DUCT_BREW_BIN=""
+
+# Homebrew custom PATH to avoid warnings (advanced only!).
+declare -g DUCT_BREW_PATH=${DUCT_BREW_PATH:-}
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# List of tap to be tapped.
+declare -g -a DUCT_BREW_TAP=( ${DUCT_BREW_TAP[@]:-${_DUCT_BREW_TAP[@]}} )
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# List of formula to be installed.
+declare -g -a DUCT_BREW_FORMULA=( ${DUCT_BREW_FORMULA[@]:-${_DUCT_BREW_FORMULA[@]}} )
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# List of cask to be installed.
+declare -g -a DUCT_BREW_CASK=( ${DUCT_BREW_CASK[@]:-${_DUCT_BREW_CASK[@]}} )
+
+# Enable/disable Homebrew bootstrap installation.
+declare -g DUCT_BREW_BOOTSTRAP=${DUCT_BREW_BOOTSTRAP:-false}
+
+# Enable/disable Homebrew update run.
+declare -g DUCT_BREW_UPGRADE=${DUCT_BREW_UPGRADE:-true}
+
+# Enable/disable `--greedy` upgrade option.
+declare -g DUCT_BREW_GREEDY=${DUCT_BREW_GREEDY:-false}
+
+# Enable/disable Homebrew analytics.
+declare -g DUCT_BREW_ANALYTICS=${DUCT_BREW_ANALYTICS:-false}
+
+# Enable/disable autoremove run.
+declare -g DUCT_BREW_AUTOREMOVE=${DUCT_BREW_AUTOREMOVE:-true}
+
+# Enable/disable cleanup run.
+declare -g DUCT_BREW_CLEANUP=${DUCT_BREW_CLEANUP:-true}
+
+# brew support
+
+# deps: duct-msg duct-run duct-util
+# intl: true
+# life: beta
+# desc: Detect OS and set Homebrew binary (DUCT_BREW_BIN).
+# opts:
+__duct_brew_support() {
+  if [[ -n "$DUCT_BREW_BIN" ]]
+  then
+    __duct_msg d "brew: $DUCT_BREW_BIN already set"
+    return 0
+  fi
+
+  __duct_ostype
+
+  case "$DUCT_OSTYPE"
+  in
+    darwin)
+      __duct_msg n "macOS homebrew"
+      DUCT_BREW_BIN="/usr/local/bin/brew"
+    ;;
+
+    linux*)
+      __duct_msg n "Linux homebrew"
+      DUCT_BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+      DUCT_BREW_FORMULA+=( gcc )
+    ;;
+
+    *)
+      __duct_msg e "$DUCT_OSTYPE is unsupported!"
+      return 127
+    ;;
+  esac
+
+  if ! __duct_checkbin "$DUCT_BREW_BIN" && [[ "$DUCT_BREW_BOOTSTRAP" == false ]]
+  then
+    __duct_msg e "homebrew bootstrap is disabled!"
+    return 127
+  fi
+
+  duct msg d "brew: $DUCT_BREW_BIN"
+}
+readonly -f __duct_brew_support
+
+# brew bootstrap
+
+# deps: duct-msg duct-run
+# intl: true
+# life: beta
+# desc: Bootstrap Homebrew installation.
+# opts:
+__duct_brew_bootstrap() {
+  local BREW_RC=0
+
+  __duct_brew_support || BREW_RC=$?
+
+  if [[ "$BREW_RC" -gt 0 ]]
+  then
+    return $BREW_RC
+  fi
+
+  if ! __duct_checkbin "$DUCT_BREW_BIN"
+  then
+    __duct_msg n "bootstraping homebrew"
+    __duct_run "$SHELL" -c "$( duct curl "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh" )"
+  fi
+}
+readonly -f __duct_brew_bootstrap
+
+# brew
+
+# deps: duct-msg duct-run duct-util
+# intl: false
+# life: beta
+# desc: Update, upgrade, install Homebrew tap, formula & cask.
+# opts:
+__duct_brew() {
+  local -a BREW_UPGRADE_OPTS=()
+  local BREW_RC=0
+
+  # environment
+  if [[ "$DUCT_BREW_ANALYTICS" != true ]]
+  then
+    export HOMEBREW_NO_ANALYTICS=true
+  fi
+
+  if [[ "$DUCT_BREW_BOOTSTRAP" == true ]]
+  then
+    __duct_brew_bootstrap || BREW_RC=$?
+  else
+    __duct_brew_support || BREW_RC=$?
+  fi
+
+  if [[ "$BREW_RC" -gt 0 ]]
+  then
+    return $BREW_RC
+  fi
+
+  # shellenv
+  __duct_msg d "homebrew shellenv"
+  eval "$( __duct_run "$DUCT_BREW_BIN" shellenv )"
+
+  if [[ -n "$DUCT_BREW_PATH" ]]
+  then
+    PATH="$DUCT_BREW_PATH"
+  fi
+
+  # tap
+  if [[ "${#DUCT_BREW_TAP[@]}" -gt 0 ]]
+  then
+    __duct_msg n "brew tap"
+
+    readarray -t BREW_TAP < <( "$DUCT_BREW_BIN" tap )
+    readarray -t _BREW_TAP < <( __duct_strip "${BREW_TAP[*]}" "${DUCT_BREW_TAP[*]}" )
+
+    if [[ "${#_BREW_TAP}" -gt 0 ]]
+    then
+      for TAP in "${_BREW_TAP[@]}"
+      do
+        __duct_run "$DUCT_BREW_BIN" tap "$TAP"
+      done
+    else
+      for TAP in "${DUCT_BREW_TAP[@]}"
+      do
+        __duct_msg d "tap '$TAP' already installed."
+      done
+    fi
+  fi
+
+  # update/upgrade
+  if [[ "$DUCT_BREW_UPGRADE" == true ]]
+  then
+    __duct_msg n "brew update"
+    __duct_run "$DUCT_BREW_BIN" update
+
+    if [[ "$DUCT_BREW_GREEDY" == true ]]
+    then
+      BREW_UPGRADE_OPTS+=( --greedy )
+    fi
+
+    __duct_msg n "brew upgrade"
+    __duct_run "$DUCT_BREW_BIN" upgrade "${BREW_UPGRADE_OPTS[@]}"
+  fi
+
+  # formula
+  if [[ "${#DUCT_BREW_FORMULA[@]}" -gt 0 ]]
+  then
+    __duct_msg n "brew install formula"
+
+    readarray -t BREW_FORMULA < <( __duct_run "$DUCT_BREW_BIN" ls --formula -1 )
+    readarray -t _BREW_FORMULA < <( __duct_strip "${BREW_FORMULA[*]}" "${DUCT_BREW_FORMULA[*]}" )
+
+    if [[ "${#_BREW_FORMULA}" -gt 0 ]]
+    then
+      # shellcheck disable=SC2048,SC2086
+      __duct_run "$DUCT_BREW_BIN" install --formula ${_BREW_FORMULA[*]}
+    else
+      for FORMULA in "${DUCT_BREW_FORMULA[@]}"
+      do
+        __duct_msg d "formula '$FORMULA' already installed."
+      done
+    fi
+  fi
+
+  # cask
+  if [[ "${#DUCT_BREW_CASK[@]}" -gt 0 ]]
+  then
+    __duct_msg n "brew install cask"
+
+    readarray -t BREW_CASK < <( "$DUCT_BREW_BIN" ls --cask -1 )
+    readarray -t _BREW_CASK < <( __duct_strip "${BREW_CASK[*]}" "${DUCT_BREW_CASK[*]}" )
+
+    if [[ "${#_BREW_CASK}" -gt 0 ]] && [[ "${#DUCT_BREW_CASK[@]}" -gt 0 ]]
+    then
+      # shellcheck disable=SC2048,SC2086
+      __duct_run "$DUCT_BREW_BIN" install --cask ${_BREW_CASK[*]}
+    else
+      for CASK in "${DUCT_BREW_CASK[@]}"
+      do
+        __duct_msg d "cask '$CASK' already installed."
+      done
+    fi
+  fi
+
+  # autoremove
+  if [[ "$DUCT_BREW_AUTOREMOVE" == true ]]
+  then
+    __duct_msg n "brew autoremove"
+    __duct_run "$DUCT_BREW_BIN" autoremove
+  fi
+
+  # cleanup
+  if [[ "$DUCT_BREW_CLEANUP" == true ]]
+  then
+    export HOMEBREW_CLEANUP_MAX_AGE_DAYS=0
+    __duct_msg n "brew cleanup"
+    __duct_run "$DUCT_BREW_BIN" cleanup
+  fi
+}
+readonly -f __duct_brew

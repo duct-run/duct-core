@@ -1,0 +1,149 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-gnu
+# GNU tools.
+
+# Associative array of GNU tools (set at runtime).
+declare -g -A DUCT_GNU_TOOLS=()
+declare -g DUCT_GNU_TOOLS["grep"]="grep"
+declare -g DUCT_GNU_TOOLS["sed"]="sed"
+declare -g DUCT_GNU_TOOLS["tar"]="tar"
+
+# gnu check
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: Check and set GNU versions to `DUCT_GNU_TOOLS`.
+# opts:
+__duct_gnu_check() {
+  local GNU_SET
+  local GNU
+  local GNU_ID
+  local GNU_CMD
+  local GNU_VERSION
+  local GNU_RC=0
+
+  case "$OSTYPE"
+  in
+    darwin*)
+      GNU_SET="grep=ggrep sed=gsed tar=gtar"
+    ;;
+    freebsd*)
+      GNU_SET="grep=grep sed=gsed tar=gtar"
+    ;;
+    linux*)
+      GNU_SET="grep=grep sed=sed tar=tar"
+    ;;
+    *)
+      __duct_msg e "$OSTYPE currently unsupported!"
+      return 1
+    ;;
+  esac
+
+  for GNU in $GNU_SET
+  do
+    GNU_ID="${GNU%%=*}"
+    GNU_CMD="${GNU##*=}"
+
+    GNU_PATH="$( command -v "$GNU_CMD" || : )"
+
+    if [[ -n "$GNU_PATH" ]]
+    then
+      GNU_VERSION="$( command "$GNU_PATH" --version 2>&1 | __duct_head 1 || : )"
+
+      if [[ "$GNU_VERSION" =~ (GNU $GNU_ID) ]]
+      then
+        DUCT_GNU_TOOLS["$GNU_ID"]="$GNU_CMD"
+        __duct_msg d "'$GNU_PATH' GNU version found"
+      else
+        __duct_msg w "'$GNU_PATH' not a GNU version!"
+      fi
+    else
+      __duct_msg e "$GNU_CMD not found!"
+      (( GNU_RC+=1 ))
+    fi
+  done
+
+  if [[ "$GNU_RC" -gt 0 ]]
+  then
+    return 1
+  else
+    return 0
+  fi
+}
+readonly -f __duct_gnu_check
+
+# gnu grep
+
+# deps: duct-run
+# intl: false
+# life: core
+# desc: Run GNU version of `grep` (if available).
+# opts: <grep-options>
+__duct_gnu_grep() {
+  if [[ "${FUNCNAME[1]}" == "duct" ]]
+  then
+    # external
+    __duct_run "${DUCT_GNU_TOOLS["grep"]}" "$@"
+  else
+    # internal
+    command "${DUCT_GNU_TOOLS["grep"]}" "$@"
+  fi
+}
+readonly -f __duct_gnu_grep
+
+# gnu sed
+
+# deps: duct-run
+# intl: false
+# life: core
+# desc: Run GNU version of `sed` (if available).
+# opts: <sed-options>
+__duct_gnu_sed() {
+  if [[ "${FUNCNAME[1]}" == "duct" ]]
+  then
+    # external
+    __duct_run "${DUCT_GNU_TOOLS["sed"]}" "$@"
+  else
+    # internal
+    command "${DUCT_GNU_TOOLS["sed"]}" "$@"
+  fi
+}
+readonly -f __duct_gnu_sed
+
+# gnu tar
+
+# deps: duct-run
+# intl: false
+# life: core
+# desc: Run GNU version of `tar` (if available).
+# opts: <tar-options>
+__duct_gnu_tar() {
+  if [[ "${FUNCNAME[1]}" == "duct" ]]
+  then
+    # external
+    __duct_run "${DUCT_GNU_TOOLS["tar"]}" "$@"
+  else
+    # internal
+    command "${DUCT_GNU_TOOLS["tar"]}" "$@"
+  fi
+}
+readonly -f __duct_gnu_tar

@@ -1,0 +1,233 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-plug
+# Handle duct plugins.
+
+# Plugin core directory (internal).
+declare -g -r _DUCT_PLUG_DIR_CORE="${DUCT_PLUG_DIR}/core"
+
+# Plugin main directory (internal).
+declare -g -r _DUCT_PLUG_DIR_MAIN="${DUCT_PLUG_DIR}/main"
+
+# Plugin vendor directory (internal).
+declare -g -r _DUCT_PLUG_DIR_VENDOR="${DUCT_PLUG_DIR}/vendor"
+
+# Plugin hosting (internal/special).
+declare -g _DUCT_PLUG_HOSTING="${_DUCT_PLUG_HOSTING:-"https://scm.sh0.org/duct-run"}" #"https://github.com/duct-run"
+
+# Plugin exclude regex, already loaded (internal).
+declare -g -r _DUCT_PLUG_EXCLUDE="^(duct-conf|duct-msg|duct-plug)$"
+
+# Be quiet
+declare -g DUCT_PLUG_QUIET="${DUCT_PLUG_QUIET:-false}"
+
+# plug load
+
+# Enable/disbale plugin loader messages.
+declare -g DUCT_PLUG_LOAD_QUIET="${DUCT_PLUG_LOAD_QUIET:-${DUCT_PLUG_QUIET}}"
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: Load duct plugins.
+# opts: <plugin-type>
+__duct_plug_load() {
+  local PLUG
+  local PLUG_DIR
+  local PLUG_FIND
+  local PLUG_GLOB
+  local PLUG_NAME
+  local PLUG_TYPE="${1:-}"
+
+  shopt -s dotglob
+  shopt -s globstar
+
+  case "$PLUG_TYPE"
+  in
+    core)
+      PLUG_DIR="$_DUCT_PLUG_DIR_CORE"
+      PLUG_GLOB='**/duct-*'
+    ;;
+    main)
+      PLUG_DIR="$_DUCT_PLUG_DIR_MAIN"
+      PLUG_GLOB='plug/**/duct-*'
+    ;;
+    vendor)
+      PLUG_DIR="$_DUCT_PLUG_DIR_VENDOR"
+      PLUG_GLOB='*/plug/duct-*'
+
+      # skip vendor load
+      if [[ "${#DUCT_PLUG_INSTALL_VENDOR[@]}" -lt 1 ]]
+      then
+        return
+      fi
+    ;;
+    *)
+      __duct_msg e "'$PLUG_TYPE' unsupported plugin type!"
+      return 1
+    ;;
+  esac
+
+  # shellcheck disable=SC2206
+  PLUG_FIND=( "${PLUG_DIR}/"${PLUG_GLOB} )
+
+  if [[ "$DUCT_PLUG_LOAD_QUIET" != true ]]
+  then
+    __duct_msg d "$PLUG_TYPE"
+  fi
+
+  for PLUG in "${PLUG_FIND[@]}"
+  do
+    PLUG_NAME="${PLUG##*/}"
+
+    if [[ ! "$PLUG_NAME" =~ ^duct-[a-z]+$ ]] || [[ "$PLUG_NAME" =~ $_DUCT_PLUG_EXCLUDE ]]
+    then
+      continue
+    fi
+
+    if [[ -f "$PLUG" ]] && [[ -s "$PLUG" ]]
+    then
+
+      if [[ "$DUCT_PLUG_LOAD_QUIET" != true ]]
+      then
+        __duct_msg d "$PLUG_NAME"
+      fi
+
+      # shellcheck disable=SC1090
+      source "$PLUG"
+    fi
+  done
+
+  shopt -u dotglob
+  shopt -u globstar
+}
+readonly -f __duct_plug_load
+
+# plug install
+
+# Main plugins to be installed and updated (internal).
+declare -a -r _DUCT_PLUG_INSTALL_MAIN=(
+  duct-plug-main  # TODO: add stable version before release!
+)
+
+# List of vendor plugins to be installed and updated (defaults).
+declare -a -r _DUCT_PLUG_INSTALL_VENDOR=()
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# List of vendor plugins to be installed and updated (url::tag).
+declare -g -a DUCT_PLUG_INSTALL_VENDOR=( ${DUCT_PLUG_INSTALL_VENDOR[@]:-${_DUCT_PLUG_INSTALL_VENDOR[@]}} )
+
+# Enable/disable plugin installer messages.
+declare -g DUCT_PLUG_INSTALL_QUIET="${DUCT_PLUG_INSTALL_QUIET:-${DUCT_PLUG_QUIET}}"
+
+# Enable/disbale plugin update.
+declare -g DUCT_PLUG_INSTALL_UPDATE="${DUCT_PLUG_INSTALL_UPDATE:-true}"
+
+# deps: duct-git duct-msg
+# intl: true
+# life: core
+# desc: Install duct vendor plugins.
+# opts: <plugin-type>
+__duct_plug_install() {
+  local -a PLUG=()
+  local PLUG_DIR
+  local PLUG_TAG
+  local PLUG_TYPE="${1:-}"
+  local PLUG_URL
+  local _PLUG
+
+  case "$PLUG_TYPE"
+  in
+    main)
+      PLUG=( "${_DUCT_PLUG_INSTALL_MAIN[@]}" )
+    ;;
+    vendor)
+      PLUG=( "${DUCT_PLUG_INSTALL_VENDOR[@]}" )
+    ;;
+    *)
+      __duct_msg e "'$PLUG_TYPE' unsupported plugin type!"
+      return 1
+    ;;
+  esac
+
+  for _PLUG in "${PLUG[@]}"
+  do
+    PLUG_URL="${_PLUG%%::*}"
+    PLUG_TAG="${_PLUG##*::}"
+
+    if [[ "$PLUG_TAG" == "$PLUG_URL" ]]
+    then
+      PLUG_TAG="main"
+    fi
+
+    PLUG_NAME="${PLUG_URL##*/}"
+    PLUG_NAME="${PLUG_NAME//.git}"
+    PLUG_NAME="${PLUG_NAME##*duct-plug-}"
+    PLUG_NAME="${PLUG_NAME##*duct-plugin-}"
+
+    if [[ "$PLUG_TYPE" == "main" ]]
+    then
+      PLUG_DIR="$_DUCT_PLUG_DIR_MAIN"
+
+    elif [[ "$PLUG_TYPE" == "vendor" ]]
+    then
+      PLUG_DIR="${_DUCT_PLUG_DIR_VENDOR}/${PLUG_NAME}"
+    fi
+
+    # default pluging hosting
+    if [[ ! "$PLUG_URL" =~ ^(http(s)?|.*@) ]]
+    then
+      PLUG_URL="${_DUCT_PLUG_HOSTING}/${PLUG_URL}"
+    fi
+
+    # store
+    local _MSG_MAX_LEVEL="$DUCT_MSG_MAX_LEVEL"
+    if [[ "$DUCT_PLUG_INSTALL_QUIET" == true ]]
+    then
+      DUCT_MSG_MAX_LEVEL=0
+    fi
+
+    # git clone
+
+    # store options
+    # shellcheck disable=SC2206
+    local -a _GIT_CLONE_OPTIONS=( ${DUCT_GIT_CLONE_OPTIONS[@]} )
+    # shellcheck disable=SC2206
+    local -a _GIT_PULL_OPTIONS=( ${DUCT_GIT_PULL_OPTIONS[@]} )
+
+    # set options
+    DUCT_GIT_CLONE_OPTIONS=( --quiet )
+    DUCT_GIT_PULL_OPTIONS=( --quiet --prune )
+
+    DUCT_GIT_CLONE_PULL="$DUCT_PLUG_INSTALL_UPDATE" \
+    DUCT_GIT_CLONE_CHECKOUT="$PLUG_TAG" \
+    DUCT_RUN_SIMULATE=false \
+    __duct_git_clone "$PLUG_URL" "$PLUG_DIR"
+
+    # reset options
+    DUCT_MSG_MAX_LEVEL="$_MSG_MAX_LEVEL"
+    # shellcheck disable=SC2206
+    DUCT_GIT_CLONE_OPTIONS=( ${_GIT_CLONE_OPTIONS[@]} )
+    # shellcheck disable=SC2206
+    DUCT_GIT_PULL_OPTIONS=( ${_GIT_PULL_OPTIONS[@]} )
+  done
+}
+readonly -f __duct_plug_install

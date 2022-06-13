@@ -1,0 +1,155 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-pkg
+# FreeBSD pkg operations.
+
+# pkg options (defaults).
+declare -a -r _DUCT_PKG_OPTIONS=(
+  --yes
+)
+
+# pkg packages (defaults).
+declare -a -r _DUCT_PKG_PACKAGES=()
+
+# pkg binary to use.
+declare -g DUCT_PKG_BIN="${DUCT_PKG_BIN:-"pkg"}"
+
+# Use `sudo` for pkg operations (auto disabled for UID 0).
+declare -g DUCT_PKG_SUDO="${DUCT_PKG_SUDO:-true}"
+
+# Enable/disable pkg update run.
+declare -g DUCT_PKG_UPDATE="${DUCT_PKG_UPDATE:-true}"
+
+# Enable/disable pkg upgrade run.
+declare -g DUCT_PKG_UPGRADE="${DUCT_PKG_UPGRADE:-true}"
+
+# Enable/disable pkg autoremove run.
+declare -g DUCT_PKG_AUTOREMOVE="${DUCT_PKG_AUTOREMOVE:-true}"
+
+# Enable/disable pkg cleanup run.
+declare -g DUCT_PKG_CLEAN="${DUCT_PKG_CLEAN:-true}"
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# pkg options.
+declare -g -a DUCT_PKG_OPTIONS=( ${DUCT_PKG_OPTIONS[@]:-${_DUCT_PKG_OPTIONS[@]}} )
+
+# shellcheck disable=SC2206
+# - Preserve empty array
+# pkg packages to install.
+declare -g -a DUCT_PKG_PACKAGES=( ${DUCT_PKG_PACKAGES[@]:-${_DUCT_PKG_PACKAGES[@]}} )
+
+# pkg support
+
+# deps: duct-msg duct-util
+# intl: true
+# life: beta
+# desc: Detect OS and check PKG binary.
+# opts:
+__duct_pkg_support() {
+  __duct_ostype
+
+  case "$DUCT_OSTYPE"
+  in
+    freebsd*)
+      __duct_source /etc/os-release OS_RELEASE
+      __duct_msg n "$OS_RELEASE_PRETTY_NAME"
+
+      if ! __duct_checkbin "$DUCT_PKG_BIN"
+      then
+        __duct_msg e "unsupported freebsd version!"
+        return 1
+      fi
+    ;;
+    *)
+      __duct_msg e "$DUCT_OSTYPE is unsupported!"
+      return 127
+    ;;
+  esac
+}
+readonly -f __duct_pkg_support
+
+# pkg
+
+# dependencies: duct-msg duct-run
+# internal: false
+# lifecycle: beta
+# description: Update, upgrade & install pkg packages.
+# options: [packages]
+__duct_pkg() {
+  # shellcheck disable=SC2206
+  local -a PKG_PACKAGES=( ${@:-${DUCT_PKG_PACKAGES[@]}} )
+  local PKG_RC=0
+  local PKG_SUDO=""
+
+  __duct_pkg_support || PKG_RC=$?
+
+  if [[ "$PKG_RC" -gt 0 ]]
+  then
+    return $PKG_RC
+  fi
+
+  if [[ "$DUCT_PKG_SUDO" == true ]]
+  then
+    PKG_SUDO="sudo"
+
+  elif [[ "$UID" -gt 0 ]]
+  then
+    __duct_msg d "forcing sudo for $UID"
+    PKG_SUDO="sudo"
+  fi
+
+  if [[ "$UID" -eq 0 ]]
+  then
+    __duct_msg d "disable sudo for $UID"
+    PKG_SUDO=""
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "$DUCT_PKG_UPDATE"  == true ]] || [[ "$DUCT_PKG_UPGRADE" == true ]]
+  then
+    __duct_run $PKG_SUDO "$DUCT_PKG_BIN" update
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "$DUCT_PKG_UPGRADE" == true ]]
+  then
+    __duct_run $PKG_SUDO "$DUCT_PKG_BIN" upgrade --no-repo-update "${DUCT_PKG_OPTIONS[@]}"
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "${#PKG_PACKAGES[@]}" -gt 0 ]]
+  then
+    __duct_run $PKG_SUDO "$DUCT_PKG_BIN" install "${DUCT_PKG_OPTIONS[@]}" "${PKG_PACKAGES[@]}"
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "$DUCT_PKG_AUTOREMOVE" == true ]]
+  then
+    __duct_run $PKG_SUDO "$DUCT_PKG_BIN" autoremove "${DUCT_PKG_OPTIONS[@]}"
+  fi
+
+  # shellcheck disable=SC2086
+  if [[ "$DUCT_PKG_CLEAN" == true ]]
+  then
+    __duct_run $PKG_SUDO "$DUCT_PKG_BIN" clean --all "${DUCT_PKG_OPTIONS[@]}"
+  fi
+}
+readonly -f __duct_pkg

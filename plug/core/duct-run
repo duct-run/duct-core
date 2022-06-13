@@ -1,0 +1,112 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-run
+# The duct runner.
+
+# run
+
+# Enable/disable running hooks.
+declare -g DUCT_RUN_HOOK=${DUCT_RUN_HOOK:-false}
+
+# Associative array of hook scripts to handle return codes of command.
+declare -g -A DUCT_RUN_HOOK_SCRIPTS=()
+
+# Enable/disable masking of secrets in messages (WARNING!).
+declare -g DUCT_RUN_MASK=${DUCT_RUN_MASK:-true}
+
+# String to mask secrets with.
+declare -g DUCT_RUN_MASK_STRING=${DUCT_RUN_MASK_STRING:-"[MASKED]"}
+
+# File to log output to.
+declare -g DUCT_RUN_OUTPUT=${DUCT_RUN_OUTPUT:-"${TMPDIR:-"/tmp"}/duct-run"}
+
+# Enable/disable simulation mode.
+declare -g DUCT_RUN_SIMULATE=${DUCT_RUN_SIMULATE:-true}
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Run a command with optional simulation or log output.
+# opts: <command> | output <command>
+__duct_run() {
+  local -a RUN=( "$@" )
+  local RUN_OUT=false
+  local RUN_RC=0
+  local _RUN
+  local _HOOK
+
+  if [[ "${RUN[0]}" =~ ^(out|output)$ ]]
+  then
+    RUN_OUT=true
+    unset "RUN[0]"
+    RUN=( "${RUN[@]}" )
+  fi
+
+  _RUN="${RUN[*]}"
+
+  # mask
+  if [[ "$DUCT_RUN_MASK" == true ]]
+  then
+    if [[ "$_RUN" =~ ^curl ]]
+    then
+
+      # github curl
+      _RUN="$( __duct_gnu_sed "s/-u \([0-9A-Za-z_\-]*\):\([0-9A-Za-z_\-]*\)\s/-u \1:${DUCT_RUN_MASK_STRING} /g" <<< "$_RUN" )"
+
+      # gitlab curl
+      _RUN="$( __duct_gnu_sed "s/PRIVATE-TOKEN: \([0-9A-Za-z_\-]*\)\s/PRIVATE-TOKEN: ${DUCT_RUN_MASK_STRING} /g" <<< "$_RUN" )"
+
+    elif [[ "$_RUN" =~ ^echo ]]
+    then
+      _RUN="$( __duct_gnu_sed "s/\([0-9A-Za-z_\-]*\):\([0-9A-Za-z_\-]*\)@/\1:${DUCT_RUN_MASK_STRING}@/g" <<< "$_RUN" )"
+    fi
+  fi
+
+  if [[ "$DUCT_RUN_SIMULATE" == true ]]
+  then
+    __duct_msg d "$_RUN"
+    __duct_msg x "[SIMULATE] $_RUN"
+
+  elif [[ "$RUN_OUT" == true ]]
+  then
+    __duct_msg d "$_RUN (output: $DUCT_RUN_OUTPUT)"
+    command "${RUN[@]}" | __duct_tee "$DUCT_RUN_OUTPUT" || RUN_RC=$?
+  else
+    __duct_msg d "$_RUN"
+    command "${RUN[@]}" || RUN_RC=$?
+  fi
+
+  if [[ "$DUCT_RUN_HOOK" == true ]]
+  then
+    _HOOK="${RUN[0]##*/}"
+
+    if [[ -n "${DUCT_RUN_HOOK_SCRIPTS[${_HOOK}]+duct}" ]]
+    then
+      __duct_msg d "$_HOOK hook: ${DUCT_RUN_HOOK_SCRIPTS[${_HOOK}]}"
+      __duct_run "${DUCT_RUN_HOOK_SCRIPTS[${_HOOK}]}" "$RUN_RC" "${RUN[@]}"
+      RUN_RC=$?
+    fi
+  fi
+
+  __duct_msg d "runtime: ${SECONDS}s"
+  __duct_msg d "return code: $RUN_RC"
+  return $RUN_RC
+}
+readonly -f __duct_run
