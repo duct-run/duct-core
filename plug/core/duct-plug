@@ -124,7 +124,7 @@ readonly -f __duct_plug_load
 
 # Main plugins to be installed and updated (internal).
 declare -a -r _DUCT_PLUG_INSTALL_MAIN=(
-  duct-plug-main  # TODO: add stable version before release!
+  duct-plug-main::devel  # TODO: add stable version before release!
 )
 
 # List of vendor plugins to be installed and updated (defaults).
