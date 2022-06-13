@@ -1,5 +1,3 @@
-[//]: # ( vim: set ft=markdown : )
-
 # Contributor Covenant Code of Conduct
 
 ## Our Pledge
@@ -131,3 +129,5 @@ Translations are available [here][translations].
 [mozilla]: https://github.com/mozilla/diversity
 [translations]: https://www.contributor-covenant.org/translations
 [version]: https://www.contributor-covenant.org/version/2/0/code_of_conduct.html
+
+[//]: # ( vim: set ft=markdown : )
