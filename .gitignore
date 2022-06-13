@@ -59,8 +59,18 @@ crash.*.log
 **/*.xz
 **/*.zip
 
-# local
-#...
+# main plugins
+plug/main/
+
+# vendor plugins
+plug/vendor/*
+
+# attic
+attic/
+
+# debug
+**/debug.sh
+debug/
 
 # excludes
 !.git
