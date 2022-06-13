@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# vim: set ft=sh :
+
+GITHOOK="${0##*/}"
+GITHOOKS_DIR="$( cd "${0%/*}" && echo "$PWD" )"
+
+PRE_COMMIT_ARGS=(
+  hook-impl
+  --config="${GITHOOKS_DIR}/pre-commit-config.yaml"
+  --hook-type="$GITHOOK"
+  --hook-dir "$GITHOOKS_DIR"
+  -- "$@"
+)
+
+if command -v pre-commit >/dev/null
+then
+  exec pre-commit "${PRE_COMMIT_ARGS[@]}"
+else
+  echo "'pre-commit' not found!" 1>&2
+  echo "see: https://pre-commit.com/#install" 1>&2
+  exit 1
+fi
