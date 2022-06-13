@@ -1,0 +1,15 @@
+---
+# vim: set ft=yaml :
+
+# https://github.com/DavidAnson/markdownlint/blob/main/schema/.markdownlint.yaml
+
+default: true
+extends: null
+
+MD010:
+  code_blocks: false
+
+MD013:
+  line_length: 160
+
+MD024: false
