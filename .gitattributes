@@ -1,0 +1,5 @@
+.dockerignore       export-ignore
+.editorconfig       export-ignore
+.git*               export-ignore
+.markdownlint.yml   export-ignore
+test                export-ignore
