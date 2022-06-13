@@ -204,6 +204,29 @@ __duct_sortarray() {
 }
 readonly -f __duct_sortarray
 
+# uniquearray
+
+# deps:
+# intl: false
+# life: core
+# desc: Unique an array without sorting.
+# opts: <array[@]>
+__duct_uniquearray() {
+  local -a ARRAY=( "$@" )
+  local -a _ARRAY=()
+  local UNIQUE
+
+  for UNIQUE in "${ARRAY[@]}"
+  do
+    if [[ ! "${_ARRAY[*]}" =~ $UNIQUE ]]
+    then
+      _ARRAY+=( "$UNIQUE" )
+    fi
+  done
+  printf "%q\n" "${_ARRAY[@]}"
+}
+readonly -f __duct_uniquearray
+
 # strip
 
 # deps:
