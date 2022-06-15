@@ -48,14 +48,9 @@ __duct_git_local_head() {
 
   if [[ -d "${GIT_PATH}/.git" ]]
   then
-    (
-      cd "$GIT_PATH" || exit
-
-      LOCAL_HEAD="$( git describe --all )"
-      LOCAL_HEAD="${LOCAL_HEAD##*/}"
-
-      echo "$LOCAL_HEAD"
-    )
+    LOCAL_HEAD="$( __duct_run git -C "$GIT_PATH" describe --all )"
+    LOCAL_HEAD="${LOCAL_HEAD##*/}"
+    echo "$LOCAL_HEAD"
     return
   else
     __duct_msg d "$GIT_PATH not a git repository!"
@@ -85,19 +80,15 @@ __duct_git_remote_head() {
 
   if [[ -d "${GIT_PATH}/.git" ]]
   then
-    (
-      cd "$GIT_PATH" || exit
+    # shellcheck disable=SC2046
+    set -- $( __duct_run git -C "$GIT_PATH" ls-remote --symref "$REMOTE_NAME" HEAD )
 
-      # shellcheck disable=SC2046
-      set -- $( git ls-remote --symref "$REMOTE_NAME" HEAD )
+    if [[ "$1" == "ref:" ]]
+    then
+      REMOTE_HEAD="${2##*/}"
+    fi
 
-      if [[ "$1" == "ref:" ]]
-      then
-        REMOTE_HEAD="${2##*/}"
-      fi
-
-      echo "$REMOTE_HEAD"
-    )
+    echo "$REMOTE_HEAD"
     return
   else
     __duct_msg d "$GIT_PATH not a git repository!"
