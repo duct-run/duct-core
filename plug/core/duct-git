@@ -298,7 +298,7 @@ declare -g -a DUCT_GIT_FETCH_OPTIONS=( "${DUCT_GIT_FETCH_OPTIONS[@]:-${_DUCT_GIT
 # desc: Run git fetch on a repository.
 # opts: <git-path> [extra-opts]
 __duct_git_fetch() {
-  local GIT_PATH="${1:-}"
+  local GIT_PATH="${1:-$DUCT_GIT_WORKDIR}"
 
   if [[ -z "$GIT_PATH" ]]
   then
@@ -308,11 +308,8 @@ __duct_git_fetch() {
 
   if [[ -d "${GIT_PATH}/.git" ]]
   then
-    (
-      cd "$GIT_PATH" || exit
-      __duct_msg n "fetch $GIT_PATH"
-      __duct_run git fetch "${DUCT_GIT_FETCH_OPTIONS[@]}"
-    )
+    __duct_msg n "fetch $GIT_PATH"
+    __duct_run git -C "$GIT_PATH" fetch "${DUCT_GIT_FETCH_OPTIONS[@]}"
   else
     __duct_msg e "$GIT_PATH not a git repository!"
     return 1
