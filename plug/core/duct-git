@@ -70,10 +70,10 @@ readonly -f __duct_git_local_head
 # intl: false
 # life: core
 # desc: Return current local HEAD.
-# opts: <git-path>
+# opts: <git-path> [remote-name]
 __duct_git_remote_head() {
   local GIT_PATH="${1:-}"
-  local REMOTE_NAME="${2:-"origin"}"
+  local REMOTE_NAME="${2:-$DUCT_GIT_REMOTE}"
 
   local REMOTE_HEAD
 
@@ -117,8 +117,8 @@ declare -g DUCT_GIT_CONFIG_USER_NAME="${DUCT_GIT_CONFIG_USER_NAME:-"${GIT_USER_N
 # Git user.email configuration (inherit GIT_USER_EMAIL).
 declare -g DUCT_GIT_CONFIG_USER_EMAIL="${DUCT_GIT_CONFIG_USER_EMAIL:-"${GIT_USER_EMAIL:-}"}"
 
-# Git init.defaultBranch configuration.
-declare -g DUCT_GIT_CONFIG_INIT_DEFAULT_BRANCH="${DUCT_GIT_CONFIG_INIT_DEFAULT_BRANCH:-"main"}"
+# Git init.defaultBranch configuration (inherit DUCT_GIT_BRANCH).
+declare -g DUCT_GIT_CONFIG_INIT_DEFAULT_BRANCH="${DUCT_GIT_CONFIG_INIT_DEFAULT_BRANCH:-$DUCT_GIT_BRANCH}"
 
 # Git advice.detachedHead configuration.
 declare -g DUCT_GIT_CONFIG_ADVICE_DETACHED_HEAD="${DUCT_GIT_CONFIG_ADVICE_DETACHED_HEAD:-false}"
@@ -407,8 +407,8 @@ declare -g -a DUCT_GIT_CLONE_OPTIONS=( "${DUCT_GIT_CLONE_OPTIONS[@]:-${_DUCT_GIT
 # Branch name to clone.
 declare -g DUCT_GIT_CLONE_BRANCH="${DUCT_GIT_CLONE_BRANCH:-}"
 
-# Remote name to clone.
-declare -g DUCT_GIT_CLONE_REMOTE="${DUCT_GIT_CLONE_REMOTE:-"origin"}"
+# Remote name to clone (inherit DUCT_GIT_REMOTE).
+declare -g DUCT_GIT_CLONE_REMOTE="${DUCT_GIT_CLONE_REMOTE:-$DUCT_GIT_REMOTE}"
 
 # Enable/disable git pull if repository exists.
 declare -g DUCT_GIT_CLONE_PULL="${DUCT_GIT_CLONE_PULL:-true}"
@@ -510,8 +510,8 @@ declare -g -a -r _DUCT_GIT_PULL_OPTIONS=(
 # Options for `git pull`.
 declare -g -a DUCT_GIT_PULL_OPTIONS=( "${DUCT_GIT_PULL_OPTIONS[@]:-${_DUCT_GIT_PULL_OPTIONS[@]}}" )
 
-# Remote name to pull.
-declare -g DUCT_GIT_PULL_REMOTE="${DUCT_GIT_PULL_REMOTE:-"origin"}"
+# Remote name to pull (inherit DUCT_GIT_REMOTE).
+declare -g DUCT_GIT_PULL_REMOTE="${DUCT_GIT_PULL_REMOTE:-$DUCT_GIT_REMOTE}"
 
 # Branch name to pull.
 declare -g DUCT_GIT_PULL_BRANCH="${DUCT_GIT_PULL_BRANCH:-}"
