@@ -286,6 +286,7 @@ __duct_git_credential() {
 
   local _GIT_AUTH="${DUCT_URLINFO["scheme"]}://${DUCT_GIT_CREDENTIAL_USER}:${_GIT_TOKEN}@${DUCT_URLINFO["host"]}"
 
+  DUCT_SFILE_OVERWRITE=true \
   __duct_sfile "$GIT_CREDENTIAL_FILE" "${_GIT_AUTH}"
 }
 readonly -f __duct_git_credential
