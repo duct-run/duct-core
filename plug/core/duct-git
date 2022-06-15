@@ -134,12 +134,6 @@ declare -g DUCT_GIT_CONFIG_ADVICE_DETACHED_HEAD="${DUCT_GIT_CONFIG_ADVICE_DETACH
 __duct_git_config() {
   local GIT_ERROR=0
 
-  if [[ -f "$DUCT_GIT_CONFIG_FILE" ]]
-  then
-    __duct_msg w "$DUCT_GIT_CONFIG_FILE exists, skipping!"
-    return 0
-  fi
-
   if [[ -z "$DUCT_GIT_CONFIG_USER_NAME" ]]
   then
     __duct_msg e "DUCT_GIT_CONFIG_USER_NAME is unset!"
