@@ -239,12 +239,6 @@ __duct_git_credential() {
   local GIT_ERROR=0
   local GIT_CREDENTIAL_FILE="${HOME}/.git-credentials"
 
-  if [[ -f "$GIT_CREDENTIAL_FILE" ]]
-  then
-    __duct_msg w "$GIT_CREDENTIAL_FILE exists, skipping!"
-    return 0
-  fi
-
   if [[ -z "$DUCT_GIT_CREDENTIAL_TOKEN" ]]
   then
     __duct_msg e "DUCT_GIT_CREDENTIAL_TOKEN is unset!"
