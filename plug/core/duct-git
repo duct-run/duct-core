@@ -35,9 +35,9 @@ declare -g DUCT_GIT_REMOTE="${DUCT_GIT_REMOTE:-"origin"}"
 # intl: false
 # life: core
 # desc: Return current local HEAD.
-# opts: <git-path>
+# opts: [git-path]
 __duct_git_local_head() {
-  local GIT_PATH="${1:-}"
+  local GIT_PATH="${1:-$DUCT_GIT_WORKDIR}"
   local LOCAL_HEAD
 
   if [[ -z "$GIT_PATH" ]]
@@ -70,9 +70,9 @@ readonly -f __duct_git_local_head
 # intl: false
 # life: core
 # desc: Return current local HEAD.
-# opts: <git-path> [remote-name]
+# opts: [git-path] [remote-name]
 __duct_git_remote_head() {
-  local GIT_PATH="${1:-}"
+  local GIT_PATH="${1:-$DUCT_GIT_WORKDIR}"
   local REMOTE_NAME="${2:-$DUCT_GIT_REMOTE}"
 
   local REMOTE_HEAD
