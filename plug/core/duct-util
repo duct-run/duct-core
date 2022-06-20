@@ -367,8 +367,8 @@ __duct_sfile() {
 
     __duct_msg n "creating $FILE with content: $MASK"
     :> "$FILE"
-    __duct_run chmod "$DUCT_SFILE_FILEMODE" "$FILE"
     printf "%s\n" "$CONT" > "$FILE"
+    __duct_run chmod "$DUCT_SFILE_FILEMODE" "$FILE"
   fi
 }
 readonly -f __duct_sfile
