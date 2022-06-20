@@ -177,7 +177,7 @@ __duct_python_venv() {
       if [[ ! -L "python" ]]
       then
         __duct_msg d "linking python version"
-        ln -s python* python
+        __duct_run ln -s python* python
       fi
     )
   fi
