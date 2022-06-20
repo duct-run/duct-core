@@ -169,6 +169,19 @@ __duct_python_venv() {
   __duct_msg n "$VENV_MSG $VENV_PATH"
   __duct_run "$DUCT_PYTHON_VENV_INTERPRETER" -m venv "${DUCT_PYTHON_VENV_OPTIONS[@]}" "${VENV_OPTS[@]}" "$VENV_PATH" || VENV_RC=$?
 
+  if [[ -d "$VENV_PATH/lib" ]]
+  then
+    (
+      cd "$VENV_PATH/lib" || return
+
+      if [[ -L "python" ]]
+      then
+        __duct_msg d "linking python version"
+        ln -s python* python
+      fi
+    )
+  fi
+
   if [[ "${#DUCT_PYTHON_VENV_PACKAGES}" -gt 0 ]]
   then
     __duct_python_pip "${DUCT_PYTHON_VENV_PACKAGES[@]}"
