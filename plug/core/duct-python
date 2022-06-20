@@ -174,7 +174,7 @@ __duct_python_venv() {
     (
       cd "$VENV_PATH/lib" || return
 
-      if [[ -L "python" ]]
+      if [[ ! -L "python" ]]
       then
         __duct_msg d "linking python version"
         ln -s python* python
