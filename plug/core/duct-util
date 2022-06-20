@@ -327,6 +327,7 @@ __duct_sfile() {
   local FILE="${1:-"${DUCT_SFILE_FILENAME}"}"
   local CONT="${2:-"${DUCT_SFILE_CONTENT}"}"
   local MASK="$CONT"
+  local ROOT="${FILE##*/}"
 
   if [[ -z "$FILE" ]]
   then
@@ -356,6 +357,12 @@ __duct_sfile() {
   then
     __duct_msg x "[SIMULATE] creating $FILE with content: $MASK"
   else
+    if [[ ! -d "$ROOT" ]]
+    then
+      __duct_msg d "creating root $ROOT"
+      mkdir -p "$ROOT" || return
+    fi
+
     __duct_msg n "creating $FILE with content: $MASK"
     :> "$FILE"
     __duct_run chmod "$DUCT_SFILE_FILEMODE" "$FILE"
