@@ -327,13 +327,15 @@ __duct_sfile() {
   local FILE="${1:-"${DUCT_SFILE_FILENAME}"}"
   local CONT="${2:-"${DUCT_SFILE_CONTENT}"}"
   local MASK="$CONT"
-  local ROOT="${FILE##*/}"
+  local ROOT
 
   if [[ -z "$FILE" ]]
   then
     __duct_msg e "no filename!"
     return 1
   fi
+
+  ROOT="$( __duct_dirname "$FILE" )"
 
   if [[ -s "$FILE" ]]
   then
