@@ -286,7 +286,6 @@ readonly -f __duct_git_credential
 
 # Options for git fetch command (defaults).
 declare -a -r _DUCT_GIT_FETCH_OPTIONS=(
-  --all
   --prune
 )
 
