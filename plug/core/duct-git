@@ -629,7 +629,7 @@ __duct_git_commit() {
   fi
 
   local _BRANCH
-  _BRANCH="$( git branch --show-current )"
+  _BRANCH="$( __duct_run git branch --show-current )"
 
   if [[ "$DUCT_GIT_COMMIT_BRANCH" != "$_BRANCH" ]]
   then
@@ -639,7 +639,7 @@ __duct_git_commit() {
   __duct_run git add "${GIT_FILE[@]}"
 
   local _STATUS
-  _STATUS="$( git status --porcelain=v1 )"
+  _STATUS="$( __duct_run git status --porcelain=v1 )"
 
   if [[ -n "$_STATUS" ]]
   then
