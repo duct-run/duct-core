@@ -619,9 +619,9 @@ declare -g -a DUCT_GIT_COMMIT_FILE=( ${DUCT_GIT_COMMIT_FILE[@]:-${_DUCT_GIT_COMM
 # desc: Commit to a git repository with optional push.
 # opts: [<message> <@files>]
 __duct_git_commit() {
-  local GIT_MSG="${1:-${DUCT_GIT_COMMIT_MESSAGE}}"
-  shift
-  local GIT_FILE=( "${@:-${DUCT_GIT_COMMIT_FILE[@]}}" )
+  local GIT_MSG="${1:-$DUCT_GIT_COMMIT_MESSAGE}"
+  shift || :
+  local -a GIT_FILE=( "${@:-${DUCT_GIT_COMMIT_FILE[@]}}" )
 
   __duct_msg d "git commit $GIT_MSG - ${GIT_FILE[*]}"
 
