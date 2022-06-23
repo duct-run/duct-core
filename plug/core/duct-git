@@ -623,6 +623,8 @@ __duct_git_commit() {
   shift
   local GIT_FILE=( "${@:-${DUCT_GIT_COMMIT_FILE[@]}}" )
 
+  __duct_msg d "git commit $GIT_MSG - ${GIT_FILE[*]}"
+
   if [[ "$DUCT_GIT_COMMIT_GPG_SIGN" == true ]]
   then
     DUCT_GIT_COMMIT_OPTIONS+=( --gpg-sign )
