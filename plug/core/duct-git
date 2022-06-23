@@ -338,12 +338,12 @@ declare -g DUCT_GIT_CHECKOUT_NAME="${DUCT_GIT_CHECKOUT_NAME:-}"
 # intl: false
 # life: core
 # desc: Run git checkout on a specified branch or tag.
-# opts: <git-path> [branch|tag] [extra-options]
+# opts: [git-path] [branch|tag] [extra-options]
 __duct_git_checkout() {
-  local GIT_PATH="${1:-}"
-  local GIT_CHECKOUT="${2:-${DUCT_GIT_CHECKOUT_NAME}}"
-  shift
-  shift
+  local GIT_PATH="${1:-$DUCT_GIT_WORKDIR}"
+  local GIT_CHECKOUT="${2:-$DUCT_GIT_CHECKOUT_NAME}"
+  shift || :
+  shift || :
   local -a GIT_OPTS=( "$@" )
 
   local GIT_HEAD
@@ -357,7 +357,7 @@ __duct_git_checkout() {
   if [[ -d "${GIT_PATH}/.git" ]]
   then
     (
-      cd "$GIT_PATH" || exit
+      #cd "$GIT_PATH" || exit
 
       GIT_HEAD="$( __duct_git_local_head "$GIT_PATH" )"
 
@@ -556,7 +556,6 @@ __duct_git_pull() {
         if [[ "$DUCT_GIT_PULL_CHECKOUT" == "$GIT_HEAD" ]]
         then
           __duct_msg n "$GIT_PATH at $DUCT_GIT_PULL_CHECKOUT"
-          return
         else
           __duct_msg d "$GIT_PATH at $GIT_HEAD"
         fi
@@ -567,7 +566,7 @@ __duct_git_pull() {
         DUCT_GIT_PULL_BRANCH="$( __duct_git_remote_head "$GIT_PATH" "$DUCT_GIT_PULL_REMOTE" )"
       fi
 
-      __duct_msg n "pull $GIT_PATH from $GIT_URL"
+      __duct_msg n "$GIT_PATH from $GIT_URL"
       __duct_run git pull "${DUCT_GIT_PULL_OPTIONS[@]}" "$DUCT_GIT_PULL_REMOTE" "$DUCT_GIT_PULL_BRANCH"
 
       if [[ -n "$DUCT_GIT_PULL_CHECKOUT" ]]
