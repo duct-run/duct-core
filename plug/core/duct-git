@@ -355,27 +355,23 @@ __duct_git_checkout() {
 
   if [[ -d "${GIT_PATH}/.git" ]]
   then
-    (
-      cd "$GIT_PATH" || exit
+    GIT_HEAD="$( __duct_git_local_head "$GIT_PATH" )"
 
-      GIT_HEAD="$( __duct_git_local_head "$GIT_PATH" )"
+    if [[ "$GIT_CHECKOUT" == "$GIT_HEAD" ]]
+    then
+      __duct_msg n "$GIT_PATH at $GIT_CHECKOUT"
+      return
+    else
+      __duct_msg d "$GIT_PATH at $GIT_HEAD"
+    fi
 
-      if [[ "$GIT_CHECKOUT" == "$GIT_HEAD" ]]
-      then
-        __duct_msg n "$GIT_PATH at $GIT_CHECKOUT"
-        return
-      else
-        __duct_msg d "$GIT_PATH at $GIT_HEAD"
-      fi
+    if [[ "$DUCT_GIT_CHECKOUT_FETCH" == true ]]
+    then
+      __duct_git_fetch "$GIT_PATH" "+refs/tags/*:refs/tags/*"
+    fi
 
-      if [[ "$DUCT_GIT_CHECKOUT_FETCH" == true ]]
-      then
-        __duct_git_fetch "$GIT_PATH" "+refs/tags/*:refs/tags/*"
-      fi
-
-      __duct_msg n "checkout $GIT_PATH $GIT_CHECKOUT"
-      __duct_run git checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "${GIT_OPTS[@]}" "$GIT_CHECKOUT"
-    )
+    __duct_msg n "checkout $GIT_PATH $GIT_CHECKOUT"
+    __duct_run git -C "$GIT_PATH" checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "${GIT_OPTS[@]}" "$GIT_CHECKOUT"
   else
     __duct_msg e "$GIT_PATH not a git repository!"
     return 1
