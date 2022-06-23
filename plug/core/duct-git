@@ -624,7 +624,15 @@ __duct_git_commit() {
   fi
 
   local _BRANCH
+  local _BRANCH_REMOTE
   _BRANCH="$( __duct_run git branch --show-current )"
+  _BRANCH_REMOTE="$( __duct_run git branch --remotes --no-color --list --format='%(refname:lstrip=2)' "${DUCT_GIT_COMMIT_REMOTE}/${DUCT_GIT_COMMIT_BRANCH}" )"
+
+  if [[ -n "$_BRANCH_REMOTE" ]]
+  then
+    __duct_msg w "remote branch $_BRANCH_REMOTE exists!"
+    return
+  fi
 
   if [[ "$DUCT_GIT_COMMIT_BRANCH" != "$_BRANCH" ]]
   then
