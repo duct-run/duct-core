@@ -356,7 +356,7 @@ __duct_git_checkout() {
   if [[ -d "${GIT_PATH}/.git" ]]
   then
     (
-      #cd "$GIT_PATH" || exit
+      cd "$GIT_PATH" || exit
 
       GIT_HEAD="$( __duct_git_local_head "$GIT_PATH" )"
 
