@@ -583,7 +583,7 @@ declare -a -r _DUCT_GIT_COMMIT_OPTIONS=(
 )
 
 # File(s) to add and commit.
-declare -a -r _DUCT_GIT_COMMIT_FILE=()
+declare -a -r _DUCT_GIT_COMMIT_LIST=()
 
 # Options for `git commit`.
 declare -g -a DUCT_GIT_COMMIT_OPTIONS=( "${DUCT_GIT_COMMIT_OPTIONS[@]:-${_DUCT_GIT_COMMIT_OPTIONS[@]}}" )
@@ -593,6 +593,9 @@ declare -g DUCT_GIT_COMMIT_GPG_SIGN="${DUCT_GIT_COMMIT_GPG_SIGN:-false}"
 
 # Branch name to commit to, will be created if not exists (inherit `DUCT_GIT_BRANCH`).
 declare -g DUCT_GIT_COMMIT_BRANCH="${DUCT_GIT_COMMIT_BRANCH:-$DUCT_GIT_BRANCH}"
+
+# Reuse branch if it exists.
+declare -g DUCT_GIT_COMMIT_BRANCH_REUSE="${DUCT_GIT_COMMIT_BRANCH_REUSE:-true}"
 
 # Remote name to push (inherit `DUCT_GIT_REMOTE`).
 declare -g DUCT_GIT_COMMIT_REMOTE="${DUCT_GIT_COMMIT_REMOTE:-$DUCT_GIT_REMOTE}"
@@ -604,9 +607,8 @@ declare -g DUCT_GIT_COMMIT_PUSH="${DUCT_GIT_COMMIT_PUSH:-false}"
 declare -g DUCT_GIT_COMMIT_MESSAGE="${DUCT_GIT_COMMIT_MESSAGE:-}"
 
 # shellcheck disable=SC2206
-# - Preserve empty array
 # File(s) to add and commit.
-declare -g -a DUCT_GIT_COMMIT_FILE=( ${DUCT_GIT_COMMIT_FILE[@]:-${_DUCT_GIT_COMMIT_FILE[@]}} )
+declare -g -a DUCT_GIT_COMMIT_LIST=( ${DUCT_GIT_COMMIT_LIST[@]:-${_DUCT_GIT_COMMIT_LIST[@]}} )
 
 # deps: duct-msg duct-run
 # intl: false
@@ -616,37 +618,85 @@ declare -g -a DUCT_GIT_COMMIT_FILE=( ${DUCT_GIT_COMMIT_FILE[@]:-${_DUCT_GIT_COMM
 __duct_git_commit() {
   local GIT_MSG="${1:-$DUCT_GIT_COMMIT_MESSAGE}"
   shift || :
-  local -a GIT_FILE=( "${@:-${DUCT_GIT_COMMIT_FILE[@]}}" )
+  local -a GIT_LIST=( "${@:-${DUCT_GIT_COMMIT_LIST[@]}}" )
+
+  local GIT_COMMIT=0
+  local GIT_ERROR=0
+
+  if [[ -z "$GIT_MSG" ]]
+  then
+    __duct_msg e "no commit message!"
+    GIT_ERROR+=1
+  fi
+
+  if [[ "${#GIT_LIST[@]}" -lt 1 ]]
+  then
+    __duct_msg e "no file(s) to commit!"
+    GIT_ERROR+=1
+  fi
+
+  if [[ "$GIT_ERROR" -gt 0 ]]
+  then
+    return 1
+  fi
 
   if [[ "$DUCT_GIT_COMMIT_GPG_SIGN" == true ]]
   then
     DUCT_GIT_COMMIT_OPTIONS+=( --gpg-sign )
   fi
 
-  local _BRANCH
-  local _BRANCH_REMOTE
-  _BRANCH="$( __duct_run git branch --show-current )"
-  _BRANCH_REMOTE="$( __duct_run git branch --remotes --no-color --list --format='%(refname:lstrip=2)' "${DUCT_GIT_COMMIT_REMOTE}/${DUCT_GIT_COMMIT_BRANCH}" )"
+  local GIT_BRANCH_LOCAL
+  local GIT_BRANCH_REMOTE
+  GIT_BRANCH_LOCAL="$( __duct_run git branch --show-current )"
+  __duct_msg d "local: $GIT_BRANCH_LOCAL"
+  GIT_BRANCH_REMOTE="$( __duct_run git branch --remotes --no-color --list --format='%(refname:lstrip=2)' "${DUCT_GIT_COMMIT_REMOTE}/${DUCT_GIT_COMMIT_BRANCH}" )"
+  __duct_msg d "remote: $GIT_BRANCH_REMOTE"
 
-  if [[ -n "$_BRANCH_REMOTE" ]]
+  if [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == false ]]
   then
-    __duct_msg w "remote branch $_BRANCH_REMOTE exists!"
-    return
+    if [[ "$GIT_BRANCH_REMOTE" == "${DUCT_GIT_COMMIT_REMOTE}/${DUCT_GIT_COMMIT_BRANCH}" ]]
+    then
+      __duct_msg w "remote branch $GIT_BRANCH_REMOTE exists, not reusing!"
+      return
+    fi
+    if [[ "${GIT_BRANCH_LOCAL}" == "$DUCT_GIT_COMMIT_BRANCH" ]]
+    then
+      __duct_msg w "local branch $GIT_BRANCH_LOCAL exists, not reusing!"
+      return
+    fi
+
+    __duct_run git checkout --quiet -B "$DUCT_GIT_COMMIT_BRANCH"
+
+  elif [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == true ]]
+  then
+
+    if [[ "$GIT_BRANCH_LOCAL" != "$DUCT_GIT_COMMIT_BRANCH" ]]
+    then
+      __duct_msg e "not on branch $DUCT_GIT_COMMIT_BRANCH checkout and pull first!"
+      return 1
+    fi
   fi
 
-  if [[ "$DUCT_GIT_COMMIT_BRANCH" != "$_BRANCH" ]]
+  local -a GIT_STATUS
+  readarray -t GIT_STATUS < <( __duct_run git status --porcelain=v1 )
+
+  for _STATUS in "${GIT_STATUS[@]}"
+  do
+    for _FILE in "${GIT_LIST[@]}"
+    do
+      if [[ "${_STATUS##* }" == "$_FILE" ]]
+      then
+        __duct_msg d "$_FILE"
+        __duct_run git add "$_FILE"
+        GIT_COMMIT=1
+      fi
+    done
+  done
+
+  if [[ "$GIT_COMMIT" -ge 1 ]]
   then
-    __duct_run git checkout -B "$DUCT_GIT_COMMIT_BRANCH"
-  fi
-
-  __duct_run git add "${GIT_FILE[@]}"
-
-  local _STATUS
-  _STATUS="$( __duct_run git status --porcelain=v1 )"
-
-  if [[ -n "$_STATUS" ]]
-  then
-    __duct_run git commit "${DUCT_GIT_COMMIT_OPTIONS[@]}" --message="$GIT_MSG" "${GIT_FILE[@]}"
+    __duct_msg n "commit $GIT_MSG ${GIT_LIST[*]}"
+    __duct_run git commit "${DUCT_GIT_COMMIT_OPTIONS[@]}" --message="$GIT_MSG" "${GIT_LIST[@]}"
 
     if [[ "$DUCT_GIT_COMMIT_PUSH" == true ]]
     then
