@@ -331,7 +331,7 @@ declare -g -a DUCT_GIT_CHECKOUT_OPTIONS=( "${DUCT_GIT_CHECKOUT_OPTIONS[@]:-${_DU
 declare -g DUCT_GIT_CHECKOUT_FETCH="${DUCT_GIT_CHECKOUT_FETCH:-true}"
 
 # Git branch, commit or tag to checkout.
-declare -g DUCT_GIT_CHECKOUT_NAME="${DUCT_GIT_CHECKOUT_NAME:-}"
+declare -g DUCT_GIT_CHECKOUT_BRANCH="${DUCT_GIT_CHECKOUT_BRANCH:-}"
 
 # deps: duct-msg duct-run
 # intl: false
@@ -340,7 +340,7 @@ declare -g DUCT_GIT_CHECKOUT_NAME="${DUCT_GIT_CHECKOUT_NAME:-}"
 # opts: [git-path] [branch|tag] [extra-options]
 __duct_git_checkout() {
   local GIT_PATH="${1:-$DUCT_GIT_WORKDIR}"
-  local GIT_CHECKOUT="${2:-$DUCT_GIT_CHECKOUT_NAME}"
+  local GIT_CHECKOUT="${2:-$DUCT_GIT_CHECKOUT_BRANCH}"
   shift || :
   shift || :
   local -a GIT_OPTS=( "$@" )
