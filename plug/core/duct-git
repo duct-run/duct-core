@@ -50,6 +50,7 @@ __duct_git_local_head() {
   then
     LOCAL_HEAD="$( __duct_run git -C "$GIT_PATH" describe --all )"
     LOCAL_HEAD="${LOCAL_HEAD##*/}"
+    __duct_msg d "$LOCAL_HEAD"
     echo "$LOCAL_HEAD"
     return
   else
@@ -88,6 +89,7 @@ __duct_git_remote_head() {
       REMOTE_HEAD="${2##*/}"
     fi
 
+    __duct_msg d "$REMOTE_HEAD"
     echo "$REMOTE_HEAD"
     return
   else
