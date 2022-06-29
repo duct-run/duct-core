@@ -84,7 +84,7 @@ __duct_git_remote_head() {
     # shellcheck disable=SC2046
     set -- $( __duct_run git -C "$GIT_PATH" ls-remote --symref "$REMOTE_NAME" HEAD )
 
-    if [[ "$1" == "ref:" ]]
+    if [[ "${1:-}" == "ref:" ]]
     then
       REMOTE_HEAD="${2##*/}"
     fi
