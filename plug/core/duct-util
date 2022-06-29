@@ -1124,7 +1124,6 @@ __duct_urlsplit() {
   fi
 
   IFS=" " read -r -a DUCT_URLSPLIT <<< "${URL//\// }"
-  __duct_msg d "${DUCT_URLSPLIT[*]}"
 }
 readonly -f __duct_urlsplit
 
