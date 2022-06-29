@@ -764,12 +764,7 @@ __duct_git_commit_v2() {
     __duct_msg d checkout "$DUCT_GIT_COMMIT_BRANCH"
   fi
 
-  for GIT_ADD in "${DUCT_GIT_COMMIT_LIST[@]}"
-  do
-    __duct_msg d "$GIT_ADD"
-    __duct_run git add "$GIT_ADD"
-    GIT_COMMIT=1
-  done
+  __duct_run git add "${DUCT_GIT_COMMIT_LIST[@]}" && GIT_COMMIT=1
 
   if [[ "$GIT_COMMIT" -ge 1 ]]
   then
