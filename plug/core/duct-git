@@ -423,6 +423,8 @@ __duct_git_clone() {
   local GIT_NAME
   local GIT_RC=0
 
+  local -a GIT_OPTS=()
+
   if [[ -z "$GIT_URL" ]]
   then
     __duct_msg e "no git url!"
@@ -441,7 +443,7 @@ __duct_git_clone() {
   # remote
   if [[ -n "$DUCT_GIT_CLONE_REMOTE" ]]
   then
-    DUCT_GIT_CLONE_OPTIONS+=(
+    GIT_OPTS+=(
       --origin "$DUCT_GIT_CLONE_REMOTE"
     )
   fi
@@ -449,7 +451,7 @@ __duct_git_clone() {
   # branch
   if [[ -n "$DUCT_GIT_CLONE_BRANCH" ]]
   then
-    DUCT_GIT_CLONE_OPTIONS+=(
+    GIT_OPTS+=(
       --branch "$DUCT_GIT_CLONE_BRANCH"
     )
   fi
@@ -464,7 +466,7 @@ __duct_git_clone() {
   if [[ ! -d "$GIT_PATH" ]]
   then
     __duct_msg n "clone $GIT_URL to $GIT_PATH"
-    __duct_run git clone "${DUCT_GIT_CLONE_OPTIONS[@]}" "$GIT_URL" "$GIT_PATH" || GIT_RC=$?
+    __duct_run git clone "${DUCT_GIT_CLONE_OPTIONS[@]}" "${GIT_OPTS[@]}" "$GIT_URL" "$GIT_PATH" || GIT_RC=$?
 
     if [[ "$GIT_RC" -gt 0 ]]
     then
