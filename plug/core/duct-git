@@ -588,6 +588,9 @@ declare -a -r _DUCT_GIT_COMMIT_OPTIONS=(
 # File(s) to add and commit.
 declare -a -r _DUCT_GIT_COMMIT_LIST=()
 
+# Path to commit in (inherit `DUCT_GIT_WORKDIR`).
+declare -g DUCT_GIT_COMMIT_PATH="${DUCT_GIT_COMMIT_PATH:-$DUCT_GIT_WORKDIR}"
+
 # Options for `git commit`.
 declare -g -a DUCT_GIT_COMMIT_OPTIONS=( "${DUCT_GIT_COMMIT_OPTIONS[@]:-${_DUCT_GIT_COMMIT_OPTIONS[@]}}" )
 
@@ -710,6 +713,69 @@ __duct_git_commit() {
   fi
 }
 readonly -f __duct_git_commit
+
+# deps: duct-msg duct-run
+# intl: false
+# life: core
+# desc: Commit to a git repository with optional push.
+# opts:
+__duct_git_commit_v2() {
+  local GIT_ADD
+  local GIT_COMMIT=0
+  local GIT_ERROR=0
+
+  if [[ -z "$DUCT_GIT_COMMIT_MESSAGE" ]]
+  then
+    __duct_msg e "no commit message!"
+    GIT_ERROR+=1
+  fi
+
+  if [[ "${#DUCT_GIT_COMMIT_LIST[@]}" -lt 1 ]]
+  then
+    __duct_msg e "no file(s) to commit!"
+    GIT_ERROR+=1
+  fi
+
+  if [[ "$GIT_ERROR" -gt 0 ]]
+  then
+    return 1
+  fi
+
+  if [[ "$DUCT_GIT_COMMIT_GPG_SIGN" == true ]]
+  then
+    DUCT_GIT_COMMIT_OPTIONS+=( --gpg-sign )
+  fi
+
+  if [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == false ]]
+  then
+    __duct_msg d checkout "$DUCT_GIT_COMMIT_BRANCH"
+
+  elif [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == true ]]
+  then
+    __duct_msg d checkout "$DUCT_GIT_COMMIT_BRANCH"
+  fi
+
+  for GIT_ADD in "${DUCT_GIT_COMMIT_LIST[@]}"
+  do
+    __duct_msg d "$GIT_ADD"
+    __duct_run git add "$GIT_ADD"
+    GIT_COMMIT=1
+  done
+
+  if [[ "$GIT_COMMIT" -ge 1 ]]
+  then
+    __duct_msg n "commit '$DUCT_GIT_COMMIT_MSG' ${GIT_LIST[*]}"
+    __duct_run git commit "${DUCT_GIT_COMMIT_OPTIONS[@]}" --message="$DUCT_GIT_COMMIT_MESSAGE" "${DUCT_GIT_COMMIT_LIST[@]}"
+
+    if [[ "$DUCT_GIT_COMMIT_PUSH" == true ]]
+    then
+      __duct_run git push --set-upstream "$DUCT_GIT_COMMIT_REMOTE" "$DUCT_GIT_COMMIT_BRANCH"
+    fi
+  else
+    __duct_msg n "nothing to commit"
+  fi
+}
+readonly -f __duct_git_commit_v2
 
 # git strip remote
 
