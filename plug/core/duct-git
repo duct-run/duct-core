@@ -87,6 +87,9 @@ __duct_git_remote_head() {
     if [[ "${1:-}" == "ref:" ]]
     then
       REMOTE_HEAD="${2##*/}"
+    else
+      __duct_msg w "no remote head!"
+      return
     fi
 
     __duct_msg d "$REMOTE_HEAD"
