@@ -756,18 +756,18 @@ __duct_git_commit_v2() {
 
   if [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == false ]]
   then
-    __duct_msg d checkout "$DUCT_GIT_COMMIT_BRANCH"
+    __duct_msg d "checkout $DUCT_GIT_COMMIT_BRANCH"
 
   elif [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == true ]]
   then
-    __duct_msg d checkout "$DUCT_GIT_COMMIT_BRANCH"
+    __duct_msg d "checkout $DUCT_GIT_COMMIT_BRANCH"
   fi
 
   __duct_run git -C "$DUCT_GIT_COMMIT_PATH" add "${DUCT_GIT_COMMIT_LIST[@]}" && GIT_COMMIT=1
 
   if [[ "$GIT_COMMIT" -ge 1 ]]
   then
-    __duct_msg n "'$DUCT_GIT_COMMIT_MESSAGE' '${GIT_LIST[*]}'"
+    __duct_msg n "'$DUCT_GIT_COMMIT_MESSAGE' '${DUCT_GIT_COMMIT_LIST[*]}'"
     __duct_run git -C "$DUCT_GIT_COMMIT_PATH" commit "${DUCT_GIT_COMMIT_OPTIONS[@]}" --message="$DUCT_GIT_COMMIT_MESSAGE" "${DUCT_GIT_COMMIT_LIST[@]}"
 
     if [[ "$DUCT_GIT_COMMIT_PUSH" == true ]]
