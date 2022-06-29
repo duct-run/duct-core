@@ -768,7 +768,7 @@ __duct_git_commit_v2() {
   if [[ "$GIT_COMMIT" -ge 1 ]]
   then
     __duct_msg n "'$DUCT_GIT_COMMIT_MESSAGE' '${GIT_LIST[*]}'"
-    __duct_run git -C "$DUCT_GIT_COMMIT_PATH" "${DUCT_GIT_COMMIT_OPTIONS[@]}" --message="$DUCT_GIT_COMMIT_MESSAGE" "${DUCT_GIT_COMMIT_LIST[@]}"
+    __duct_run git -C "$DUCT_GIT_COMMIT_PATH" commit "${DUCT_GIT_COMMIT_OPTIONS[@]}" --message="$DUCT_GIT_COMMIT_MESSAGE" "${DUCT_GIT_COMMIT_LIST[@]}"
 
     if [[ "$DUCT_GIT_COMMIT_PUSH" == true ]]
     then
