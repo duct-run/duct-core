@@ -766,7 +766,7 @@ __duct_git_commit_v2() {
     __duct_msg d "checkout $DUCT_GIT_COMMIT_BRANCH"
   fi
 
-  __duct_msg n "add ${DUCT_GIT_COMMIT_LIST[*]}"
+  __duct_msg n "add '${DUCT_GIT_COMMIT_LIST[*]}'"
   __duct_run git -C "$DUCT_GIT_COMMIT_PATH" add "${DUCT_GIT_COMMIT_LIST[@]}" && GIT_COMMIT=1
 
   if [[ "$GIT_COMMIT" -ge 1 ]]
