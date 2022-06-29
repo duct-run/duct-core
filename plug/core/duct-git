@@ -565,6 +565,12 @@ __duct_git_pull() {
       if [[ -z "$DUCT_GIT_PULL_BRANCH" ]]
       then
         DUCT_GIT_PULL_BRANCH="$( __duct_git_remote_head "$GIT_PATH" "$DUCT_GIT_PULL_REMOTE" )"
+
+        if [[ -z "$DUCT_GIT_PULL_BRANCH" ]]
+        then
+          __duct_msg w "no branch o pull!"
+          return
+        fi
       fi
 
       __duct_msg n "$GIT_PATH from $GIT_URL"
