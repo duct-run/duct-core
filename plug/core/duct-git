@@ -731,6 +731,7 @@ readonly -f __duct_git_commit
 # desc: Commit to a git repository with optional push.
 # opts:
 __duct_git_commit_v2() {
+  local -a GIT_OPTS=()
   local GIT_COMMIT=0
   local GIT_ERROR=0
 
@@ -765,12 +766,13 @@ __duct_git_commit_v2() {
     __duct_msg d "checkout $DUCT_GIT_COMMIT_BRANCH"
   fi
 
+  __duct_msg n "add ${DUCT_GIT_COMMIT_LIST[@]}"
   __duct_run git -C "$DUCT_GIT_COMMIT_PATH" add "${DUCT_GIT_COMMIT_LIST[@]}" && GIT_COMMIT=1
 
   if [[ "$GIT_COMMIT" -ge 1 ]]
   then
     __duct_msg n "'$DUCT_GIT_COMMIT_MESSAGE' '${DUCT_GIT_COMMIT_LIST[*]}'"
-    __duct_run git -C "$DUCT_GIT_COMMIT_PATH" commit "${DUCT_GIT_COMMIT_OPTIONS[@]}" --message="$DUCT_GIT_COMMIT_MESSAGE" "${DUCT_GIT_COMMIT_LIST[@]}"
+    __duct_run git -C "$DUCT_GIT_COMMIT_PATH" commit "${DUCT_GIT_COMMIT_OPTIONS[@]}" "${GIT_OPTS[@]}" --message="$DUCT_GIT_COMMIT_MESSAGE" "${DUCT_GIT_COMMIT_LIST[@]}"
 
     if [[ "$DUCT_GIT_COMMIT_PUSH" == true ]]
     then
