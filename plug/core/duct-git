@@ -37,76 +37,68 @@ declare -g DUCT_GIT_LOCAL_HEAD_PATH="${DUCT_GIT_LOCAL_HEAD_PATH:-$DUCT_GIT_WORKD
 # intl: false
 # life: core
 # desc: Return current local HEAD.
-# opts: [git-path]
+# opts:
 __duct_git_local_head() {
-  local GIT_PATH="${1:-$DUCT_GIT_WORKDIR}"
   local LOCAL_HEAD
 
-  if [[ -z "$GIT_PATH" ]]
+  if [[ -d "${DUCT_GIT_LOCAL_HEAD_PATH}/.git" ]]
   then
-    __duct_msg e "no git path!"
-    return 1
-  fi
-
-  if [[ -d "${GIT_PATH}/.git" ]]
-  then
-    LOCAL_HEAD="$( __duct_run git -C "$GIT_PATH" describe --all )"
+    LOCAL_HEAD="$( __duct_run git -C "$DUCT_GIT_LOCAL_HEAD_PATH" describe --all 2>/dev/null )"
     LOCAL_HEAD="${LOCAL_HEAD##*/}"
     __duct_msg d "$LOCAL_HEAD"
     echo "$LOCAL_HEAD"
     return
   else
-    __duct_msg d "$GIT_PATH not a git repository!"
+    __duct_msg e "'$DUCT_GIT_LOCAL_HEAD_PATH' not a git repository!"
     return 1
   fi
 }
 readonly -f __duct_git_local_head
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Return current local HEAD.
-# opts: [git-path]
-__duct_git_local_head_v2() {
-  local LOCAL_HEAD
+# git local branch
 
-  if [[ -d "${DUCT_GIT_LOCAL_HEAD_PATH}/.git" ]]
-  then
-    LOCAL_HEAD="$( __duct_run git -C "$DUCT_GIT_LOCAL_HEAD_PATH" describe --all )"
-    LOCAL_HEAD="${LOCAL_HEAD##*/}"
-    __duct_msg d "$LOCAL_HEAD"
-    echo "$LOCAL_HEAD"
-    return
-  else
-    __duct_msg d "'$DUCT_GIT_LOCAL_HEAD_PATH' not a git repository!"
-    return 1
-  fi
+declare -g -a -x DUCT_GIT_LOCAL_BRANCH_LIST=()
+
+declare -g DUCT_GIT_LOCAL_BRANCH_PATH="${DUCT_GIT_LOCAL_BRANCH_PATH:-$DUCT_GIT_WORKDIR}"
+
+declare -g DUCT_GIT_LOCAL_BRANCH_NAME="${DUCT_GIT_LOCAL_BRANCH_NAME:-}"
+
+__duct_git_local_branch() {
+  readarray -t DUCT_GIT_LOCAL_BRANCH_LIST < <( __duct_run git -C "$DUCT_GIT_LOCAL_BRANCH_PATH" branch --no-color --list --format='%(refname:lstrip=2)' )
 }
-readonly -f __duct_git_local_head_v2
+readonly -f __duct_git_local_branch
+
+# git remote branch
+
+declare -g -a -x DUCT_GIT_REMOTE_BRANCH_LIST=()
+
+declare -g DUCT_GIT_REMOTE_BRANCH_PATH="${DUCT_GIT_REMOTE_BRANCH_PATH:-$DUCT_GIT_WORKDIR}"
+
+declare -g DUCT_GIT_REMOTE_BRANCH_NAME="${DUCT_GIT_REMOTE_BRANCH_NAME:-}"
+
+__duct_git_remote_branch() {
+  readarray -t DUCT_GIT_REMOTE_BRANCH_LIST < <( __duct_run git -C "$DUCT_GIT_REMOTE_BRANCH_PATH" branch --remote --no-color --list --format='%(refname:lstrip=3)' )
+}
+readonly -f __duct_git_remote_branch
 
 # git remote head
 
+declare -g DUCT_GIT_REMOTE_HEAD_PATH="${DUCT_GIT_REMOTE_HEAD_PATH:-$DUCT_GIT_WORKDIR}"
+
+declare -g DUCT_GIT_REMOTE_HEAD_REMOTE="${DUCT_GIT_REMOTE_HEAD_REMOTE:-$DUCT_GIT_REMOTE}"
+
 # deps: duct-msg
 # intl: false
 # life: core
-# desc: Return current local HEAD.
-# opts: [git-path] [remote-name]
+# desc: Return current remote HEAD.
+# opts:
 __duct_git_remote_head() {
-  local GIT_PATH="${1:-$DUCT_GIT_WORKDIR}"
-  local REMOTE_NAME="${2:-$DUCT_GIT_REMOTE}"
-
   local REMOTE_HEAD
 
-  if [[ -z "$GIT_PATH" ]]
-  then
-    __duct_msg e "no git path!"
-    return 1
-  fi
-
-  if [[ -d "${GIT_PATH}/.git" ]]
+  if [[ -d "${DUCT_GIT_REMOTE_HEAD_PATH}/.git" ]]
   then
     # shellcheck disable=SC2046
-    set -- $( __duct_run git -C "$GIT_PATH" ls-remote --symref "$REMOTE_NAME" HEAD )
+    set -- $( __duct_run git -C "$DUCT_GIT_REMOTE_HEAD_PATH" ls-remote --symref "$DUCT_GIT_REMOTE_HEAD_REMOTE" HEAD )
 
     if [[ "${1:-}" == "ref:" ]]
     then
@@ -120,7 +112,7 @@ __duct_git_remote_head() {
     echo "$REMOTE_HEAD"
     return
   else
-    __duct_msg d "$GIT_PATH not a git repository!"
+    __duct_msg d "'$DUCT_GIT_REMOTE_HEAD_PATH' not a git repository!"
     return 1
   fi
 }
@@ -316,6 +308,7 @@ readonly -f __duct_git_credential
 
 # Options for git fetch command (defaults).
 declare -a -r _DUCT_GIT_FETCH_OPTIONS=(
+  --all
   --prune
 )
 
@@ -329,22 +322,15 @@ declare -g -a DUCT_GIT_FETCH_OPTIONS=( "${DUCT_GIT_FETCH_OPTIONS[@]:-${_DUCT_GIT
 # intl: false
 # life: core
 # desc: Run git fetch on a repository.
-# opts: <git-path> [extra-opts]
+# opts:
 __duct_git_fetch() {
-  local GIT_PATH="${1:-$DUCT_GIT_WORKDIR}"
 
-  if [[ -z "$GIT_PATH" ]]
+  if [[ -d "${DUCT_GIT_FETCH_PATH}/.git" ]]
   then
-    __duct_msg e "no git path!"
-    return 1
-  fi
-
-  if [[ -d "${GIT_PATH}/.git" ]]
-  then
-    __duct_msg n "fetch $GIT_PATH"
-    __duct_run git -C "$GIT_PATH" fetch "${DUCT_GIT_FETCH_OPTIONS[@]}"
+    __duct_msg n "$DUCT_GIT_FETCH_PATH"
+    __duct_run git -C "$DUCT_GIT_FETCH_PATH" fetch "${DUCT_GIT_FETCH_OPTIONS[@]}"
   else
-    __duct_msg e "$GIT_PATH not a git repository!"
+    __duct_msg e "'$DUCT_GIT_FETCH_PATH' not a git repository!"
     return 1
   fi
 }
@@ -373,82 +359,45 @@ declare -g DUCT_GIT_CHECKOUT_BRANCH="${DUCT_GIT_CHECKOUT_BRANCH:-$DUCT_GIT_BRANC
 # intl: false
 # life: core
 # desc: Run git checkout on a specified branch or tag.
-# opts: [git-path] [branch|tag] [extra-options]
+# opts:
 __duct_git_checkout() {
-  local GIT_PATH="${1:-$DUCT_GIT_WORKDIR}"
-  local GIT_CHECKOUT="${2:-$DUCT_GIT_CHECKOUT_BRANCH}"
-  shift || :
-  shift || :
-  local -a GIT_OPTS=( "$@" )
+  local -a GIT_OPTS=()
+  local GIT_LOCAL_HEAD
 
-  local GIT_HEAD
-
-  if [[ -z "$GIT_PATH" ]]
-  then
-    __duct_msg e "no git path!"
-    return 1
-  fi
-
-  if [[ -d "${GIT_PATH}/.git" ]]
-  then
-    GIT_HEAD="$( __duct_git_local_head "$GIT_PATH" )"
-
-    if [[ "$GIT_CHECKOUT" == "$GIT_HEAD" ]]
-    then
-      __duct_msg n "$GIT_PATH at $GIT_CHECKOUT"
-      return
-    else
-      __duct_msg d "$GIT_PATH at $GIT_HEAD"
-    fi
-
-    if [[ "$DUCT_GIT_CHECKOUT_FETCH" == true ]]
-    then
-      __duct_git_fetch "$GIT_PATH" "+refs/tags/*:refs/tags/*"
-    fi
-
-    __duct_msg n "checkout $GIT_PATH $GIT_CHECKOUT"
-    __duct_run git -C "$GIT_PATH" checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "${GIT_OPTS[@]}" "$GIT_CHECKOUT"
-  else
-    __duct_msg e "$GIT_PATH not a git repository!"
-    return 1
-  fi
-}
-
-# deps: duct-msg duct-run
-# intl: false
-# life: core
-# desc: Run git checkout on a specified branch or tag.
-# opts: [extra-options]
-__duct_git_checkout_v2() {
   if [[ -d "${DUCT_GIT_CHECKOUT_PATH}/.git" ]]
   then
 
+    if [[ "$DUCT_GIT_CHECKOUT_FETCH" == true ]]
+    then
+      DUCT_GIT_FETCH_PATH="$DUCT_GIT_CHECKOUT_PATH" \
+      __duct_git_fetch
+    fi
+
+    GIT_LOCAL_HEAD="$( DUCT_GIT_LOCAL_HEAD_PATH="$DUCT_GIT_CHECKOUT_PATH" __duct_git_local_head )"
+
+    if [[ "$DUCT_GIT_CHECKOUT_BRANCH" == "$GIT_LOCAL_HEAD" ]]
+    then
+      __duct_msg n "at '$DUCT_GIT_CHECKOUT_BRANCH'"
+      return 0
+    fi
+
+    __duct_git_remote_branch
+    __duct_git_local_branch
+
+    if [[ ! "${DUCT_GIT_REMOTE_BRANCH_LIST[*]}" =~ $DUCT_GIT_CHECKOUT_BRANCH ]] || [[ ! "${DUCT_GIT_LOCAL_BRANCH_LIST[*]}" =~ $DUCT_GIT_CHECKOUT_BRANCH ]]
+    then
+      GIT_OPTS+=( -B )
+    fi
+
     __duct_msg n "$DUCT_GIT_CHECKOUT_BRANCH"
-    __duct_run git -C "$DUCT_GIT_CHECKOUT_PATH" checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "$DUCT_GIT_CHECKOUT_BRANCH"
+    __duct_run git -C "$DUCT_GIT_CHECKOUT_PATH" checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "${GIT_OPTS[@]}" "$DUCT_GIT_CHECKOUT_BRANCH"
 
-    #GIT_HEAD="$( __duct_git_local_head )"
-
-    #if [[ "$GIT_CHECKOUT" == "$GIT_HEAD" ]]
-    #then
-    #  __duct_msg n "$GIT_PATH at $GIT_CHECKOUT"
-    #  return
-    #else
-    #  __duct_msg d "$GIT_PATH at $GIT_HEAD"
-    #fi
-
-    #if [[ "$DUCT_GIT_CHECKOUT_FETCH" == true ]]
-    #then
-    #  __duct_git_fetch "$GIT_PATH" "+refs/tags/*:refs/tags/*"
-    #fi
-
-    #__duct_msg n "checkout $GIT_PATH $GIT_CHECKOUT"
-    #__duct_run git -C "$GIT_PATH" checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "${GIT_OPTS[@]}" "$GIT_CHECKOUT"
   else
     __duct_msg e "'$DUCT_GIT_CHECKOUT_PATH' not a git repository!"
     return 1
   fi
 }
-readonly -f __duct_git_checkout_v2
+readonly -f __duct_git_checkout
 
 # git clone
 
@@ -459,6 +408,9 @@ declare -a -r _DUCT_GIT_CLONE_OPTIONS=(
 
 # Options for `git clone`.
 declare -g -a DUCT_GIT_CLONE_OPTIONS=( "${DUCT_GIT_CLONE_OPTIONS[@]:-${_DUCT_GIT_CLONE_OPTIONS[@]}}" )
+
+# Path to clone in (inherit `DUCT_GIT_WORKDIR`).
+declare -g DUCT_GIT_CLONE_PATH="${DUCT_GIT_CLONE_PATH:-$DUCT_GIT_WORKDIR}"
 
 # Branch name to clone.
 declare -g DUCT_GIT_CLONE_BRANCH="${DUCT_GIT_CLONE_BRANCH:-}"
@@ -549,8 +501,10 @@ __duct_git_clone() {
     then
       DUCT_GIT_PULL_BRANCH="$DUCT_GIT_CLONE_BRANCH" \
       DUCT_GIT_PULL_CHECKOUT="$DUCT_GIT_CLONE_CHECKOUT" \
+      DUCT_GIT_PULL_PATH="$DUCT_GIT_CLONE_PATH" \
       DUCT_GIT_PULL_REMOTE="$DUCT_GIT_CLONE_REMOTE" \
-      __duct_git_pull "$GIT_PATH" "$GIT_URL"
+      DUCT_GIT_PULL_URL="$DUCT_GIT_CLONE_URL" \
+      __duct_git_pull
       return
     fi
   fi
@@ -568,6 +522,9 @@ declare -g -a -r _DUCT_GIT_PULL_OPTIONS=(
 # Options for `git pull`.
 declare -g -a DUCT_GIT_PULL_OPTIONS=( "${DUCT_GIT_PULL_OPTIONS[@]:-${_DUCT_GIT_PULL_OPTIONS[@]}}" )
 
+# Path to pull in (inherit `DUCT_GIT_WORKDIR`)
+declare -g DUCT_GIT_PULL_PATH="${DUCT_GIT_PULL_PATH:-$DUCT_GIT_WORKDIR}"
+
 # Remote name to pull (inherit DUCT_GIT_REMOTE).
 declare -g DUCT_GIT_PULL_REMOTE="${DUCT_GIT_PULL_REMOTE:-$DUCT_GIT_REMOTE}"
 
@@ -580,77 +537,36 @@ declare -g DUCT_GIT_PULL_CHECKOUT="${DUCT_GIT_PULL_CHECKOUT:-}"
 # deps: duct-msg duct-run
 # intl: false
 # life: core
-# desc: Fetch & pull a git repository from path ###, and optionaly update remote url.
-# opts: <path> [git-url]
+# desc: Pull a git repository.
+# opts:
 __duct_git_pull() {
-  local GIT_PATH="${1:-}"
-  local GIT_URL="${2:-}"
+  local GIT_BRANCH="$DUCT_GIT_PULL_BRANCH"
 
   local GIT_HEAD
 
-  if [[ -z "$GIT_PATH" ]]
+  if [[ -d "${DUCT_GIT_PULL_PATH}/.git" ]]
   then
-    __duct_msg e "no git path!"
-    return 1
-  fi
 
-  if [[ -d "${GIT_PATH}/.git" ]]
-  then
-    (
-      cd "$GIT_PATH" || return
+    if [[ -z "$GIT_BRANCH" ]]
+    then
+      GIT_BRANCH="$(
+        DUCT_GIT_REMOTE_HEAD_PATH="$DUCT_GIT_PULL_PATH" \
+        DUCT_GIT_REMOTE_HEAD_REMOTE="$DUCT_GIT_PULL_REMOTE" \
+        __duct_git_remote_head
+      )"
 
-      # TODO: fix remote change/set
-      #if [[ -n "$GIT_URL" ]]
-      #then
-      #  local _GIT_URL
-      #  _GIT_URL="$(__duct_run git remote get-url "$DUCT_GIT_CLONE_REMOTE" 2>/dev/null || :)"
-
-      #  if [[ -z "$_GIT_URL" ]]
-      #  then
-      #    __duct_msg i "no such remote $DUCT_GIT_CLONE_REMOTE"
-      #    __duct_msg i "setting $DUCT_GIT_CLONE_REMOTE to $GIT_URL"
-      #    __duct_run git remote add "$DUCT_GIT_CLONE_REMOTE" "$GIT_URL"
-
-      #  elif [[ "$_GIT_URL" != "$GIT_URL" ]]
-      #  then
-      #    __duct_msg e "url mismatch: ${DUCT_GIT_CLONE_REMOTE}:${_GIT_URL} ! ${DUCT_GIT_CLONE_REMOTE}:${GIT_URL}"
-      #    return 1
-      #  fi
-      #fi
-
-      if [[ -n "$DUCT_GIT_PULL_CHECKOUT" ]] && [[ ! "$DUCT_GIT_PULL_CHECKOUT" =~ ^(main|master)$ ]]
+      if [[ -z "$GIT_BRANCH" ]]
       then
-        GIT_HEAD="$( __duct_git_local_head "$GIT_PATH" )"
-
-        if [[ "$DUCT_GIT_PULL_CHECKOUT" == "$GIT_HEAD" ]]
-        then
-          __duct_msg n "$GIT_PATH at $DUCT_GIT_PULL_CHECKOUT"
-        else
-          __duct_msg d "$GIT_PATH at $GIT_HEAD"
-        fi
+        __duct_msg w "'$DUCT_GIT_PULL_PATH' nothing to pull!"
+        return
       fi
+    fi
 
-      if [[ -z "$DUCT_GIT_PULL_BRANCH" ]]
-      then
-        DUCT_GIT_PULL_BRANCH="$( __duct_git_remote_head "$GIT_PATH" "$DUCT_GIT_PULL_REMOTE" )"
+    __duct_msg n "$DUCT_GIT_PULL_PATH from $GIT_URL"
+    __duct_run git -C "$DUCT_GIT_PULL_PATH" pull "${DUCT_GIT_PULL_OPTIONS[@]}" "$DUCT_GIT_PULL_REMOTE" "$GIT_BRANCH"
 
-        if [[ -z "$DUCT_GIT_PULL_BRANCH" ]]
-        then
-          __duct_msg w "no branch o pull!"
-          return
-        fi
-      fi
-
-      __duct_msg n "$GIT_PATH from $GIT_URL"
-      __duct_run git pull "${DUCT_GIT_PULL_OPTIONS[@]}" "$DUCT_GIT_PULL_REMOTE" "$DUCT_GIT_PULL_BRANCH"
-
-      if [[ -n "$DUCT_GIT_PULL_CHECKOUT" ]]
-      then
-        __duct_git_checkout "$GIT_PATH" "$DUCT_GIT_PULL_CHECKOUT"
-      fi
-    )
   else
-    __duct_msg e "$GIT_PATH not a git repository!"
+    __duct_msg e "'$DUCT_GIT_PULL_PATH' not a git repository!"
   fi
 }
 readonly -f __duct_git_pull
@@ -697,107 +613,10 @@ declare -g -a DUCT_GIT_COMMIT_LIST=( ${DUCT_GIT_COMMIT_LIST[@]:-${_DUCT_GIT_COMM
 # intl: false
 # life: core
 # desc: Commit to a git repository with optional push.
-# opts: [<message> <@files>]
-__duct_git_commit() {
-  local GIT_MSG="${1:-$DUCT_GIT_COMMIT_MESSAGE}"
-  shift || :
-  local -a GIT_LIST=( "${@:-${DUCT_GIT_COMMIT_LIST[@]}}" )
-
-  local GIT_COMMIT=0
-  local GIT_ERROR=0
-
-  if [[ -z "$GIT_MSG" ]]
-  then
-    __duct_msg e "no commit message!"
-    GIT_ERROR+=1
-  fi
-
-  if [[ "${#GIT_LIST[@]}" -lt 1 ]]
-  then
-    __duct_msg e "no file(s) to commit!"
-    GIT_ERROR+=1
-  fi
-
-  if [[ "$GIT_ERROR" -gt 0 ]]
-  then
-    return 1
-  fi
-
-  if [[ "$DUCT_GIT_COMMIT_GPG_SIGN" == true ]]
-  then
-    DUCT_GIT_COMMIT_OPTIONS+=( --gpg-sign )
-  fi
-
-  local GIT_BRANCH_LOCAL
-  local GIT_BRANCH_REMOTE
-  GIT_BRANCH_LOCAL="$( __duct_run git branch --show-current )"
-  __duct_msg d "local: $GIT_BRANCH_LOCAL"
-  GIT_BRANCH_REMOTE="$( __duct_run git branch --remotes --no-color --list --format='%(refname:lstrip=2)' "${DUCT_GIT_COMMIT_REMOTE}/${DUCT_GIT_COMMIT_BRANCH}" )"
-  __duct_msg d "remote: $GIT_BRANCH_REMOTE"
-
-  if [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == false ]]
-  then
-    if [[ "$GIT_BRANCH_REMOTE" == "${DUCT_GIT_COMMIT_REMOTE}/${DUCT_GIT_COMMIT_BRANCH}" ]]
-    then
-      __duct_msg w "remote branch $GIT_BRANCH_REMOTE exists, not reusing!"
-      return
-    fi
-    if [[ "${GIT_BRANCH_LOCAL}" == "$DUCT_GIT_COMMIT_BRANCH" ]]
-    then
-      __duct_msg w "local branch $GIT_BRANCH_LOCAL exists, not reusing!"
-      return
-    fi
-
-    __duct_run git checkout --quiet -B "$DUCT_GIT_COMMIT_BRANCH"
-
-  elif [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == true ]]
-  then
-
-    if [[ "$GIT_BRANCH_LOCAL" != "$DUCT_GIT_COMMIT_BRANCH" ]]
-    then
-      __duct_msg e "not on branch $DUCT_GIT_COMMIT_BRANCH checkout and pull first!"
-      return 1
-    fi
-  fi
-
-  local -a GIT_STATUS
-  readarray -t GIT_STATUS < <( __duct_run git status --porcelain=v1 )
-
-  for _STATUS in "${GIT_STATUS[@]}"
-  do
-    for _FILE in "${GIT_LIST[@]}"
-    do
-      if [[ "${_STATUS##* }" == "$_FILE" ]]
-      then
-        __duct_msg d "$_FILE"
-        __duct_run git add "$_FILE"
-        GIT_COMMIT=1
-      fi
-    done
-  done
-
-  if [[ "$GIT_COMMIT" -ge 1 ]]
-  then
-    __duct_msg n "commit $GIT_MSG ${GIT_LIST[*]}"
-    __duct_run git commit "${DUCT_GIT_COMMIT_OPTIONS[@]}" --message="$GIT_MSG" "${GIT_LIST[@]}"
-
-    if [[ "$DUCT_GIT_COMMIT_PUSH" == true ]]
-    then
-      __duct_run git push --set-upstream "$DUCT_GIT_COMMIT_REMOTE" "$DUCT_GIT_COMMIT_BRANCH"
-    fi
-  else
-    __duct_msg n "nothing to commit"
-  fi
-}
-readonly -f __duct_git_commit
-
-# deps: duct-msg duct-run
-# intl: false
-# life: core
-# desc: Commit to a git repository with optional push.
 # opts:
-__duct_git_commit_v2() {
+__duct_git_commit() {
   local -a GIT_OPTS=()
+  local -a GIT_STATUS=()
   local GIT_COMMIT=0
   local GIT_ERROR=0
 
@@ -825,19 +644,25 @@ __duct_git_commit_v2() {
 
   DUCT_GIT_CHECKOUT_PATH=$DUCT_GIT_COMMIT_PATH \
   DUCT_GIT_CHECKOUT_BRANCH=$DUCT_GIT_COMMIT_BRANCH \
-  __duct_git_checkout_v2
-
-  if [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == false ]]
-  then
-    __duct_msg d "checkout $DUCT_GIT_COMMIT_BRANCH"
-
-  elif [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == true ]]
-  then
-    __duct_msg d "checkout $DUCT_GIT_COMMIT_BRANCH"
-  fi
+  __duct_git_checkout
 
   __duct_msg n "add '${DUCT_GIT_COMMIT_LIST[*]}'"
-  __duct_run git -C "$DUCT_GIT_COMMIT_PATH" add "${DUCT_GIT_COMMIT_LIST[@]}" && GIT_COMMIT=1
+  __duct_run git -C "$DUCT_GIT_COMMIT_PATH" add "${DUCT_GIT_COMMIT_LIST[@]}"
+
+  # check changes
+  readarray -t GIT_STATUS < <( __duct_run git -C "$DUCT_GIT_COMMIT_PATH" status --porcelain=v1 )
+
+  for _STATUS in "${GIT_STATUS[@]}"
+  do
+    for _FILE in "${DUCT_GIT_COMMIT_LIST[@]}"
+    do
+      if [[ "$_FILE" == "${_STATUS##* }" ]]
+      then
+        __duct_msg d "change: $_STATUS"
+        GIT_COMMIT+=1
+      fi
+    done
+  done
 
   if [[ "$GIT_COMMIT" -ge 1 ]]
   then
@@ -853,7 +678,7 @@ __duct_git_commit_v2() {
     __duct_msg n "nothing to commit"
   fi
 }
-readonly -f __duct_git_commit_v2
+readonly -f __duct_git_commit
 
 # git strip remote
 
