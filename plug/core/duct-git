@@ -31,6 +31,8 @@ declare -g DUCT_GIT_REMOTE="${DUCT_GIT_REMOTE:-"origin"}"
 
 # git local head
 
+declare -g DUCT_GIT_LOCAL_HEAD_PATH="${DUCT_GIT_LOCAL_HEAD_PATH:-$DUCT_GIT_WORKDIR}"
+
 # deps: duct-msg
 # intl: false
 # life: core
@@ -295,6 +297,9 @@ declare -a -r _DUCT_GIT_FETCH_OPTIONS=(
   --prune
 )
 
+# Path to fetch in (inherit `DUCT_GIT_WORKDIR`).
+declare -g DUCT_GIT_FETCH_PATH="${DUCT_GIT_FETCH_PATH:-$DUCT_GIT_WORKDIR}"
+
 # Options for git fetch command.
 declare -g -a DUCT_GIT_FETCH_OPTIONS=( "${DUCT_GIT_FETCH_OPTIONS[@]:-${_DUCT_GIT_FETCH_OPTIONS[@]}}" )
 
@@ -333,11 +338,14 @@ declare -a -r _DUCT_GIT_CHECKOUT_OPTIONS=(
 # Options for git checkout command.
 declare -g -a DUCT_GIT_CHECKOUT_OPTIONS=( "${DUCT_GIT_CHECKOUT_OPTIONS[@]:-${_DUCT_GIT_CHECKOUT_OPTIONS[@]}}" )
 
+# Path to checkout in (inherit `DUCT_GIT_WORKDIR`).
+declare -g DUCT_GIT_CHECKOUT_PATH="${DUCT_GIT_CHECKOUT_PATH:-$DUCT_GIT_WORKDIR}"
+
 # Run git fetch before checkout.
 declare -g DUCT_GIT_CHECKOUT_FETCH="${DUCT_GIT_CHECKOUT_FETCH:-true}"
 
 # Git branch, commit or tag to checkout.
-declare -g DUCT_GIT_CHECKOUT_BRANCH="${DUCT_GIT_CHECKOUT_BRANCH:-}"
+declare -g DUCT_GIT_CHECKOUT_BRANCH="${DUCT_GIT_CHECKOUT_BRANCH:-$DUCT_GIT_BRANCH}"
 
 # deps: duct-msg duct-run
 # intl: false
@@ -383,6 +391,46 @@ __duct_git_checkout() {
     return 1
   fi
 }
+
+# deps: duct-msg duct-run
+# intl: false
+# life: core
+# desc: Run git checkout on a specified branch or tag.
+# opts: [extra-options]
+__duct_git_checkout_v2() {
+  local -a GIT_OPTS=( "$@" )
+
+  local GIT_HEAD
+
+  if [[ -d "${DUCT_GIT_CHECKOUT_PATH}/.git" ]]
+  then
+
+    __duct_msg n "$DUCT_GIT_CHECKOUT_BRANCH"
+    __duct_run git -C "$DUCT_GIT_CHECKOUT_PATH" checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "${GIT_OPTS[@]}" "$DUCT_GIT_CHECKOUT_BRANCH"
+
+    #GIT_HEAD="$( __duct_git_local_head )"
+
+    #if [[ "$GIT_CHECKOUT" == "$GIT_HEAD" ]]
+    #then
+    #  __duct_msg n "$GIT_PATH at $GIT_CHECKOUT"
+    #  return
+    #else
+    #  __duct_msg d "$GIT_PATH at $GIT_HEAD"
+    #fi
+
+    #if [[ "$DUCT_GIT_CHECKOUT_FETCH" == true ]]
+    #then
+    #  __duct_git_fetch "$GIT_PATH" "+refs/tags/*:refs/tags/*"
+    #fi
+
+    #__duct_msg n "checkout $GIT_PATH $GIT_CHECKOUT"
+    #__duct_run git -C "$GIT_PATH" checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "${GIT_OPTS[@]}" "$GIT_CHECKOUT"
+  else
+    __duct_msg e "'$DUCT_GIT_CHECKOUT_PATH' not a git repository!"
+    return 1
+  fi
+}
+readonly -f __duct_git_checkout_v2
 
 # git clone
 
@@ -743,7 +791,7 @@ __duct_git_commit_v2() {
 
   if [[ "${#DUCT_GIT_COMMIT_LIST[@]}" -lt 1 ]]
   then
-    __duct_msg e "no file(s) to commit!"
+    __duct_msg e "nothing to commit!"
     GIT_ERROR+=1
   fi
 
@@ -756,6 +804,9 @@ __duct_git_commit_v2() {
   then
     DUCT_GIT_COMMIT_OPTIONS+=( --gpg-sign )
   fi
+
+  DUCT_GIT_CHECKOUT_BRANCH=$DUCT_GIT_COMMIT_BRANCH \
+   __duct_git_checkout_v2
 
   if [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == false ]]
   then
