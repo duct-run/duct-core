@@ -398,15 +398,11 @@ __duct_git_checkout() {
 # desc: Run git checkout on a specified branch or tag.
 # opts: [extra-options]
 __duct_git_checkout_v2() {
-  local -a GIT_OPTS=( "$@" )
-
-  local GIT_HEAD
-
   if [[ -d "${DUCT_GIT_CHECKOUT_PATH}/.git" ]]
   then
 
     __duct_msg n "$DUCT_GIT_CHECKOUT_BRANCH"
-    __duct_run git -C "$DUCT_GIT_CHECKOUT_PATH" checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "${GIT_OPTS[@]}" "$DUCT_GIT_CHECKOUT_BRANCH"
+    __duct_run git -C "$DUCT_GIT_CHECKOUT_PATH" checkout "${DUCT_GIT_CHECKOUT_OPTIONS[@]}" "$DUCT_GIT_CHECKOUT_BRANCH"
 
     #GIT_HEAD="$( __duct_git_local_head )"
 
@@ -805,8 +801,9 @@ __duct_git_commit_v2() {
     DUCT_GIT_COMMIT_OPTIONS+=( --gpg-sign )
   fi
 
+  DUCT_GIT_CHECKOUT_PATH=$DUCT_GIT_COMMIT_PATH \
   DUCT_GIT_CHECKOUT_BRANCH=$DUCT_GIT_COMMIT_BRANCH \
-   __duct_git_checkout_v2
+  __duct_git_checkout_v2
 
   if [[ "$DUCT_GIT_COMMIT_BRANCH_REUSE" == false ]]
   then
