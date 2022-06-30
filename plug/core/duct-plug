@@ -217,10 +217,13 @@ __duct_plug_install() {
     DUCT_GIT_CLONE_OPTIONS=( --quiet )
     DUCT_GIT_PULL_OPTIONS=( --quiet --prune )
 
-    DUCT_GIT_CLONE_PULL="$DUCT_PLUG_INSTALL_UPDATE" \
+    DUCT_GIT_CLONE_BRANCH="$PLUG_TAG" \
     DUCT_GIT_CLONE_CHECKOUT="$PLUG_TAG" \
+    DUCT_GIT_CLONE_PATH="$PLUG_DIR" \
+    DUCT_GIT_CLONE_PULL="$DUCT_PLUG_INSTALL_UPDATE" \
+    DUCT_GIT_CLONE_URL="$PLUG_URL" \
     DUCT_RUN_SIMULATE=false \
-    __duct_git_clone "$PLUG_URL" "$PLUG_DIR"
+    __duct_git_clone
 
     # reset options
     DUCT_MSG_MAX_LEVEL="$_MSG_MAX_LEVEL"
