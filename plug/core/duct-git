@@ -65,6 +65,8 @@ declare -g DUCT_GIT_LOCAL_BRANCH_NAME="${DUCT_GIT_LOCAL_BRANCH_NAME:-}"
 
 __duct_git_local_branch() {
   readarray -t DUCT_GIT_LOCAL_BRANCH_LIST < <( __duct_run git -C "$DUCT_GIT_LOCAL_BRANCH_PATH" branch --no-color --list --format='%(refname:lstrip=2)' )
+
+  __duct_msg d "${DUCT_GIT_LOCAL_BRANCH_LIST[*]}"
 }
 readonly -f __duct_git_local_branch
 
@@ -78,6 +80,8 @@ declare -g DUCT_GIT_REMOTE_BRANCH_NAME="${DUCT_GIT_REMOTE_BRANCH_NAME:-}"
 
 __duct_git_remote_branch() {
   readarray -t DUCT_GIT_REMOTE_BRANCH_LIST < <( __duct_run git -C "$DUCT_GIT_REMOTE_BRANCH_PATH" branch --remote --no-color --list --format='%(refname:lstrip=3)' )
+
+  __duct_msg d "${DUCT_GIT_REMOTE_BRANCH_LIST[*]}"
 }
 readonly -f __duct_git_remote_branch
 
@@ -310,6 +314,7 @@ readonly -f __duct_git_credential
 declare -a -r _DUCT_GIT_FETCH_OPTIONS=(
   --all
   --prune
+  --quiet
 )
 
 # Path to fetch in (inherit `DUCT_GIT_WORKDIR`).
@@ -377,14 +382,17 @@ __duct_git_checkout() {
 
     if [[ "$DUCT_GIT_CHECKOUT_BRANCH" == "$GIT_LOCAL_HEAD" ]]
     then
-      __duct_msg n "at '$DUCT_GIT_CHECKOUT_BRANCH'"
+      __duct_msg n "at $DUCT_GIT_CHECKOUT_BRANCH"
       return 0
     fi
 
+    DUCT_GIT_REMOTE_BRANCH_PATH="$DUCT_GIT_CHECKOUT_PATH"\
     __duct_git_remote_branch
+
+    DUCT_GIT_LOCAL_BRANCH_PATH="$DUCT_GIT_CHECKOUT_PATH" \
     __duct_git_local_branch
 
-    if [[ ! "${DUCT_GIT_REMOTE_BRANCH_LIST[*]}" =~ $DUCT_GIT_CHECKOUT_BRANCH ]] || [[ ! "${DUCT_GIT_LOCAL_BRANCH_LIST[*]}" =~ $DUCT_GIT_CHECKOUT_BRANCH ]]
+    if [[ ! "${DUCT_GIT_REMOTE_BRANCH_LIST[*]}" =~ $DUCT_GIT_CHECKOUT_BRANCH ]] #&& [[ ! "${DUCT_GIT_LOCAL_BRANCH_LIST[*]}" =~ $DUCT_GIT_CHECKOUT_BRANCH ]]
     then
       GIT_OPTS+=( -B )
     fi
@@ -433,29 +441,16 @@ declare -g DUCT_GIT_CLONE_CHECKOUT="${DUCT_GIT_CLONE_CHECKOUT:-}"
 # deps: duct-msg duct-run
 # intl: false
 # life: core
-# desc: Clone a git repository with optional path, prefix and pull.
-# optis: [git-url] [[p:]path]
+# desc: Clone a git repository with optional pull.
+# opts:
 __duct_git_clone() {
-  local GIT_URL="${1:-${DUCT_GIT_CLONE_URL}}"
-  local GIT_PATH="${2:-${DUCT_GIT_CLONE_PATH}}"
-  local GIT_NAME
+  local -a GIT_OPTS=()
   local GIT_RC=0
 
-  local -a GIT_OPTS=()
-
-  if [[ -z "$GIT_URL" ]]
+  if [[ -z "$DUCT_GIT_CLONE_URL" ]]
   then
     __duct_msg e "no git url!"
     return 1
-  fi
-
-  GIT_NAME="${GIT_URL##*/}"
-  GIT_NAME="${GIT_NAME//.git}"
-
-  # default
-  if [[ -z "$GIT_PATH" ]]
-  then
-    GIT_PATH="${DUCT_GIT_WORKDIR}/${GIT_NAME}"
   fi
 
   # remote
@@ -474,17 +469,10 @@ __duct_git_clone() {
     )
   fi
 
-  # prefix
-  if [[ "$GIT_PATH" =~ ^p: ]]
+  if [[ ! -d "${DUCT_GIT_CLONE_PATH}/.git" ]]
   then
-    __duct_msg d "using prefix path ${GIT_PATH##*p:}"
-    GIT_PATH="${GIT_PATH##*p:}/${GIT_NAME}"
-  fi
-
-  if [[ ! -d "$GIT_PATH" ]]
-  then
-    __duct_msg n "clone $GIT_URL to $GIT_PATH"
-    __duct_run git clone "${DUCT_GIT_CLONE_OPTIONS[@]}" "${GIT_OPTS[@]}" "$GIT_URL" "$GIT_PATH" || GIT_RC=$?
+    __duct_msg n "'$DUCT_GIT_CLONE_URL' to '$DUCT_GIT_CLONE_PATH'"
+    __duct_run git clone "${DUCT_GIT_CLONE_OPTIONS[@]}" "${GIT_OPTS[@]}" "$DUCT_GIT_CLONE_URL" "$DUCT_GIT_CLONE_PATH" || GIT_RC=$?
 
     if [[ "$GIT_RC" -gt 0 ]]
     then
@@ -493,7 +481,9 @@ __duct_git_clone() {
 
     if [[ -n "$DUCT_GIT_CLONE_CHECKOUT" ]]
     then
-      __duct_git_checkout "$GIT_PATH" "$DUCT_GIT_CLONE_CHECKOUT"
+      DUCT_GIT_CHECKOUT_BRANCH="$DUCT_GIT_CLONE_CHECKOUT" \
+      DUCT_GIT_CHECKOUT_PATH="$DUCT_GIT_CLONE_PATH" \
+      __duct_git_checkout
       return
     fi
   else
@@ -503,7 +493,6 @@ __duct_git_clone() {
       DUCT_GIT_PULL_CHECKOUT="$DUCT_GIT_CLONE_CHECKOUT" \
       DUCT_GIT_PULL_PATH="$DUCT_GIT_CLONE_PATH" \
       DUCT_GIT_PULL_REMOTE="$DUCT_GIT_CLONE_REMOTE" \
-      DUCT_GIT_PULL_URL="$DUCT_GIT_CLONE_URL" \
       __duct_git_pull
       return
     fi
@@ -542,8 +531,6 @@ declare -g DUCT_GIT_PULL_CHECKOUT="${DUCT_GIT_PULL_CHECKOUT:-}"
 __duct_git_pull() {
   local GIT_BRANCH="$DUCT_GIT_PULL_BRANCH"
 
-  local GIT_HEAD
-
   if [[ -d "${DUCT_GIT_PULL_PATH}/.git" ]]
   then
 
@@ -562,9 +549,15 @@ __duct_git_pull() {
       fi
     fi
 
-    __duct_msg n "$DUCT_GIT_PULL_PATH from $GIT_URL"
+    __duct_msg n "$DUCT_GIT_PULL_PATH"
     __duct_run git -C "$DUCT_GIT_PULL_PATH" pull "${DUCT_GIT_PULL_OPTIONS[@]}" "$DUCT_GIT_PULL_REMOTE" "$GIT_BRANCH"
 
+    if [[ -n "$DUCT_GIT_PULL_CHECKOUT" ]]
+    then
+      DUCT_GIT_CHECKOUT_BRANCH="$DUCT_GIT_PULL_CHECKOUT" \
+      DUCT_GIT_CHECKOUT_PATH="$DUCT_GIT_PULL_PATH" \
+      __duct_git_checkout
+    fi
   else
     __duct_msg e "'$DUCT_GIT_PULL_PATH' not a git repository!"
   fi
