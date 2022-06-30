@@ -555,6 +555,7 @@ __duct_git_pull() {
     if [[ -n "$DUCT_GIT_PULL_CHECKOUT" ]]
     then
       DUCT_GIT_CHECKOUT_BRANCH="$DUCT_GIT_PULL_CHECKOUT" \
+      DUCT_GIT_CHECKOUT_FETCH=false \
       DUCT_GIT_CHECKOUT_PATH="$DUCT_GIT_PULL_PATH" \
       __duct_git_checkout
     fi
