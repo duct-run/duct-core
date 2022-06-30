@@ -471,7 +471,7 @@ __duct_git_clone() {
 
   if [[ ! -d "${DUCT_GIT_CLONE_PATH}/.git" ]]
   then
-    __duct_msg n "'$DUCT_GIT_CLONE_URL' branch '$DUCT_GIT_CLONE_BRANCH' to '$DUCT_GIT_CLONE_PATH'"
+    __duct_msg n "'$DUCT_GIT_CLONE_URL' to '$DUCT_GIT_CLONE_PATH'"
     __duct_run git clone "${DUCT_GIT_CLONE_OPTIONS[@]}" "${GIT_OPTS[@]}" "$DUCT_GIT_CLONE_URL" "$DUCT_GIT_CLONE_PATH" || GIT_RC=$?
 
     if [[ "$GIT_RC" -gt 0 ]]
