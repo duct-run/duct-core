@@ -124,7 +124,7 @@ readonly -f __duct_plug_load
 
 # Main plugins to be installed and updated (internal).
 declare -a -r _DUCT_PLUG_INSTALL_MAIN=(
-  duct-plug-main::devel  # TODO: add stable version before release!
+  duct-plug-main
 )
 
 # List of vendor plugins to be installed and updated (defaults).
@@ -175,7 +175,7 @@ __duct_plug_install() {
 
     if [[ "$PLUG_TAG" == "$PLUG_URL" ]]
     then
-      PLUG_TAG="main"
+      PLUG_TAG="devel" # TODO: change to stable before release!
     fi
 
     PLUG_NAME="${PLUG_URL##*/}"
