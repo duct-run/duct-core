@@ -582,6 +582,9 @@ declare -g DUCT_GIT_COMMIT_PATH="${DUCT_GIT_COMMIT_PATH:-$DUCT_GIT_WORKDIR}"
 # Options for `git commit`.
 declare -g -a DUCT_GIT_COMMIT_OPTIONS=( "${DUCT_GIT_COMMIT_OPTIONS[@]:-${_DUCT_GIT_COMMIT_OPTIONS[@]}}" )
 
+# Enable/disable Signed-off-by
+declare -g DUCT_GIT_COMMIT_SIGNOFF="${DUCT_GIT_COMMIT_SIGNOFF:-false}"
+
 # Enable/disable GPG signing of commit.
 declare -g DUCT_GIT_COMMIT_GPG_SIGN="${DUCT_GIT_COMMIT_GPG_SIGN:-false}"
 
@@ -632,9 +635,14 @@ __duct_git_commit() {
     return 1
   fi
 
+  if [[ "$DUCT_GIT_COMMIT_SIGNOFF" == true ]]
+  then
+    GIT_OPTS+=( --signoff )
+  fi
+
   if [[ "$DUCT_GIT_COMMIT_GPG_SIGN" == true ]]
   then
-    DUCT_GIT_COMMIT_OPTIONS+=( --gpg-sign )
+    GIT_OPTS+=( --gpg-sign )
   fi
 
   DUCT_GIT_CHECKOUT_PATH=$DUCT_GIT_COMMIT_PATH \
