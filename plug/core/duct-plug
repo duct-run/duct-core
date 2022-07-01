@@ -122,6 +122,11 @@ readonly -f __duct_plug_load
 
 # plug install
 
+# Core plugins to be updated (internal).
+declare -r -a _DUCT_PLUG_INSTALL_CORE=(
+  duct-core
+)
+
 # Main plugins to be installed and updated (internal).
 declare -a -r _DUCT_PLUG_INSTALL_MAIN=(
   duct-plug-main
@@ -156,6 +161,9 @@ __duct_plug_install() {
 
   case "$PLUG_TYPE"
   in
+    core)
+      PLUG=( "${_DUCT_PLUG_INSTALL_CORE[@]}" )
+    ;;
     main)
       PLUG=( "${_DUCT_PLUG_INSTALL_MAIN[@]}" )
     ;;
@@ -183,14 +191,18 @@ __duct_plug_install() {
     PLUG_NAME="${PLUG_NAME##*duct-plug-}"
     PLUG_NAME="${PLUG_NAME##*duct-plugin-}"
 
-    if [[ "$PLUG_TYPE" == "main" ]]
-    then
-      PLUG_DIR="$_DUCT_PLUG_DIR_MAIN"
-
-    elif [[ "$PLUG_TYPE" == "vendor" ]]
-    then
-      PLUG_DIR="${_DUCT_PLUG_DIR_VENDOR}/${PLUG_NAME}"
-    fi
+    case "$PLUG_TYPE"
+    in
+      core)
+        PLUG_DIR="$DUCT_ROOT_DIR"
+      ;;
+      main)
+        PLUG_DIR="$_DUCT_PLUG_DIR_MAIN"
+      ;;
+      vendor)
+        PLUG_DIR="${_DUCT_PLUG_DIR_VENDOR}/${PLUG_NAME}"
+      ;;
+    esac
 
     # default pluging hosting
     if [[ ! "$PLUG_URL" =~ ^(http(s)?|.*@) ]]
