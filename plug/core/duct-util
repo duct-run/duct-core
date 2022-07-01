@@ -1691,11 +1691,17 @@ __duct_sleep_random() {
   local SLEEP_MAX="${1:-5}"
   local SLEEP_MIN="${2:-1}"
 
-  local SLEEP_RANDOM="$(( RANDOM % SLEEP_MAX + SLEEP_MIN ))"
+  local SLEEP_RANDOM=0
 
-  __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_MAX ($SLEEP_MIN) second(s)"
+  while [[ "$SLEEP_RANDOM" -lt "$SLEEP_MIN" ]]
+  do
+    SLEEP_RANDOM="$(( RANDOM % SLEEP_MAX + 1 ))"
+  done
+
+  __duct_msg d "sleep ${SLEEP_RANDOM}/${SLEEP_MIN} of $SLEEP_MAX second(s)"
   sleep "$SLEEP_RANDOM"
 }
+readonly -f __duct_sleep_random
 
 # grep
 
