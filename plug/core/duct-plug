@@ -218,7 +218,6 @@ __duct_plug_install() {
     fi
 
     # git clone
-
     # store options
     # shellcheck disable=SC2206
     local -a _GIT_CLONE_OPTIONS=( ${DUCT_GIT_CLONE_OPTIONS[@]} )
