@@ -1685,14 +1685,15 @@ readonly -f __duct_tee
 # deps: duct-msg
 # intl: false
 # life: core
-# desc: Sleep random seconds (default 5 seconds).
-# opts: [max-sleep]
+# desc: Sleep random seconds (default max 5, min 1 second).
+# opts: [sleep-max] [sleep-min]
 __duct_sleep_random() {
   local SLEEP_MAX="${1:-5}"
+  local SLEEP_MIN="${2:-1}"
 
-  local SLEEP_RANDOM="$(( RANDOM % SLEEP_MAX + 1 ))"
+  local SLEEP_RANDOM="$(( RANDOM % SLEEP_MAX + SLEEP_MIN ))"
 
-  __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_MAX second(s)"
+  __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_MAX ($SLEEP_MIN) second(s)"
   sleep "$SLEEP_RANDOM"
 }
 
