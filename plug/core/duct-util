@@ -1680,6 +1680,24 @@ __duct_tee() {
 }
 readonly -f __duct_tee
 
+# sleep random
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Sleep random seconds (default 5 seconds).
+# opts: [max-sleep]
+__duct_sleep_random() {
+  local SLEEP_MAX="${1:-5}"
+
+  local SLEEP_DONE=""
+  local SLEEP_RANDOM="$(( RANDOM % SLEEP_MAX + 1 ))"
+
+  __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_MAX second(s)"
+  # shellcheck disable=SC2034
+  read -r -t "$SLEEP_RANDOM" SLEEP_DONE
+}
+
 # grep
 
 # deps: duct-gnu
