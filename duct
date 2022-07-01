@@ -57,21 +57,22 @@ fi
 source "${DUCT_PLUG_DIR}/core/duct-conf"
 __duct_conf
 
-# load and update core plugins
+# load core plugins
 # shellcheck disable=SC1091
 source "${DUCT_PLUG_DIR}/core/duct-plug"
 __duct_plug_load core
-__duct_plug_install core
 
 # init
 __duct_init
+
+# self update core
+__duct_plug_install core
 
 # install and load main & vendor plugins
 __duct_plug_install main
 __duct_plug_load main
 __duct_plug_install vendor
 __duct_plug_load vendor
-
 
 # deps:
 # intl: true
