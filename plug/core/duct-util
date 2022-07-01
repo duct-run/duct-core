@@ -1690,12 +1690,10 @@ readonly -f __duct_tee
 __duct_sleep_random() {
   local SLEEP_MAX="${1:-5}"
 
-  local SLEEP_DONE=""
   local SLEEP_RANDOM="$(( RANDOM % SLEEP_MAX + 1 ))"
 
   __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_MAX second(s)"
-  # shellcheck disable=SC2034
-  read -r -t "$SLEEP_RANDOM" SLEEP_DONE || :
+  sleep "$SLEEP_RANDOM"
 }
 
 # grep
