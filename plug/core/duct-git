@@ -382,7 +382,7 @@ __duct_git_checkout() {
 
     if [[ "$DUCT_GIT_CHECKOUT_BRANCH" == "$GIT_LOCAL_HEAD" ]]
     then
-      __duct_msg n "at $DUCT_GIT_CHECKOUT_BRANCH"
+      __duct_msg n "$DUCT_GIT_CHECKOUT_PATH at $DUCT_GIT_CHECKOUT_BRANCH"
       return 0
     fi
 
