@@ -1695,7 +1695,7 @@ __duct_sleep_random() {
 
   __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_MAX second(s)"
   # shellcheck disable=SC2034
-  read -r -t "$SLEEP_RANDOM" SLEEP_DONE
+  read -r -t "$SLEEP_RANDOM" SLEEP_DONE || :
 }
 
 # grep
