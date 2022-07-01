@@ -57,10 +57,11 @@ fi
 source "${DUCT_PLUG_DIR}/core/duct-conf"
 __duct_conf
 
-# load core plugins
+# load and update core plugins
 # shellcheck disable=SC1091
 source "${DUCT_PLUG_DIR}/core/duct-plug"
 __duct_plug_load core
+__duct_plug_install core
 
 # init
 __duct_init
