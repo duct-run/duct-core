@@ -1698,7 +1698,7 @@ __duct_sleep_random() {
     SLEEP_RANDOM="$(( RANDOM % SLEEP_MAX + 1 ))"
   done
 
-  __duct_msg d "sleep ${SLEEP_RANDOM}/${SLEEP_MIN} of $SLEEP_MAX second(s)"
+  __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_MIN/$SLEEP_MAX second(s)"
   sleep "$SLEEP_RANDOM"
 }
 readonly -f __duct_sleep_random
