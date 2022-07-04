@@ -997,6 +997,7 @@ __duct_textinject() {
   TEXT_ALL=(
     "${TEXT_PRE[@]}"
     "$TEXT_INJECT"
+    ""
     "${TEXT_POST[@]}"
   )
 
