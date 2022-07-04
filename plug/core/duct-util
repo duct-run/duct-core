@@ -904,6 +904,107 @@ __duct_textract() {
 }
 readonly -f __duct_textract
 
+# textinject
+
+# Filename to extract text from.
+declare -g DUCT_TEXTINJECT_FILENAME=""
+
+# Marker begin.
+declare -g DUCT_TEXTINJECT_MARKER_BEGIN=""
+
+# Marker end.
+declare -g DUCT_TEXTINJECT_MARKER_END=""
+
+# Text to inject.
+declare -g DUCT_TEXTINJECT_TEXT=""
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Extract text between two markers.
+# opts: [filename] [marker-begin] [marker-end]
+__duct_textinject() {
+  local TEXT_FILE="${1:-"$DUCT_TEXTINJECT_FILENAME"}"
+  local TEXT_BEGIN="${2:-"$DUCT_TEXTINJECT_MARKER_BEGIN"}"
+  local TEXT_END="${3:-"$DUCT_TEXTINJECT_MARKER_END"}"
+  local TEXT_INJECT="${4:-"$DUCT_TEXTINJECT_TEXT"}"
+
+  local -a TEXT_ALL=()
+  local -a TEXT_CONTENT
+  local -a TEXT_POST=()
+  local -a TEXT_PRE=()
+  local TEXT_BEGIN_LINE=0
+  local TEXT_END_LINE=0
+  local TEXT_ERROR=0
+  local TEXT_LINE
+
+  if [[ -z "$TEXT_FILE" ]]
+  then
+    __duct_msg e "no file!"
+    (( TEXT_ERROR+=1 ))
+  fi
+
+  if [[ ! -e "$TEXT_FILE" ]]
+  then
+    __duct_msg e "$TEXT_FILE not found!"
+    (( TEXT_ERROR+=1 ))
+  fi
+
+  if [[ -z "$TEXT_BEGIN" ]]
+  then
+    __duct_msg e "no marker begin!"
+    (( TEXT_ERROR+=1 ))
+  fi
+
+  if [[ -z "$TEXT_END" ]]
+  then
+    __duct_msg e "no marker end!"
+    (( TEXT_ERROR+=1 ))
+  fi
+
+  if [[ -z "$TEXT_INJECT" ]]
+  then
+    __duct_msg e "no text!"
+    (( TEXT_ERROR+=1 ))
+  fi
+
+  if [[ $TEXT_ERROR -gt 0 ]]
+  then
+    return 1
+  fi
+
+  __duct_msg d "using $TEXT_FILE"
+  mapfile -t -n 0 TEXT_CONTENT < "$TEXT_FILE"
+
+  for TEXT_LINE in "${!TEXT_CONTENT[@]}"
+  do
+    if [[ "${TEXT_CONTENT[$TEXT_LINE]}" == "$TEXT_BEGIN" ]]
+    then
+      __duct_msg d "found $TEXT_BEGIN (${TEXT_FILE}:$(( TEXT_LINE + 1)))"
+      TEXT_BEGIN_LINE=$TEXT_LINE
+    fi
+
+    if [[ "${TEXT_CONTENT[$TEXT_LINE]}" == "$TEXT_END" ]]
+    then
+      __duct_msg d "found $TEXT_END (${TEXT_FILE}:$(( TEXT_LINE + 1)))"
+      TEXT_END_LINE=$TEXT_LINE
+    fi
+  done
+
+  __duct_msg d "injecting text: $TEXT_INJECT"
+  TEXT_PRE=( "${TEXT_CONTENT[@]:0:$(( TEXT_BEGIN_LINE + 1 ))}" )
+  TEXT_POST=( "${TEXT_CONTENT[@]:$TEXT_END_LINE}" )
+  TEXT_ALL=(
+    "${TEXT_PRE[@]}"
+    "$TEXT_INJECT"
+    "${TEXT_POST[@]}"
+  )
+
+  __duct_msg d "writing file: $TEXT_FILE"
+  printf "%s\n" "${TEXT_ALL[@]}" > "$TEXT_FILE"
+}
+readonly -f __duct_textinject
+
 # compversion
 
 # deps:
