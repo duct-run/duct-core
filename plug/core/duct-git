@@ -607,6 +607,9 @@ declare -g DUCT_GIT_COMMIT_MESSAGE="${DUCT_GIT_COMMIT_MESSAGE:-}"
 # File(s) to add and commit.
 declare -g -a DUCT_GIT_COMMIT_LIST=( ${DUCT_GIT_COMMIT_LIST[@]:-${_DUCT_GIT_COMMIT_LIST[@]}} )
 
+# Set to true if commit has changes.
+declare -g -x DUCT_GIT_COMMIT_CHANGE=false
+
 # deps: duct-msg duct-run
 # intl: false
 # life: core
@@ -677,6 +680,8 @@ __duct_git_commit() {
       __duct_msg n "push $DUCT_GIT_COMMIT_REMOTE $DUCT_GIT_COMMIT_BRANCH"
       __duct_run git -C "$DUCT_GIT_COMMIT_PATH" push --set-upstream "$DUCT_GIT_COMMIT_REMOTE" "$DUCT_GIT_COMMIT_BRANCH"
     fi
+
+    DUCT_GIT_COMMIT_CHANGE=true
   else
     __duct_msg n "nothing to commit"
   fi
