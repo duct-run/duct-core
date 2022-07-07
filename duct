@@ -52,7 +52,12 @@ then
   declare -r DUCT_SCRIPT_PATH="${DUCT_SCRIPT_FILE%/*}"
 fi
 
-# config (also loads duct-msg)
+# environment (also loads duct-msg)
+# shellcheck disable=SC1091
+source "${DUCT_PLUG_DIR}/core/duct-env"
+__duct_env
+
+# config
 # shellcheck disable=SC1091
 source "${DUCT_PLUG_DIR}/core/duct-conf"
 __duct_conf

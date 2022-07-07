@@ -43,10 +43,6 @@ __duct_conf() {
   local CONF_FILE
   local -a CONF_ENV
 
-  # shellcheck disable=SC1091
-  # load mandatory message plugin
-  source "${DUCT_PLUG_DIR}/core/duct-msg"
-
   if [[ "$DUCT_CONF_ENABLE" != true ]]
   then
     return
