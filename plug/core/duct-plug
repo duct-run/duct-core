@@ -33,7 +33,7 @@ declare -g -r _DUCT_PLUG_DIR_VENDOR="${DUCT_PLUG_DIR}/vendor"
 declare -g _DUCT_PLUG_HOSTING="${_DUCT_PLUG_HOSTING:-"https://github.com/duct-run"}"
 
 # Plugin exclude regex, already loaded (internal).
-declare -g -r _DUCT_PLUG_EXCLUDE="^(duct-conf|duct-msg|duct-plug)$"
+declare -g -r _DUCT_PLUG_EXCLUDE="^(duct-env|duct-conf|duct-msg|duct-plug)$"
 
 # Be quiet
 declare -g DUCT_PLUG_QUIET="${DUCT_PLUG_QUIET:-false}"
