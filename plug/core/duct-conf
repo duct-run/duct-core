@@ -72,7 +72,7 @@ __duct_conf() {
 
       for ENV in "${CONF_ENV[@]}"
       do
-        if [[ "$ENV" =~ ([A-Z_]+)=([[:alnum:][:punct:][:blank:]]+) ]]
+        if [[ "$ENV" =~ (DUCT_[A-Z_]+)=([[:alnum:][:punct:][:blank:]]+) ]]
         then
           VAR="${BASH_REMATCH[1]:?}"
           VAL="${BASH_REMATCH[2]:?}"
