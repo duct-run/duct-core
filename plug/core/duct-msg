@@ -59,7 +59,7 @@ declare -g DUCT_MSG_ENABLE_COLOR="${DUCT_MSG_ENABLE_COLOR:-true}"
 declare -g DUCT_MSG_ENABLE_DATE="${DUCT_MSG_ENABLE_DATE:-true}"
 
 # Maximum level for messages (7 = debug).
-declare -g DUCT_MSG_MAX_LEVEL="${DUCT_MSG_MAX_LEVEL:-7}"
+declare -g -i DUCT_MSG_MAX_LEVEL="${DUCT_MSG_MAX_LEVEL:-7}"
 
 # deps: duct-util
 # intl: false
