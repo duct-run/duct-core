@@ -10,10 +10,13 @@ insert_final_newline = true
 max_line_length = 160
 trim_trailing_whitespace = true
 
-[*.{md,markdown,txt}]
+[*.{asc,ans,md,txt}]
 indent_size = 1
-max_line_length = 0
+max_line_length = 80
 trim_trailing_whitespace = false
+
+[*.{hcl,tf,tfvars}]
+max_line_length = off
 
 [Makefile]
 indent_size = 8
