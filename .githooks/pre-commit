@@ -6,8 +6,9 @@ GITHOOKS_DIR="$( cd "${0%/*}" && echo "$PWD" )"
 
 PRE_COMMIT_ARGS=(
   hook-impl
-  --config="${GITHOOKS_DIR}/pre-commit-config.yaml"
-  --hook-type="$GITHOOK"
+  --color always
+  --config "${GITHOOKS_DIR}/pre-commit-config.yml"
+  --hook-type "$GITHOOK"
   --hook-dir "$GITHOOKS_DIR"
   -- "$@"
 )
