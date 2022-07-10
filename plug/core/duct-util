@@ -675,6 +675,66 @@ __duct_find_count() {
 }
 readonly -f __duct_find_count
 
+# bin check
+
+# List of binaries to check (defaults).
+declare -a _DUCT_BIN_CHECK_LIST=()
+
+# shellcheck disable=SC2206
+# List of binaries to check.
+declare -g -a DUCT_BIN_CHECK_LIST=( ${DUCT_BIN_CHECK_LIST[@]:-${_DUCT_BIN_CHECK_LIST[@]}} )
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Check a list of binaries/commands for availibility.
+# opts: [bin-list[@]]
+__duct_bin_check() {
+  local -a BIN_LIST=( "${@:-${DUCT_BIN_CHECK_LIST[@]}}" )
+  local BIN_CMD
+  local BIN_PATH
+  local BIN_RC=0
+  local BIN_HELP_RC=0
+
+  if [[ ${#BIN_LIST[@]} -eq 0 ]]
+  then
+    __duct_msg w "empty binary list!"
+  fi
+
+  for BIN_CMD in "${BIN_LIST[@]}"
+  do
+    BIN_PATH=$(type -P "$BIN_CMD" || :)
+
+    if [[ -n "$BIN_PATH" ]]
+    then
+      command "$BIN_PATH" --help >/dev/null 2>&1 || BIN_HELP_RC=$?
+
+      case "$BIN_HELP_RC" in
+        0)
+          __duct_msg d "'$BIN_PATH' found"
+        ;;
+        127)
+          __duct_msg w "'$BIN_PATH' found, but command returned 127 (not found)!"
+        ;;
+        *)
+          __duct_msg d "'$BIN_PATH' found ($BIN_HELP_RC)"
+        ;;
+      esac
+    else
+      __duct_msg e "'$BIN_CMD' not found!"
+      (( BIN_RC+=1 ))
+    fi
+  done
+
+  if [[ "$BIN_RC" -gt 0 ]]
+  then
+    return 1
+  else
+    return 0
+  fi
+}
+readonly -f __duct_bin_check
+
 # checkbin
 
 # List of binaries to check (defaults).
