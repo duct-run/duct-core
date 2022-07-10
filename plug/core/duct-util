@@ -836,6 +836,98 @@ __duct_checkvar() {
 }
 readonly -f __duct_checkvar
 
+# var check
+
+# List of variables to check (defaults).
+declare -a _DUCT_VAR_CHECK_LIST=()
+
+# shellcheck disable=SC2206
+# List of variables to check.
+declare -g -a DUCT_VAR_CHECK_LIST=( ${DUCT_VAR_CHECK_LIST[@]:-${_DUCT_VAR_CHECK_LIST[@]}} )
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Check if variables are present and set.
+# opts: [var[@]]
+__duct_var_check() {
+  local -a VAR_LIST=( "${@:-${DUCT_VAR_CHECK_LIST[@]}}" )
+  local VAR
+  local VAR_RC=0
+
+  set +u
+  for VAR in "${VAR_LIST[@]}"
+  do
+    if [[ -n "${!VAR}" ]]
+    then
+      if [[ "$VAR" =~ (PASS|SECRET|TOKEN) ]]
+      then
+        __duct_msg d "$VAR set ([HIDDEN])"
+      else
+        __duct_msg d "$VAR set (${!VAR})"
+      fi
+    else
+      __duct_msg e "$VAR unset!"
+      (( VAR_RC+=1 ))
+    fi
+  done
+  set -u
+
+  if [[ "$VAR_RC" -gt 0 ]]
+  then
+    return 1
+  fi
+}
+readonly -f __duct_var_check
+
+# ver check
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: Check minimal required version.
+# opts: <command> <minimal-version> <match>
+__duct_ver_check() {
+  local VER_CMD="$1"
+  local VER_MIN="$2"
+  local VER_MATCH="$3"
+
+  local -a VER_MININFO
+  local -a VER_VERSINFO
+  local VER_RC=0
+  local VER_VERSION
+
+  IFS="." read -r -a VER_MININFO <<< "$VER_MIN"
+
+  # shellcheck disable=SC2046
+  set -- $( $VER_CMD --version )
+  VER_VERSION="${!VER_MATCH}"
+
+  # remove *-
+  VER_VERSION="${VER_VERSION##*-}"
+
+  IFS="." read -r -a VER_VERSINFO <<< "$VER_VERSION"
+
+  if [[ "${VER_VERSINFO[0]}" -lt "${VER_MININFO[0]}" ]]
+  then
+    (( VER_RC+=1 ))
+  elif [[ "${VER_VERSINFO[0]}" -eq "${VER_MININFO[0]}" ]] && \
+       [[ "${VER_VERSINFO[1]}" -lt "${VER_MININFO[1]}" ]]
+  then
+    (( VER_RC+=1 ))
+  fi
+
+  if [[ "$VER_RC" -gt 0 ]]
+  then
+    __duct_msg e "$VER_CMD version $VER_VERSION is unsupported!"
+    __duct_msg e "minimal required version $VER_MIN"
+    return 1
+  else
+    __duct_msg d "$VER_CMD version $VER_VERSION"
+  fi
+}
+readonly -f __duct_ver_check
+
 # checkver
 
 # deps: duct-msg
