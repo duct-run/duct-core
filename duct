@@ -67,8 +67,9 @@ __duct_conf
 source "${DUCT_PLUG_DIR}/core/duct-plug"
 __duct_plug_load core
 
-# init
+# init & umask
 __duct_init
+__duct_umask
 
 # self update core
 __duct_plug_install core
