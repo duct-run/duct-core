@@ -71,16 +71,16 @@ __duct_init() {
   __duct_msg n "$DUCT_OSTYPE ($DUCT_HOSTTYPE)"
 
   # check requirements
-  __duct_checkbin "${_DUCT_INIT_REQUIRED[@]}" || (( INIT_RC+=$? ))
+  __duct_bin_check "${_DUCT_INIT_REQUIRED[@]}" || (( INIT_RC+=$? ))
 
   # check curl version
-  __duct_checkver curl "$_DUCT_INIT_CURL_VERSION" 2 || (( INIT_RC+=$? ))
+  __duct_ver_check curl "$_DUCT_INIT_CURL_VERSION" 2 || (( INIT_RC+=$? ))
 
   # check git version
-  __duct_checkver git "$_DUCT_INIT_GIT_VERSION" 3 || (( INIT_RC+=$? ))
+  __duct_ver_check git "$_DUCT_INIT_GIT_VERSION" 3 || (( INIT_RC+=$? ))
 
   # check jq version
-  #__duct_checkver jq "$_DUCT_INIT_JQ_VERSION" 1 || (( INIT_RC+=$? ))
+  #__duct_ver_check jq "$_DUCT_INIT_JQ_VERSION" 1 || (( INIT_RC+=$? ))
 
   # check gnu
   __duct_gnu_check || (( INIT_RC+=$? ))
