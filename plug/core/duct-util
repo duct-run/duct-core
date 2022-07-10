@@ -1429,26 +1429,26 @@ readonly -f __duct_unpack
 
 # umask
 
-# TODO
+# Use umask
 declare -g DUCT_UMASK="${DUCT_UMASK:-"$( umask )"}"
 
-# Directory TODO (set at runtime).
+# Directory mode from umask (set at run-time).
 declare -g -x DUCT_UMASK_DMODE=""
 
-# File TODO (set at runtime).
+# File mode from umask (set at run-time).
 declare -g -x DUCT_UMASK_FMODE=""
 
-# deps:
+# deps: duct-msg
 # intl: true
-# life: experimental
+# life: core
 # desc: Set a duct wide umask to work with.
 # opts:
 __duct_umask() {
   DUCT_UMASK_DMODE="$( printf '%#o' $(( 0777 & ~DUCT_UMASK )) )"
-  DUCT_UMASK_FMODE="$( printf '%#o' $(( 0777 & ~0111 & ~DUCT_UMASK )) )"
+  __duct_msg d "$DUCT_UMASK_DMODE"
 
-  export DUCT_UMASK_DMODE
-  export DUCT_UMASK_FMODE
+  DUCT_UMASK_FMODE="$( printf '%#o' $(( 0777 & ~0111 & ~DUCT_UMASK )) )"
+  __duct_msg d "$DUCT_UMASK_FMODE"
 }
 readonly -f __duct_umask
 
