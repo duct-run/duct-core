@@ -52,11 +52,11 @@ __duct_core() {
   then
     if [[ "$TERM" != "dumb" ]]
     then
-      printf "%b%s\n" "$_DUCT_CORE_ASCII" | base64 -d
+      printf "%b\n" "$_DUCT_CORE_ASCII" | base64 -d
     else
-      printf "%b%s\n" "$_DUCT_CORE_ASCII_MIN" | base64 -d
+      printf "%b\n" "$_DUCT_CORE_ASCII_MIN" | base64 -d
     fi
-    printf "%b%s\n" "   $DUCT_SELF_NAME $_DUCT_CORE_VERSION (${_DUCT_CORE_URL}/)"
+    printf "%b\n" "   $DUCT_SELF_NAME $_DUCT_CORE_VERSION (${_DUCT_CORE_URL}/)"
   fi
 }
 readonly -f __duct_core
