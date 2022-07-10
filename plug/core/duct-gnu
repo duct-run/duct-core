@@ -63,7 +63,7 @@ __duct_gnu_check() {
     GNU_ID="${GNU%%=*}"
     GNU_CMD="${GNU##*=}"
 
-    GNU_PATH="$( command -v "$GNU_CMD" || : )"
+    GNU_PATH="$( type -P "$GNU_CMD" || : )"
 
     if [[ -n "$GNU_PATH" ]]
     then

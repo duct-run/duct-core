@@ -704,11 +704,10 @@ __duct_checkbin() {
 
   for BIN_CMD in "${BIN_LIST[@]}"
   do
-    BIN_PATH=$(command -v "$BIN_CMD" || :)
+    BIN_PATH=$(type -P "$BIN_CMD" || :)
 
     if [[ -n "$BIN_PATH" ]]
     then
-      # shellcheck disable=SC2034
       command "$BIN_PATH" --help >/dev/null 2>&1 || BIN_HELP_RC=$?
 
       case "$BIN_HELP_RC" in
