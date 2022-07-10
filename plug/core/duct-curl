@@ -32,13 +32,12 @@ declare -a _DUCT_CURL_OPTIONS=(
 )
 
 # URL(s) to run `curl` at (defaults).
-declare -a _DUCT_CURL_URL=()
+declare -r -a _DUCT_CURL_URL=()
 
 # Options for `curl`.
 declare -g -a DUCT_CURL_OPTIONS=( "${DUCT_CURL_OPTIONS[@]:-${_DUCT_CURL_OPTIONS[@]}}" )
 
 # shellcheck disable=SC2206
-# - Preserve empty array
 # URL(s) to run `curl` at.
 declare -g DUCT_CURL_URL=( ${DUCT_CURL_URL[@]:-${_DUCT_CURL_URL[@]}} )
 
@@ -48,7 +47,7 @@ declare -g DUCT_CURL_URL=( ${DUCT_CURL_URL[@]:-${_DUCT_CURL_URL[@]}} )
 # desc: Run `curl` and mask secrets (see `duct-run`).
 # opts: [url]
 __duct_curl() {
-  local -a CURL_URL=( "${DUCT_CURL_URL[@]:-$@}" )
+  local -a CURL_URL=( "${@:-${DUCT_CURL_URL[@]}}" )
   local CURL_RC=0
 
   __duct_run curl "${DUCT_CURL_OPTIONS[@]}" "${CURL_URL[@]}" || CURL_RC=$?
