@@ -64,18 +64,22 @@ __duct_run() {
   # mask
   if [[ "$DUCT_RUN_MASK" == true ]]
   then
-    if [[ "$_RUN" =~ ^curl ]]
+    # gitlab curl
+    if [[ "$_RUN" =~ (PRIVATE-TOKEN: ([0-9A-Za-z_\-]*)) ]]
     then
+      _RUN="${_RUN//${BASH_REMATCH[2]}/${DUCT_RUN_MASK_STRING}}"
+    fi
 
-      # github curl
-      _RUN="$( __duct_gnu_sed "s/-u \([0-9A-Za-z_\-]*\):\([0-9A-Za-z_\-]*\)\s/-u \1:${DUCT_RUN_MASK_STRING} /g" <<< "$_RUN" )"
-
-      # gitlab curl
-      _RUN="$( __duct_gnu_sed "s/PRIVATE-TOKEN: \([0-9A-Za-z_\-]*\)\s/PRIVATE-TOKEN: ${DUCT_RUN_MASK_STRING} /g" <<< "$_RUN" )"
-
-    elif [[ "$_RUN" =~ ^echo ]]
+    # github curl
+    if [[ "$_RUN" =~ (-u ([0-9A-Za-z_\-]*):([0-9A-Za-z_\-]*)) ]]
     then
-      _RUN="$( __duct_gnu_sed "s/\([0-9A-Za-z_\-]*\):\([0-9A-Za-z_\-]*\)@/\1:${DUCT_RUN_MASK_STRING}@/g" <<< "$_RUN" )"
+      _RUN="${_RUN//${BASH_REMATCH[3]}/${DUCT_RUN_MASK_STRING}}"
+    fi
+
+    # generic user:password@
+    if [[ "$_RUN" =~ (([0-9A-Za-z_\-]*):([0-9A-Za-z_\-]*)@) ]]
+    then
+      _RUN="${_RUN//${BASH_REMATCH[3]}/${DUCT_RUN_MASK_STRING}}"
     fi
   fi
 
