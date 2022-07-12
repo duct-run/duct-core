@@ -36,7 +36,7 @@ __duct_basename() {
   PATHNAME="${PATHNAME##*/}"
   PATHNAME="${PATHNAME%"${SUFFIX}"}"
 
-  echo "$PATHNAME"
+  printf "%b\n" "$PATHNAME"
 }
 readonly -f __duct_basename
 
@@ -52,7 +52,7 @@ __duct_dirname() {
 
   __duct_msg d "$PATHNAME"
 
-  echo "${PATHNAME%/*}"
+  printf "%b\n" "${PATHNAME%/*}"
 }
 readonly -f __duct_dirname
 
@@ -66,9 +66,9 @@ readonly -f __duct_dirname
 __duct_lower() {
   local STRING="$1"
 
-  __duct_msg d "$STRING"
+  __duct_msg d "$STRING -> ${STRING,,}"
 
-  echo "${STRING,,}"
+  printf "%b\n" "${STRING,,}"
 }
 readonly -f __duct_lower
 
@@ -82,9 +82,9 @@ readonly -f __duct_lower
 __duct_upper() {
   local STRING="$1"
 
-  __duct_msg d "$STRING"
+  __duct_msg d "$STRING -> ${STRING^^}"
 
-  echo "${STRING^^}"
+  printf "%b\n" "${STRING^^}"
 }
 readonly -f __duct_upper
 
@@ -103,7 +103,7 @@ __duct_slug() {
   STRING="${STRING,,}"    # lower
   STRING="${STRING// /-}" # whitespace to '-'
 
-  echo "$STRING"
+  printf "%b\n" "$STRING"
 }
 readonly -f __duct_slug
 
@@ -124,7 +124,7 @@ __duct_trim() {
   STRING="${STRING%%*([[:space:]])}"
   shopt -u extglob
 
-  echo "$STRING"
+  printf "%b\n" "$STRING"
 }
 readonly -f __duct_trim
 
