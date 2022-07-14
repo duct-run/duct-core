@@ -193,8 +193,7 @@ __duct_msg() {
     MSG_CALL=" ${MSG_CALL}:"
   fi
 
-  # shellcheck disable=SC2145
-  >&2 printf "%b\n" "${MSG_COLOR}${MSG_DATE}[${MSG_LEVEL}] ${MSG_BASH}:${MSG_CALL} ${MSG_OUTPUT[@]}${MSG_COLOR_NONE}"
+  >&2 printf "%b\n" "${MSG_COLOR}${MSG_DATE}[${MSG_LEVEL}] ${MSG_BASH}:${MSG_CALL} ${MSG_OUTPUT[*]}${MSG_COLOR_NONE}"
   return $MSG_RC
 }
 readonly -f __duct_msg
