@@ -799,7 +799,7 @@ __duct_ver_check() {
   IFS="." read -r -a VER_MININFO <<< "$VER_MIN"
 
   # shellcheck disable=SC2046
-  set -- $( $VER_CMD --version )
+  set -- $( command $VER_CMD --version )
   VER_VERSION="${!VER_MATCH}"
 
   # remove *-
