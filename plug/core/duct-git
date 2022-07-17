@@ -624,13 +624,13 @@ __duct_git_commit() {
   if [[ -z "$DUCT_GIT_COMMIT_MESSAGE" ]]
   then
     __duct_msg e "no commit message!"
-    GIT_ERROR+=1
+    (( GIT_ERROR+=1 ))
   fi
 
   if [[ "${#DUCT_GIT_COMMIT_LIST[@]}" -lt 1 ]]
   then
     __duct_msg e "nothing to commit!"
-    GIT_ERROR+=1
+    (( GIT_ERROR+=1 ))
   fi
 
   if [[ "$GIT_ERROR" -gt 0 ]]
