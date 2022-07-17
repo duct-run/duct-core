@@ -603,6 +603,9 @@ declare -g DUCT_GIT_COMMIT_PUSH="${DUCT_GIT_COMMIT_PUSH:-false}"
 # Message to commit with.
 declare -g DUCT_GIT_COMMIT_MESSAGE="${DUCT_GIT_COMMIT_MESSAGE:-}"
 
+# Allow empty commits.
+declare -g DUCT_GIT_COMMIT_EMPTY="${DUCT_GIT_COMMIT_EMPTY:-false}"
+
 # shellcheck disable=SC2206
 # File(s) to add and commit.
 declare -g -a DUCT_GIT_COMMIT_LIST=( ${DUCT_GIT_COMMIT_LIST[@]:-${_DUCT_GIT_COMMIT_LIST[@]}} )
@@ -665,10 +668,17 @@ __duct_git_commit() {
       if [[ "$_FILE" == "${_STATUS##* }" ]]
       then
         __duct_msg d "change: $_STATUS"
-        GIT_COMMIT+=1
+        (( GIT_COMMIT+=1 ))
       fi
     done
   done
+
+  # allow empty
+  if [[ "$DUCT_GIT_COMMIT_EMPTY" == true ]] && [[ "$GIT_COMMIT" -eq 0 ]]
+  then
+    GIT_OPTS+=( --allow-empty )
+    (( GIT_COMMIT+=1 ))
+  fi
 
   if [[ "$GIT_COMMIT" -ge 1 ]]
   then
