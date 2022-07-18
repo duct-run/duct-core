@@ -728,3 +728,165 @@ __duct_git_strip_remote() {
   __duct_run git remote set-url "$DUCT_GIT_REMOTE" "$GIT_REMOTE"
 }
 readonly -f __duct_git_strip_remote
+
+# git cvc check
+
+# Allowed conventional commits types (defaults).
+declare -r -a _DUCT_GIT_CVC_CHECK_TYPES=(
+  "build"
+  "chore"
+  "ci"
+  "docs"
+  "feat"
+  "fix"
+  "import"
+  "merge"
+  "perf"
+  "refactor"
+  "revert"
+  "style"
+  "test"
+  "todo"
+)
+
+# Allowed conventional commits scope (defaults).
+declare -r -a _DUCT_GIT_CVC_CHECK_SCOPE=(
+  ".*"
+)
+
+# Allowed conventional commits description (defaults).
+declare -r -a _DUCT_GIT_CVC_CHECK_DESC=(
+  "[:space:]"
+  "[:digit:]"
+  "[:lower:]"
+  "[:punct:]"
+)
+
+# Path to check conventional commits.
+declare -g DUCT_GIT_CVC_CHECK_PATH="${DUCT_GIT_CVC_CHECK_PATH:-$PWD}"
+
+# Allowed conventional commits types.
+declare -g -a DUCT_GIT_CVC_CHECK_TYPES=( "${DUCT_GIT_CVC_CHECK_TYPES[@]:-${_DUCT_GIT_CVC_CHECK_TYPES[@]}}" )
+
+# Allowed conventional commits scope.
+declare -g -a DUCT_GIT_CVC_CHECK_SCOPE=( "${DUCT_GIT_CVC_CHECK_SCOPE[@]:-${_DUCT_GIT_CVC_CHECK_SCOPE[@]}}" )
+
+# Allowed conventional commits description.
+declare -g -a DUCT_GIT_CVC_CHECK_DESC=( "${DUCT_GIT_CVC_CHECK_DESC[@]:-${_DUCT_GIT_CVC_CHECK_DESC[@]}}" )
+
+# Minimal length of conventional commits description.
+declare -g -i DUCT_GIT_CVC_CHECK_MIN="${DUCT_GIT_CVC_CHECK_MIN:-5}"
+
+# Maximal length of conventional commits description.
+declare -g -i DUCT_GIT_CVC_CHECK_MAX="${DUCT_GIT_CVC_CHECK_MAX:-75}"
+
+# Show passed conventional commits.
+declare -g DUCT_GIT_CVC_CHECK_PASS="${DUCT_GIT_CVC_CHECK_PASS:-false}"
+
+# Show failed conventional commits.
+declare -g DUCT_GIT_CVC_CHECK_FAIL="${DUCT_GIT_CVC_CHECK_FAIL:-true}"
+
+# Commit(s) to check (default all).
+declare -g DUCT_GIT_CVC_CHECK_COMMIT="${DUCT_GIT_CVC_CHECK_COMMIT:-}"
+
+# deps: duct-msg duct-run
+# intl: false
+# life: test
+# desc: Check git conventional commits (<https://www.conventionalcommits.org/>).
+# opts:
+__duct_git_cvc_check() {
+  local -a GIT_DESC
+  local -a GIT_FAIL
+  local -a GIT_LOG
+  local -a GIT_PASS
+  local -a GIT_SCOPE
+  local -a GIT_TYPES
+  local GIT_COMMIT
+  local GIT_MATCH
+
+  local _GIT_AUTHOR
+  local _GIT_BREAK
+  local _GIT_DESC
+  local _GIT_FAIL
+  local _GIT_HASH
+  local _GIT_PASS
+  local _GIT_SCOPE
+  local _GIT_TYPE
+
+  if [[ ! -d "${DUCT_GIT_CVC_CHECK_PATH}/.git" ]]
+  then
+    __duct_msg e "not a git repository!"
+    return 1
+  fi
+
+  # join matches
+  local IFS
+  IFS="|" GIT_TYPES=( "${DUCT_GIT_CVC_CHECK_TYPES[*]}" )
+  IFS="" GIT_SCOPE=( "${DUCT_GIT_CVC_CHECK_SCOPE[*]}" )
+  IFS="" GIT_DESC=( "${DUCT_GIT_CVC_CHECK_DESC[*]}" )
+  GIT_MATCH="^(([0-9a-f]+) (${GIT_TYPES[*]})(\(${GIT_SCOPE[*]}\))?(!)?: ([${GIT_DESC[*]}]{${DUCT_GIT_CVC_CHECK_MIN},${DUCT_GIT_CVC_CHECK_MAX}})$)"
+  unset IFS
+
+  if [[ -n "$DUCT_GIT_CVC_CHECK_COMMIT" ]]
+  then
+    readarray -t -n 0 GIT_LOG < <( __duct_run git -C "$DUCT_GIT_CVC_CHECK_PATH" log --pretty='format:%H %s' "$DUCT_GIT_CVC_CHECK_COMMIT" )
+  else
+    readarray -t -n 0 GIT_LOG < <( __duct_run git -C "$DUCT_GIT_CVC_CHECK_PATH" log --pretty='format:%H %s' )
+  fi
+
+  for GIT_COMMIT in "${GIT_LOG[@]}"
+  do
+    if [[ "$GIT_COMMIT" =~ $GIT_MATCH ]]
+    then
+      if [[ "$DUCT_GIT_CVC_CHECK_PASS" == true ]]
+      then
+        _GIT_HASH="${BASH_REMATCH[2]}"
+        _GIT_TYPE="${BASH_REMATCH[3]}"
+        _GIT_SCOPE="${BASH_REMATCH[4]}"
+        _GIT_BREAK="${BASH_REMATCH[5]}"
+        _GIT_DESC="${BASH_REMATCH[6]}"
+        _GIT_AUTHOR=$( __duct_run git -C "$DUCT_GIT_CVC_CHECK_PATH" log --pretty='format:%aN <%aE>' "${_GIT_HASH}^!" )
+
+        # TODO: check file
+        #readarray -t -n 0 _GIT_FILES < <( __duct_run git -C "$DUCT_GIT_CVC_CHECK_PATH" log --name-only --pretty='format:' "${_GIT_HASH}^!" )
+        #__duct_msg d "PASS: ${_GIT_FILES[*]}"
+        # TODO: check desc
+
+        GIT_PASS+=( "${GIT_COMMIT//${_GIT_HASH} } ($_GIT_AUTHOR) [$_GIT_HASH]" )
+      fi
+    elif [[ "$GIT_COMMIT" =~ ^(([0-9a-f]+) (.*)$) ]]
+    then
+      if [[ "$DUCT_GIT_CVC_CHECK_FAIL" == true ]]
+      then
+        _GIT_HASH="${BASH_REMATCH[2]}"
+        _GIT_AUTHOR=$( __duct_run git -C "$DUCT_GIT_CVC_CHECK_PATH" log --pretty='format:%aN <%aE>' "${_GIT_HASH}^!" )
+
+        GIT_FAIL+=( "${GIT_COMMIT//${_GIT_HASH} } ($_GIT_AUTHOR) [$_GIT_HASH]" )
+      fi
+    else
+      __duct_msg e "WTF?!"
+      return 1
+    fi
+  done
+
+  if [[ "$DUCT_GIT_CVC_CHECK_PASS" == true ]]
+  then
+    for _GIT_PASS in "${GIT_PASS[@]}"
+    do
+      __duct_msg n "PASS: $_GIT_PASS"
+    done
+  fi
+
+  if [[ "$DUCT_GIT_CVC_CHECK_FAIL"  == true ]]
+  then
+    for _GIT_FAIL in "${GIT_FAIL[@]}"
+    do
+      __duct_msg e "FAIL: $_GIT_FAIL"
+    done
+    if [[ "${#GIT_FAIL[@]}" -gt 0 ]]
+    then
+      return 1
+    fi
+  fi
+}
+readonly -f __duct_git_cvc_check
