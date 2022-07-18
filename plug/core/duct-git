@@ -796,9 +796,9 @@ declare -g DUCT_GIT_CVC_CHECK_COMMIT="${DUCT_GIT_CVC_CHECK_COMMIT:-}"
 # opts:
 __duct_git_cvc_check() {
   local -a GIT_DESC
-  local -a GIT_FAIL
+  local -a GIT_FAIL=()
   local -a GIT_LOG
-  local -a GIT_PASS
+  local -a GIT_PASS=()
   local -a GIT_SCOPE
   local -a GIT_TYPES
   local GIT_COMMIT
