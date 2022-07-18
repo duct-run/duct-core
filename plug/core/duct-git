@@ -531,6 +531,7 @@ declare -g DUCT_GIT_PULL_CHECKOUT="${DUCT_GIT_PULL_CHECKOUT:-}"
 # opts:
 __duct_git_pull() {
   local GIT_BRANCH="$DUCT_GIT_PULL_BRANCH"
+  local GIT_CHECKOUT="$DUCT_GIT_PULL_CHECKOUT"
 
   if [[ -d "${DUCT_GIT_PULL_PATH}/.git" ]]
   then
@@ -550,16 +551,21 @@ __duct_git_pull() {
       fi
     fi
 
-    __duct_msg n "$DUCT_GIT_PULL_PATH"
-    __duct_run git -C "$DUCT_GIT_PULL_PATH" pull "${DUCT_GIT_PULL_OPTIONS[@]}" "$DUCT_GIT_PULL_REMOTE" "$GIT_BRANCH"
-
-    if [[ -n "$DUCT_GIT_PULL_CHECKOUT" ]]
+    if [[ -z "$GIT_CHECKOUT" ]]
     then
-      DUCT_GIT_CHECKOUT_BRANCH="$DUCT_GIT_PULL_CHECKOUT" \
+      GIT_CHECKOUT="$GIT_BRANCH"
+    fi
+
+    if [[ -n "$GIT_CHECKOUT" ]]
+    then
+      DUCT_GIT_CHECKOUT_BRANCH="$GIT_CHECKOUT" \
       DUCT_GIT_CHECKOUT_FETCH=false \
       DUCT_GIT_CHECKOUT_PATH="$DUCT_GIT_PULL_PATH" \
       __duct_git_checkout
     fi
+
+    __duct_msg n "$DUCT_GIT_PULL_PATH"
+    __duct_run git -C "$DUCT_GIT_PULL_PATH" pull "${DUCT_GIT_PULL_OPTIONS[@]}" "$DUCT_GIT_PULL_REMOTE" "$GIT_BRANCH"
   else
     __duct_msg e "'$DUCT_GIT_PULL_PATH' not a git repository!"
   fi
