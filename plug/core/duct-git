@@ -507,6 +507,7 @@ readonly -f __duct_git_clone
 declare -g -a -r _DUCT_GIT_PULL_OPTIONS=(
   --progress
   --prune
+  --tags
 )
 
 # Options for `git pull`.
