@@ -199,7 +199,7 @@ __duct_sortarray() {
   local -a ARRAY=( "$@" )
   local IFS=$'\n'
 
-  readarray -t ARRAY < <( sort --version-sort <<< "${ARRAY[*]}" )
+  readarray -t ARRAY < <( sort -V <<< "${ARRAY[*]}" )
   echo "${ARRAY[*]}"
 }
 readonly -f __duct_sortarray
