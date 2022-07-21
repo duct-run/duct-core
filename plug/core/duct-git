@@ -672,7 +672,7 @@ __duct_git_commit() {
   do
     for _FILE in "${DUCT_GIT_COMMIT_LIST[@]}"
     do
-      if [[ "$_FILE" =~ ^(${_STATUS##* }) ]]
+      if [[ "${_STATUS##* }" =~ ^($_FILE) ]]
       then
         __duct_msg d "change: ${_STATUS##* }"
         (( GIT_COMMIT+=1 ))
