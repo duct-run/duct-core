@@ -429,6 +429,9 @@ declare -g DUCT_GIT_CLONE_REMOTE="${DUCT_GIT_CLONE_REMOTE:-$DUCT_GIT_REMOTE}"
 # Enable/disable git pull if repository exists.
 declare -g DUCT_GIT_CLONE_PULL="${DUCT_GIT_CLONE_PULL:-true}"
 
+# Enable/disable git pull all.
+declare -g DUCT_GIT_CLONE_PULL_ALL="${DUCT_GIT_CLONE_PULL_ALL:-false}"
+
 # URL to clone from.
 declare -g DUCT_GIT_CLONE_URL="${DUCT_GIT_CLONE_URL:-}"
 
@@ -490,6 +493,7 @@ __duct_git_clone() {
   else
     if [[ "$DUCT_GIT_CLONE_PULL" == true ]]
     then
+      DUCT_GIT_PULL_ALL="$DUCT_GIT_CLONE_PULL_ALL" \
       DUCT_GIT_PULL_BRANCH="$DUCT_GIT_CLONE_BRANCH" \
       DUCT_GIT_PULL_CHECKOUT="$DUCT_GIT_CLONE_CHECKOUT" \
       DUCT_GIT_PULL_PATH="$DUCT_GIT_CLONE_PATH" \
@@ -524,6 +528,9 @@ declare -g DUCT_GIT_PULL_BRANCH="${DUCT_GIT_PULL_BRANCH:-}"
 
 # Name of tag, commit or branch to checkout after clone.
 declare -g DUCT_GIT_PULL_CHECKOUT="${DUCT_GIT_PULL_CHECKOUT:-}"
+
+# Enable/disable pull all branches.
+declare -g DUCT_GIT_PULL_ALL="${DUCT_GIT_PULL_ALL:-false}"
 
 # deps: duct-msg duct-run
 # intl: false
@@ -566,7 +573,13 @@ __duct_git_pull() {
     fi
 
     __duct_msg n "$DUCT_GIT_PULL_PATH"
-    __duct_run git -C "$DUCT_GIT_PULL_PATH" pull "${DUCT_GIT_PULL_OPTIONS[@]}" "$DUCT_GIT_PULL_REMOTE" "$GIT_BRANCH"
+
+    if [[ "$DUCT_GIT_PULL_ALL" == true ]]
+    then
+      __duct_run git -C "$DUCT_GIT_PULL_PATH" pull "${DUCT_GIT_PULL_OPTIONS[@]}" "$DUCT_GIT_PULL_REMOTE"
+    else
+      __duct_run git -C "$DUCT_GIT_PULL_PATH" pull "${DUCT_GIT_PULL_OPTIONS[@]}" "$DUCT_GIT_PULL_REMOTE" "$GIT_BRANCH"
+    fi
   else
     __duct_msg e "'$DUCT_GIT_PULL_PATH' not a git repository!"
   fi
