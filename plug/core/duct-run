@@ -110,7 +110,12 @@ __duct_run() {
   fi
 
   __duct_msg d "runtime: ${SECONDS}s"
-  __duct_msg d "return code: $RUN_RC"
+  if [[ $RUN_RC -gt 0  ]]
+  then
+    __duct_msg e "return code: $RUN_RC"
+  else
+    __duct_msg d "return code: $RUN_RC"
+  fi
   return $RUN_RC
 }
 readonly -f __duct_run
