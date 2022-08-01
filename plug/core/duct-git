@@ -949,7 +949,13 @@ __duct_git_refs_cleanup() {
 
     elif [[ "$GIT_REF" =~ ^(refs/remotes/$DUCT_GIT_REMOTE/(.*)) ]]
     then
-      GIT_REFS_REMOTES+=( "${BASH_REMATCH[-1]}" )
+      _GIT_REF="${BASH_REMATCH[-1]}"
+
+      # skip remotes HEAD
+      if [[ "$_GIT_REF" !=  "HEAD" ]]
+      then
+        GIT_REFS_REMOTES+=( "$_GIT_REF" )
+      fi
 
     elif [[ "$GIT_REF" =~ ^(refs/tags/(.*)) ]]
     then
