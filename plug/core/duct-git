@@ -931,6 +931,7 @@ __duct_git_refs_cleanup() {
   local -a GIT_REFS_HEADS=()
   local -a GIT_REFS_OTHERS=()
   local -a GIT_REFS_REMOTES=()
+  local -a GIT_REFS_TAGS=()
   local GIT_CURRENT
   local GIT_DELETE
   local GIT_REF
@@ -949,6 +950,10 @@ __duct_git_refs_cleanup() {
     elif [[ "$GIT_REF" =~ ^(refs/remotes/$DUCT_GIT_REMOTE/(.*)) ]]
     then
       GIT_REFS_REMOTES+=( "${BASH_REMATCH[-1]}" )
+
+    elif [[ "$GIT_REF" =~ ^(refs/tags/(.*)) ]]
+    then
+      GIT_REFS_TAGS+=( "$GIT_REF" )
     else
       GIT_REFS_OTHERS+=( "$GIT_REF" )
     fi
@@ -964,6 +969,12 @@ __duct_git_refs_cleanup() {
   if [[ "${#GIT_REFS_REMOTES[@]}" -gt 0 ]]
   then
     __duct_msg n "remotes: ${GIT_REFS_REMOTES[*]}"
+  fi
+
+  # tags
+  if [[ "${#GIT_REFS_TAGS[@]}" -gt 0 ]]
+  then
+    __duct_msg n "tags: ${GIT_REFS_TAGS[*]}"
   fi
 
   # others
