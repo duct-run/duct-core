@@ -910,3 +910,105 @@ __duct_git_cvc_check() {
   fi
 }
 readonly -f __duct_git_cvc_check
+
+# git refs cleanup
+
+# ...
+declare -g DUCT_GIT_REFS_CLEANUP_PATH="${DUCT_GIT_REFS_CLEANUP_PATH:-$DUCT_GIT_WORKDIR}"
+
+# ...
+declare -g DUCT_GIT_REFS_CLEANUP_ASK="${DUCT_GIT_REFS_CLEANUP_ASK:-true}"
+
+# deps: duct-msg duct-run
+# intl: false
+# life: core
+# desc: Cleanup git refs/branches not found on remote (uses `DUCT_GIT_REMOTE`).
+# opts: [git-path]
+__duct_git_refs_cleanup() {
+  local GIT_PATH="${1:-$DUCT_GIT_REFS_CLEANUP_PATH}"
+
+  local -a GIT_REFS_ALL=()
+  local -a GIT_REFS_HEADS=()
+  local -a GIT_REFS_OTHERS=()
+  local -a GIT_REFS_REMOTES=()
+  local GIT_CURRENT
+  local GIT_DELETE
+  local GIT_REF
+  local GIT_REFS_MATCH
+
+  GIT_CURRENT="$( __duct_run git -C "$GIT_PATH" branch --show-current )"
+
+  readarray -t GIT_REFS_ALL < <( __duct_run git -C "$GIT_PATH" for-each-ref --format='%(refname)' )
+
+  for GIT_REF in "${GIT_REFS_ALL[@]}"
+  do
+    if [[ "$GIT_REF" =~ ^(refs/heads/(.*)) ]]
+    then
+      GIT_REFS_HEADS+=( "${BASH_REMATCH[-1]}" )
+
+    elif [[ "$GIT_REF" =~ ^(refs/remotes/$DUCT_GIT_REMOTE/(.*)) ]]
+    then
+      GIT_REFS_REMOTES+=( "${BASH_REMATCH[-1]}" )
+    else
+      GIT_REFS_OTHERS+=( "$GIT_REF" )
+    fi
+  done
+
+  # heads
+  if [[ "${#GIT_REFS_HEADS[@]}" -gt 0 ]]
+  then
+    __duct_msg n "heads: ${GIT_REFS_HEADS[*]}"
+  fi
+
+  # remotes
+  if [[ "${#GIT_REFS_REMOTES[@]}" -gt 0 ]]
+  then
+    __duct_msg n "remotes: ${GIT_REFS_REMOTES[*]}"
+  fi
+
+  # others
+  if [[ "${#GIT_REFS_OTHERS[@]}" -gt 0 ]]
+  then
+    __duct_msg w "others: ${GIT_REFS_OTHERS[*]}"
+  fi
+
+  IFS="|" GIT_REFS_MATCH="${GIT_REFS_REMOTES[*]}"
+  unset IFS
+
+  for GIT_REF in "${GIT_REFS_HEADS[@]}"
+  do
+    if [[ ! "$GIT_REF" =~ ($GIT_REFS_MATCH) ]]
+    then
+
+      if [[ "$GIT_CURRENT" == "$GIT_REF" ]]
+      then
+        __duct_msg w "you are working on $GIT_CURRENT, not yet on remote $DUCT_GIT_REMOTE"
+        continue
+      fi
+
+      __duct_msg w "$GIT_REF not on remote $DUCT_GIT_REMOTE!"
+
+      if [[ "$DUCT_GIT_REFS_CLEANUP_ASK" == true ]]
+      then
+        while true
+        do
+          read -r -p "DELETE $GIT_REF [yes/no]: " GIT_DELETE
+
+          case "$GIT_DELETE"
+          in
+            y|yes)
+              __duct_run git -C "$GIT_PATH" branch --delete --force "$GIT_REF"
+              break
+            ;;
+            n|no)
+              break
+            ;;
+          esac
+        done
+      else
+        __duct_run git -C "$GIT_PATH" branch --delete --force "$GIT_REF"
+      fi
+    fi
+  done
+}
+readonly -f __duct_git_refs_cleanup
