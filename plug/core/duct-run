@@ -91,7 +91,7 @@ __duct_run() {
   elif [[ "$RUN_OUT" == true ]]
   then
     __duct_msg d "$_RUN (output: $DUCT_RUN_OUTPUT)"
-    command "${RUN[@]}" | __duct_tee "$DUCT_RUN_OUTPUT" || RUN_RC=$?
+    command "${RUN[@]}" 2>&1 | __duct_tee "$DUCT_RUN_OUTPUT" || RUN_RC=$?
   else
     __duct_msg d "$_RUN"
     command "${RUN[@]}" || RUN_RC=$?
