@@ -1,15 +1,23 @@
 ---
 # vim: set ft=yaml :
-
 # https://github.com/DavidAnson/markdownlint/blob/main/schema/.markdownlint.yaml
 
 default: true
 extends: null
 
+# MD010/no-hard-tabs
 MD010:
   code_blocks: false
 
+# MD013/line-length
 MD013:
   line_length: 160
 
+# MD024/no-duplicate-heading/no-duplicate-header
 MD024: false
+
+# MD033/no-inline-html
+MD033: false
+
+# MD053/link-image-reference-definitions
+MD053: false
