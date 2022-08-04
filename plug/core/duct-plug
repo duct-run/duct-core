@@ -146,6 +146,9 @@ declare -g DUCT_PLUG_INSTALL_QUIET="${DUCT_PLUG_INSTALL_QUIET:-${DUCT_PLUG_QUIET
 # Enable/disbale plugin update.
 declare -g DUCT_PLUG_INSTALL_UPDATE="${DUCT_PLUG_INSTALL_UPDATE:-true}"
 
+# Enable/disable plugin install.
+declare -g DUCT_PLUG_INSTALL="${DUCT_PLUG_INSTALL:-true}"
+
 # deps: duct-git duct-msg
 # intl: true
 # life: core
@@ -158,6 +161,12 @@ __duct_plug_install() {
   local PLUG_TYPE="${1:-}"
   local PLUG_URL
   local _PLUG
+
+  if [[ "$DUCT_PLUG_INSTALL" != true ]]
+  then
+    __duct_msg d "$PLUG_TYPE disabled"
+    return
+  fi
 
   case "$PLUG_TYPE"
   in
