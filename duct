@@ -80,12 +80,63 @@ __duct_plug_load main
 __duct_plug_install vendor
 __duct_plug_load vendor
 
-# deps:
+# deps: duct-msg
 # intl: true
 # life: core
 # desc: Main duct plugin and command processor.
 # opts: <plugin> <command> [extra-options]
 duct() {
+  local -a DUCT_OPTS=( "$@" )
+  local DUCT_CALL
+  local DUCT_FUNC=""
+  local DUCT_PLUG
+
+  if [[ -z "${DUCT_OPTS[*]}" ]] || [[ "${DUCT_OPTS[*]}" =~ ^(core|version)$ ]]
+  then
+    __duct_core
+    return
+  fi
+
+  DUCT_PLUG="${DUCT_OPTS[0]}"
+  unset "DUCT_OPTS[0]"
+  DUCT_OPTS=( "${DUCT_OPTS[@]}" )
+  DUCT_CALL="__fuct_${DUCT_PLUG}"
+
+  # get function from opts
+  for OPTS in "${DUCT_OPTS[@]}"
+  do
+    DUCT_CALL+="_${OPTS}"
+    if [[ "$( type -t "${DUCT_CALL}" )" == "function" ]]
+    then
+      DUCT_FUNC="$DUCT_CALL"
+    fi
+  done
+
+  # remove function from opts
+  for _FUNC in ${DUCT_FUNC//_/ }
+  do
+    for _IDX in "${!DUCT_OPTS[@]}"
+    do
+      if [[ "${DUCT_OPTS[$_IDX]}" == "$_FUNC" ]]
+      then
+        unset "DUCT_OPTS[_IDX]"
+      fi
+    done
+  done
+  DUCT_OPTS=( "${DUCT_OPTS[@]}" )
+
+  if [[ -z "$DUCT_FUNC" ]]
+  then
+    __duct_msg e "'duct $DUCT_PLUG ${DUCT_OPTS[*]:-\b}' not found!"
+    return 1
+  else
+    __duct_msg d "$DUCT_FUNC ${DUCT_OPTS[*]}"
+    $DUCT_FUNC "${DUCT_OPTS[@]}"
+  fi
+}
+readonly -f duct
+
+duct1() {
   local -a DUCT_OPTS=( "$@" )
   local DUCT_PLUG
   local DUCT_CALL="__duct_"
@@ -136,7 +187,7 @@ duct() {
     return 1
   fi
 }
-readonly -f duct
+readonly -f duct1
 
 # run core
 __duct_core
