@@ -85,7 +85,7 @@ __duct_plug_load vendor
 # life: core
 # desc: Main duct plugin and command processor.
 # opts: <plugin> <command> [extra-options]
-duct0() {
+duct() {
   local -a DUCT_OPTS=( "$@" )
   local DUCT_CALL
   local DUCT_FUNC=""
@@ -100,7 +100,7 @@ duct0() {
   DUCT_PLUG="${DUCT_OPTS[0]}"
   unset "DUCT_OPTS[0]"
   DUCT_OPTS=( "${DUCT_OPTS[@]}" )
-  DUCT_CALL="__fuct_${DUCT_PLUG}"
+  DUCT_CALL="__duct_${DUCT_PLUG}"
 
   # get function from opts
   for OPTS in "${DUCT_OPTS[@]}"
@@ -130,13 +130,12 @@ duct0() {
     __duct_msg e "'duct $DUCT_PLUG ${DUCT_OPTS[*]:-\b}' not found!"
     return 1
   else
-    __duct_msg d "$DUCT_FUNC ${DUCT_OPTS[*]}"
     $DUCT_FUNC "${DUCT_OPTS[@]}"
   fi
 }
-readonly -f duct0
+readonly -f duct
 
-duct() {
+duct1() {
   local -a DUCT_OPTS=( "$@" )
   local DUCT_PLUG
   local DUCT_CALL="__duct_"
@@ -187,7 +186,7 @@ duct() {
     return 1
   fi
 }
-readonly -f duct
+readonly -f duct1
 
 # run core
 __duct_core
