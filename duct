@@ -85,7 +85,7 @@ __duct_plug_load vendor
 # life: core
 # desc: Main duct plugin and command processor.
 # opts: <plugin> <command> [extra-options]
-duct0() {
+duct() {
   local -a DUCT_OPTS=( "$@" )
   local DUCT_CALL
   local DUCT_FUNC=""
@@ -101,6 +101,12 @@ duct0() {
   unset "DUCT_OPTS[0]"
   DUCT_OPTS=( "${DUCT_OPTS[@]}" )
   DUCT_CALL="__duct_${DUCT_PLUG}"
+
+  # handle direct calls
+  if [[ "$( type -t "${DUCT_CALL}" )" == "function" ]]
+  then
+    DUCT_FUNC="$DUCT_CALL"
+  fi
 
   # get function from opts
   for OPTS in "${DUCT_OPTS[@]}"
@@ -131,59 +137,6 @@ duct0() {
     return 1
   else
     $DUCT_FUNC "${DUCT_OPTS[@]}"
-  fi
-}
-readonly -f duct0
-
-duct() {
-  local -a DUCT_OPTS=( "$@" )
-  local DUCT_PLUG
-  local DUCT_CALL="__duct_"
-
-  if [[ -z "${DUCT_OPTS[*]}" ]] || [[ "${DUCT_OPTS[*]}" =~ ^(core|version)$ ]]
-  then
-    __duct_core
-    return 0
-  fi
-
-  DUCT_PLUG="${DUCT_OPTS[0]}"
-  unset 'DUCT_OPTS[0]'
-  DUCT_OPTS=( "${DUCT_OPTS[@]}" )
-
-  DUCT_CALL+="$DUCT_PLUG"
-  _DUCT_CALL="$DUCT_CALL"
-
-  for OPTS in "${DUCT_OPTS[@]}"
-  do
-    _DUCT_CALL+="_$OPTS"
-    if [[ "$( type -t "${_DUCT_CALL}" )" == "function" ]]
-    then
-      DUCT_CALL="$_DUCT_CALL"
-      _DUCT_CALL="${_DUCT_CALL//__duct_}"
-      _DUCT_CALL="${_DUCT_CALL//_/ }"
-
-      for CALL in $_DUCT_CALL
-      do
-        for IDX in "${!DUCT_OPTS[@]}"
-        do
-          if [[ "${DUCT_OPTS[IDX]}" == "$CALL" ]]
-          then
-            unset 'DUCT_OPTS[IDX]'
-          fi
-        done
-      done
-    fi
-  done
-
-  DUCT_OPTS=( "${DUCT_OPTS[@]}" )
-
-  if [[ "$( type -t "$DUCT_CALL" )" == "function" ]]
-  then
-    $DUCT_CALL "${DUCT_OPTS[@]}"
-    return
-  else
-    __duct_msg e "'duct $DUCT_PLUG ${DUCT_OPTS[*]:-\b}' not found!"
-    return 1
   fi
 }
 readonly -f duct
