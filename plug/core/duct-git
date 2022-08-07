@@ -919,6 +919,9 @@ declare -g DUCT_GIT_REFS_CLEANUP_PATH="${DUCT_GIT_REFS_CLEANUP_PATH:-$DUCT_GIT_W
 # ...
 declare -g DUCT_GIT_REFS_CLEANUP_ASK="${DUCT_GIT_REFS_CLEANUP_ASK:-true}"
 
+# ...
+declare -g -i DUCT_GIT_REFS_CLEANUP_TIMEOUT="${DUCT_GIT_REFS_CLEANUP_TIMEOUT:-30}"
+
 # deps: duct-msg duct-run
 # intl: false
 # life: core
@@ -1009,15 +1012,15 @@ __duct_git_refs_cleanup() {
       then
         while true
         do
-          read -r -p "DELETE $GIT_REF [yes/no]: " GIT_DELETE
+          read -r -t "$DUCT_GIT_REFS_CLEANUP_TIMEOUT" -p "DELETE $GIT_REF [yes/(NO)]: " GIT_DELETE || printf "\n"
 
-          case "$GIT_DELETE"
+          case "${GIT_DELETE:="no"}"
           in
-            y|yes)
+            Y|YES|y|yes)
               __duct_run git -C "$GIT_PATH" branch --delete --force "$GIT_REF"
               break
             ;;
-            n|no)
+            N|NO|n|no)
               break
             ;;
           esac
