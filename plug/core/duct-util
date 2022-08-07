@@ -419,8 +419,8 @@ readonly -f __duct_cleanup
 
 # random
 
-# Default random character list.
-declare -a _DUCT_RANDOM_CHARS=(
+# Random character list (defaults).
+declare -r -a _DUCT_RANDOM_CHARS=(
   "ABCDEFGHJKLMNPQRSTUVWX"
   "abcdefghijkmnpqrstuvwx"
   "123456789"
@@ -430,36 +430,42 @@ declare -a _DUCT_RANDOM_CHARS=(
 # Random character list.
 declare -g -a DUCT_RANDOM_CHARS=( "${DUCT_RANDOM_CHARS[@]:-${_DUCT_RANDOM_CHARS[@]}}" )
 
-# desc: Default random length.
-declare -g DUCT_RANDOM_LENGTH=${DUCT_RANDOM_LENGTH:-16}
+# Random string length.
+declare -g -i DUCT_RANDOM_LENGTH=${DUCT_RANDOM_LENGTH:-16}
 
-# deps:
+# deps: duct-msg
 # intl: false
-# life:
+# life: core
 # desc: Create a random string from given character list.
 # opts: [length]
 __duct_random() {
-  local -a RANDOM_CHARS=( "${DUCT_RANDOM_CHARS[@]}" )
-  local RANDOM_LEN="${1:-${DUCT_RANDOM_LENGTH}}"
-  local RANDOM_STR=""
+  local -i RANDOM_LEN="${1:-${DUCT_RANDOM_LENGTH}}"
 
-  readarray -t RANDOM_CHARS < <( __duct_gnu_grep -Po '[^\s]' <<< "${RANDOM_CHARS[*]}" )
+  local -a RANDOM_LIST=()
+  local RANDOM_STR
+  local RANDOM_CHARS
 
-  _RANDOM_CHARS="${RANDOM_CHARS[*]}"
-  _RANDOM_CHARS="${_RANDOM_CHARS// }"
+  RANDOM_CHARS="${DUCT_RANDOM_CHARS[*]}"
+  RANDOM_CHARS="${RANDOM_CHARS// }"
 
-  __duct_msg d "$RANDOM_LEN chars out of '${_RANDOM_CHARS}'"
+  for (( IDX=0; IDX<${#RANDOM_CHARS}; IDX++ ))
+  do
+    RANDOM_LIST+=( "${RANDOM_CHARS:$IDX:1}" )
+  done
 
-  for ((I=0; I<RANDOM_LEN; I++))
+  __duct_msg d "$RANDOM_LEN chars out of '$RANDOM_CHARS'"
+
+  for (( IDX=0; IDX<RANDOM_LEN; IDX++ ))
   do
     if [[ "$DUCT_BASH_SRANDOM" == true ]]
     then
-      RANDOM_STR+="${RANDOM_CHARS[$((SRANDOM%${#RANDOM_CHARS[@]}))]}"
+      RANDOM_STR+="${RANDOM_LIST[$(( SRANDOM % ${#RANDOM_LIST[@]} ))]}"
     else
-      RANDOM_STR+="${RANDOM_CHARS[$((RANDOM%${#RANDOM_CHARS[@]}))]}"
+      RANDOM_STR+="${RANDOM_LIST[$(( RANDOM % ${#RANDOM_LIST[@]} ))]}"
     fi
   done
-  echo "$RANDOM_STR"
+
+  printf "%b\n" "$RANDOM_STR"
 }
 readonly -f __duct_random
 
