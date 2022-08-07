@@ -1773,7 +1773,10 @@ __duct_sgrep() {
     done
   fi
 
-  printf "%b\n" "${SGREP_FOUND[@]}"
+  if [[ "${#SGREP_FOUND[@]}" -ge 1 ]]
+  then
+    printf "%b\n" "${SGREP_FOUND[@]}"
+  fi
 }
 readonly -f __duct_sgrep
 
