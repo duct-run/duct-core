@@ -1074,94 +1074,60 @@ __duct_compversion() {
 }
 readonly -f __duct_compversion
 
-# urlencode/decode
+# urlencode
 
-# URL encoding map (hidden).
-declare -g -a -r _DUCT_URL_CODE_MAP=(
-  '%:%25'   # needs to be first
-  " :%20"
-  "!:%21"
-  '":%22'
-  "#:%23"
-  "$:%24"
-  "&:%26"
-  "':%27"
-  "(:%28"
-  "):%29"
-  '\*:%2A'
-  "+:%2B"
-  ",:%2C"
-  "-:%2D"
-  ".:%2E"
-  "/:%2F"
-  "::%3A"
-  ";:%3B"
-  "<:%3C"
-  "=:%3D"
-  ">:%3E"
-  '\?:%3F'
-  "@:%40"
-  "[:%5B"
-  "\\\:%5C"
-  "]:%5D"
-  "^:%5E"
-  "_:%5F"
-  '\`:%60'
-  "{:%7B"
-  "|:%7C"
-  "}:%7D"
-  "~:%7E"
-)
+# Regex match to exclude from encoding.
+declare -g DUCT_URLENCODE_EXCLUDE="${DUCT_URLENCODE_EXCLUDE:-"[0-9A-Za-z]"}"
 
 # deps: duct-msg
 # intl: false
-# life: beta
-# desc: Encode to URL-encoded format.
-# opts: <url>
+# life: core
+# desc: Percent-encode a string.
+# opts: <string>
 __duct_urlencode() {
-  local URL="${1:-}"
-  local I
+  local STR="${1:-}"
 
-  if [[ -z "$URL" ]]
+  if [[ -z "$STR" ]]
   then
-    __duct_msg e "no url!"
-    exit 1
+    __duct_msg e "no string!"
+    return 1
+  else
+    __duct_msg d "$STR"
   fi
 
-  __duct_msg d "$URL"
-
-  for (( I=0; I<=${#_DUCT_URL_CODE_MAP[@]}-1; I++))
+  for (( IDX=0; IDX<${#STR}; IDX++ ))
   do
-    URL="${URL//${_DUCT_URL_CODE_MAP[I]%:*}/${_DUCT_URL_CODE_MAP[I]##*:}}"
+    if [[ "${STR:$IDX:1}" =~ $DUCT_URLENCODE_EXCLUDE ]]
+    then
+      printf "%s" "${STR:$IDX:1}"
+    else
+      printf "%%%02X" "'${STR:$IDX:1}"
+    fi
   done
-
-  echo "$URL"
+  printf "\n"
 }
 readonly -f __duct_urlencode
 
+# urldecode
+
 # deps: duct-msg
 # intl: false
-# life: beta
-# desc: Decode from URL-encoded format.
-# opts: <url>
+# life: core
+# desc: Decode a percent-encoded string.
+# opts: <string>
 __duct_urldecode() {
-  local URL="${1:-}"
-  local I
+  local STR="${1:-}"
 
-  if [[ -z "$URL" ]]
+  if [[ -z "$STR" ]]
   then
-    __duct_msg e "no url!"
-    exit 1
+    __duct_msg e "no string!"
+    return 1
+  else
+    __duct_msg d "$STR"
   fi
 
-  __duct_msg d "$URL"
-
-  for (( I=${#_DUCT_URL_CODE_MAP[@]}-1; I>=0; I-- ))
-  do
-    URL="${URL//${_DUCT_URL_CODE_MAP[I]##*:}/${_DUCT_URL_CODE_MAP[I]%:*}}"
-  done
-
-  echo "$URL"
+  STR="${STR//+/ }"
+  printf '%b\n' "${STR//%/\\x}"
 }
 readonly -f __duct_urldecode
 
