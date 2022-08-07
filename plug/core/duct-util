@@ -1706,6 +1706,77 @@ __duct_sleep_random() {
 }
 readonly -f __duct_sleep_random
 
+# sgrep
+
+# List of files to use (defaults).
+declare -r -a _DUCT_SGREP_FILES=()
+
+# Bash regex compatible match.
+declare -g DUCT_SGREP_MATCH="${DUCT_SGREP_MATCH:-}"
+
+# shellcheck disable=SC2206
+# List of files to use (if empty stdin is used).
+declare -g -a DUCT_SGREP_FILES=( ${DUCT_SGREP_FILES[@]:-${_DUCT_SGREP_FILES[@]}} )
+
+# Return value 'match' or 'line' number.
+declare -g DUCT_SGREP_RETURN="${DUCT_SGREP_RETURN:-"match"}"
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Simple grep in pure Bash.
+# opts: <match> [file(s)]
+__duct_sgrep() {
+  local SGREP_MATCH="${1:-$DUCT_SGREP_MATCH}"
+  shift || :
+  # shellcheck disable=SC2206
+  local -a SGREP_FILES=( ${@:-${DUCT_SGREP_FILES[@]}} )
+
+  if [[ -z "$SGREP_MATCH" ]]
+  then
+    __duct_msg e "no match specified!"
+    return 1
+  fi
+
+  local -a SGREP_DATA
+  local -a SGREP_FOUND=()
+  local SGREP_FILE
+  local SGREP_LINE
+
+  ___duct_sgrep() {
+    for SGREP_LINE in "${!SGREP_DATA[@]}"
+    do
+      if [[ "${SGREP_DATA[$SGREP_LINE]}" =~ $SGREP_MATCH ]]
+      then
+        if [[ "$DUCT_SGREP_RETURN" == "match" ]]
+        then
+          SGREP_FOUND+=( "${SGREP_DATA[$SGREP_LINE]}" )
+
+        elif [[ "$DUCT_SGREP_RETURN" == "line" ]]
+        then
+          SGREP_FOUND+=( "$(( SGREP_LINE + 1 ))" )
+        fi
+      fi
+    done
+  }
+  readonly -f ___duct_sgrep
+
+  if [[ "${#SGREP_FILES[@]}" -lt 1 ]]
+  then
+    readarray -t -n 0 SGREP_DATA
+    ___duct_sgrep
+  else
+    for SGREP_FILE in "${SGREP_FILES[@]}"
+    do
+      mapfile -t -n 0 SGREP_DATA < "$SGREP_FILE"
+      ___duct_sgrep
+    done
+  fi
+
+  printf "%b\n" "${SGREP_FOUND[@]}"
+}
+readonly -f __duct_sgrep
+
 # grep
 
 # deps: duct-gnu
