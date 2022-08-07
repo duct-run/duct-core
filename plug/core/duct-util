@@ -1754,24 +1754,26 @@ readonly -f __duct_sgrep
 
 # grep
 
-# deps: duct-gnu
+# deps: duct-msg duct-gnu
 # intl: false
-# life: core
+# life: deprecated
 # desc: Alias of `duct gnu grep`.
 # opts: <grep-options>
 __duct_grep() {
+  __duct_msg w "use 'duct gnu grep' instead!"
   __duct_gnu_grep "$@"
 }
 readonly -f __duct_grep
 
 # sed
 
-# deps: duct-gnu
+# deps: duct-msg duct-gnu
 # intl: false
-# life: core
+# life: deprecated
 # desc: Alias of `duct gnu sed`.
 # opts: <sed-options>
 __duct_sed() {
+  __duct_msg w "use 'duct gnu sed' instead!"
   __duct_gnu_sed "$@"
 }
 readonly -f __duct_sed
