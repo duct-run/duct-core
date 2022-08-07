@@ -482,7 +482,7 @@ declare -g DUCT_TMPGEN_LENGTH="${DUCT_TMPGEN_LENGTH:-9}"
 
 # deps:
 # intl: false
-# life:
+# life: core
 # desc: Generate a temporary path, without creating it.
 # opts: [prefix] [path]
 __duct_tmpgen() {
@@ -500,7 +500,7 @@ __duct_tmpgen() {
     __duct_random "$DUCT_TMPGEN_LENGTH"
   )" || TMP_RC=$?
 
-  echo "$TMP_GEN"
+  printf "%b\n" "$TMP_GEN"
 }
 readonly -f __duct_tmpgen
 
@@ -529,7 +529,7 @@ __duct_mktmpdir() {
   TMP_DIR="$( __duct_tmpgen "$TMP_PREFIX" "$TMP_PATH" )"
   __duct_msg n "creating ${TMP_DIR}"
   __duct_run mkdir -m "$DUCT_MKTMPDIR_MODE" -p "$TMP_DIR" || TMP_RC=$?
-  echo "$TMP_DIR"
+  printf "%b\n" "$TMP_DIR"
   return $TMP_RC
 }
 readonly -f __duct_mktmpdir
@@ -547,7 +547,7 @@ declare -g DUCT_MKTMPFILE_MODE="${DUCT_MKTMPFILE_MODE:-0600}"
 
 # deps: duct-msg duct-run
 # intl: false
-# life:
+# life: core
 # desc: Create a temporay file using `duct tmpgen`.
 # opts: [prefix] [path]
 __duct_mktmpfile() {
@@ -562,7 +562,7 @@ __duct_mktmpfile() {
     __duct_run touch "$TMP_FILE" || TMP_RC=$?
     __duct_run chmod "$DUCT_MKTMPFILE_MODE" "$TMP_FILE"
   ) || TMP_RC=$?
-  echo "$TMP_FILE"
+  printf "%b\n" "$TMP_FILE"
   return $TMP_RC
 }
 readonly -f __duct_mktmpfile
