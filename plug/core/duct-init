@@ -78,7 +78,7 @@ __duct_init() {
   __duct_ver_check git "$_DUCT_INIT_GIT_VERSION" 3 || (( INIT_RC+=$? ))
 
   # check jq version
-  #__duct_ver_check jq "$_DUCT_INIT_JQ_VERSION" 1 || (( INIT_RC+=$? ))
+  __duct_ver_check jq "$_DUCT_INIT_JQ_VERSION" 1 || (( INIT_RC+=$? ))
 
   # check gnu
   __duct_gnu_check || (( INIT_RC+=$? ))
