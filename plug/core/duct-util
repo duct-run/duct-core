@@ -1358,7 +1358,9 @@ __duct_unpack() {
 
     case "$ARCHIVE" in
       *.tar.gz|*.tar.xz|*.tgz|*.txz)
-        STRIP_PATH="$( awk -F"/" '{print NF-1}' <<< "$FILE" )" # get '/' count
+        # get / count
+        STRIP_PATH="${FILE//[^\/]}"
+        STRIP_PATH="${#STRIP_PATH}"
 
         if [[ $STRIP_PATH -ge 1 ]]
         then
