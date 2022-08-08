@@ -25,7 +25,6 @@ declare -g DUCT_INIT_QUIET="${DUCT_INIT_QUIET:-false}"
 
 # List of duct requirements (internal).
 declare -g -r -a _DUCT_INIT_REQUIRED=(
-  awk
   base64
   curl
   git
