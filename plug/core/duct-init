@@ -31,7 +31,6 @@ declare -g -r -a _DUCT_INIT_REQUIRED=(
   git
   jq
   sort
-  tar
   unzip
   xz
 )
