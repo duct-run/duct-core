@@ -50,8 +50,9 @@ __duct_conf() {
   fi
 
   local ENV
-  local VAR
   local VAL
+  local VAR
+  local _REMATCH
   local _VAL
 
   for CONF_FILE in "${_DUCT_CONF_FILES[@]}"
@@ -71,9 +72,9 @@ __duct_conf() {
       do
         if [[ "$ENV" =~ (DUCT_[A-Z_]+)=([[:alnum:][:punct:][:blank:]]+) ]]
         then
-          VAR="${BASH_REMATCH[1]:?}"
-          VAL="${BASH_REMATCH[2]:?}"
-          VAL="${VAL//"'"}"
+          _REMATCH=( "${BASH_REMATCH[@]}" )
+          VAR="${_REMATCH[1]}"
+          VAL="${_REMATCH[2]//"'"}"
           _VAL="$VAL"
 
           if [[ "$VAR" =~ (TOKEN|SECRET|PASS) ]]
@@ -86,10 +87,23 @@ __duct_conf() {
             __duct_msg d "${VAR}=${_VAL}"
           fi
 
-          export "${VAR}=${VAL}"
+          # number
+          if [[ "$VAL" =~ ^([0-9]+) ]]
+          then
+            declare -i "$VAR=$VAL"
+          # array
+          elif [[ "$VAL" =~ ^((\()([[:alnum:][:punct:][:blank:]]+)(\)))$ ]]
+          then
+            VAL="${BASH_REMATCH[3]}"
+            declare -g -a "$VAR=( $VAL )"
+          # string
+          else
+            declare -g "$VAR=$VAL"
+          fi
         fi
       done
     fi
   done
+  return
 }
 readonly -f __duct_conf
