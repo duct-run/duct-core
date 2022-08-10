@@ -30,6 +30,7 @@ declare -g DUCT_CONF_QUIET="${DUCT_CONF_QUIET:-false}"
 declare -g -a -r _DUCT_CONF_FILES=(
   "${HOME}/.config/duct/config"
   "${HOME}/.config/duct/env"
+  "${HOME}/.ductconf"
   "${HOME}/.ductenv"
 )
 
