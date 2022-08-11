@@ -1006,7 +1006,7 @@ __duct_git_refs_cleanup() {
         continue
       fi
 
-      __duct_msg w "$GIT_REF not on remote $DUCT_GIT_REMOTE!"
+      __duct_msg w "$GIT_PATH ref $GIT_REF not on remote $DUCT_GIT_REMOTE!"
 
       if [[ "$DUCT_GIT_REFS_CLEANUP_ASK" == true ]]
       then
