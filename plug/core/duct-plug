@@ -219,14 +219,14 @@ __duct_plug_install() {
       PLUG_URL="${_DUCT_PLUG_HOSTING}/${PLUG_URL}"
     fi
 
-    __duct_msg d "${PLUG_URL}"
-
     # store
     local _MSG_MAX_LEVEL="$DUCT_MSG_MAX_LEVEL"
     if [[ "$DUCT_PLUG_INSTALL_QUIET" == true ]]
     then
       DUCT_MSG_MAX_LEVEL=0
     fi
+
+    __duct_msg d "${PLUG_URL}"
 
     # git clone
     # store options
