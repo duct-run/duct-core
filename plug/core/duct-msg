@@ -56,7 +56,7 @@ declare -g DUCT_MSG_DATE_FORMAT="${DUCT_MSG_DATE_FORMAT:-"%F %T"}"
 declare -g DUCT_MSG_COLOR_ENABLE="${DUCT_MSG_COLOR_ENABLE:-true}"
 
 # Enable/disable date output.
-declare -g DUCT_MSG_ENABLE_DATE="${DUCT_MSG_ENABLE_DATE:-true}"
+declare -g DUCT_MSG_DATE_ENABLE="${DUCT_MSG_DATE_ENABLE:-true}"
 
 # Maximum level for messages (7 = debug).
 declare -g -i DUCT_MSG_MAX_LEVEL="${DUCT_MSG_MAX_LEVEL:-7}"
@@ -162,7 +162,7 @@ __duct_msg() {
     MSG_COLOR_NONE=""
   fi
 
-  if [[ $DUCT_MSG_ENABLE_DATE == true ]]
+  if [[ $DUCT_MSG_DATE_ENABLE == true ]]
   then
     MSG_DATE="$( printf "%($DUCT_MSG_DATE_FORMAT)T\\n" -1 ) "
   fi
