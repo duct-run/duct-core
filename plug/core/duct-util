@@ -1426,10 +1426,10 @@ declare -g -x DUCT_UMASK_FMODE=""
 # opts:
 __duct_umask() {
   DUCT_UMASK_DMODE="$( printf '%#o' $(( 0777 & ~DUCT_UMASK )) )"
-  __duct_msg d "$DUCT_UMASK_DMODE"
+  __duct_msg d "dirmode $DUCT_UMASK_DMODE"
 
   DUCT_UMASK_FMODE="$( printf '%#o' $(( 0777 & ~0111 & ~DUCT_UMASK )) )"
-  __duct_msg d "$DUCT_UMASK_FMODE"
+  __duct_msg d "filemode $DUCT_UMASK_FMODE"
 }
 readonly -f __duct_umask
 
