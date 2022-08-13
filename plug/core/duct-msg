@@ -53,7 +53,7 @@ declare -g DUCT_MSG_COLOR_WARNING="${DUCT_MSG_COLOR_WARNING:-"0;33"}"
 declare -g DUCT_MSG_DATE_FORMAT="${DUCT_MSG_DATE_FORMAT:-"%F %T"}"
 
 # Enable/disable colorized messages.
-declare -g DUCT_MSG_ENABLE_COLOR="${DUCT_MSG_ENABLE_COLOR:-true}"
+declare -g DUCT_MSG_COLOR_ENABLE="${DUCT_MSG_COLOR_ENABLE:-true}"
 
 # Enable/disable date output.
 declare -g DUCT_MSG_ENABLE_DATE="${DUCT_MSG_ENABLE_DATE:-true}"
@@ -145,7 +145,7 @@ __duct_msg() {
       MSG_LEVEL="ERR"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_ERROR}m"
 
-      if [[ $DUCT_MSG_ENABLE_COLOR == false ]]
+      if [[ $DUCT_MSG_COLOR_ENABLE == false ]]
       then
         MSG_COLOR=""
         MSG_COLOR_NONE=""
@@ -156,7 +156,7 @@ __duct_msg() {
     ;;
   esac
 
-  if [[ $DUCT_MSG_ENABLE_COLOR == false ]]
+  if [[ $DUCT_MSG_COLOR_ENABLE == false ]]
   then
     MSG_COLOR=""
     MSG_COLOR_NONE=""
