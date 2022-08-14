@@ -39,7 +39,7 @@ declare -g -r _DUCT_LOGO_URL="https://duct.run/"
 declare -g DUCT_LOGO_ENABLE="${DUCT_LOGO_ENABLE:-true}"
 
 # deps:
-# intl: no
+# intl: yes
 # life: core
 # desc: Show duct logo and version information.
 # opts:
