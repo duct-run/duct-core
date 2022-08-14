@@ -137,7 +137,7 @@ readonly -f __duct_find
 # urlencode
 
 # Regex match to exclude from encoding.
-declare -g DUCT_URLENCODE_EXCLUDE="${DUCT_URLENCODE_EXCLUDE:-"[A-Za-z0-9\.=-_@/]"}"
+declare -g DUCT_URLENCODE_EXCLUDE="${DUCT_URLENCODE_EXCLUDE:-"[A-Za-z0-9._-]"}"
 
 # deps: duct-msg
 # intl: false
