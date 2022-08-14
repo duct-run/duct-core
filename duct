@@ -33,6 +33,7 @@ declare -r DUCT_PLUG_DIR="${DUCT_ROOT_DIR}/plug"
 # shellcheck disable=SC2034
 declare DUCT_TMP_DIR="${DUCT_TMP_DIR:-${TMPDIR:-"/tmp"}}"
 declare DUCT_WORK_DIR="${DUCT_WORK_DIR:-${PWD:-"."}}"
+declare DUCT_TERM="${DUCT_TERM:-${TERM:-"dumb"}}"
 
 # self
 # shellcheck disable=SC2034
@@ -91,9 +92,9 @@ duct() {
   local DUCT_FUNC=""
   local DUCT_PLUG
 
-  if [[ -z "${DUCT_OPTS[*]}" ]] || [[ "${DUCT_OPTS[*]}" =~ ^(core|version)$ ]]
+  if [[ -z "${DUCT_OPTS[*]}" ]] || [[ "${DUCT_OPTS[*]}" =~ ^(logo|version)$ ]]
   then
-    __duct_core
+    __duct_logo
     return
   fi
 
@@ -141,5 +142,5 @@ duct() {
 }
 readonly -f duct
 
-# run core
-__duct_core
+# show duct logo and version
+__duct_logo
