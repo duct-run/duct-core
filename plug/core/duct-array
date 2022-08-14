@@ -1,0 +1,124 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-array
+# Collection of array functions.
+
+# array add
+
+# deps:
+# intl: false
+# life: core
+# desc: Add element to array if not present.
+# opts: <element> <array@>
+__duct_array_add() {
+  local ELEMENT="${1:-}"
+  shift || :
+  local -a ARRAY=( "$@" )
+
+  if [[ ! "${ARRAY[*]}" =~ $ELEMENT ]]
+  then
+    ARRAY+=( "$ELEMENT" )
+  fi
+
+  printf "%q\n" "${ARRAY[@]}"
+}
+readonly -f __duct_array_add
+
+# array join
+
+# deps:
+# intl: false
+# life: core
+# desc: Join an array with given string.
+# opts: <join-string> <array@>
+__duct_array_join() {
+  local IFS="${1:-}"
+  shift || :
+  local -a ARRAY=( "$@" )
+
+  echo "${ARRAY[*]}"
+}
+readonly -f __duct_array_join
+
+# array strip
+
+# deps:
+# intl: false
+# life: core
+# desc: Strip a regex match from an array.
+# opts: <strip-regex> <array[@]>
+__duct_array_strip() {
+  local STRIP="${1:-}"
+  shift || :
+  local -a ARRAY=( "$@" )
+
+  for _I in "${!ARRAY[@]}"
+  do
+    if [[ "${ARRAY[$_I]}" =~ $STRIP ]]
+    then
+      unset "ARRAY[$_I]"
+    fi
+  done
+
+  printf "%q\n" "${ARRAY[@]}"
+}
+readonly -f __duct_array_strip
+
+# array sort
+
+# deps:
+# intl: false
+# life: core
+# desc: Sort an array (version sort).
+# opts: <array[@]>
+__duct_array_sort() {
+  local -a ARRAY=( "$@" )
+
+  local IFS=$'\n'
+
+  readarray -t ARRAY < <( sort -V <<< "${ARRAY[*]}" )
+
+  printf "%q\n" "${ARRAY[@]}"
+}
+readonly -f __duct_array_sort
+
+# array unique
+
+# deps:
+# intl: false
+# life: core
+# desc: Unique an array without sorting.
+# opts: <array[@]>
+__duct_array_unique() {
+  local -a ARRAY=( "$@" )
+
+  local -a UNIQUE=()
+
+  for _E in "${ARRAY[@]}"
+  do
+    if [[ ! "${UNIQUE[*]}" =~ $_E ]]
+    then
+      UNIQUE+=( "$_E" )
+    fi
+  done
+
+  printf "%q\n" "${UNIQUE[@]}"
+}
+readonly -f __duct_array_unique
