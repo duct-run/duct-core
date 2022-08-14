@@ -130,100 +130,66 @@ readonly -f __duct_trim
 
 # addarray
 
-# deps:
+# deps: duct-array duct-msg
 # intl: false
-# life: core
-# desc: Add element to array if not present.
-# opts: <element> <array@>
+# life: deprecated
+# desc: Alias of `duct array add`.
+# opts:
 __duct_addarray() {
-  local ELEMENT="${1:-}"
-  shift
-  local -a ARRAY=( "$@" )
-
-  if [[ ! "${ARRAY[*]}" =~ $ELEMENT ]]
-  then
-    ARRAY+=( "$ELEMENT" )
-  fi
-
-  printf "%q\n" "${ARRAY[@]}"
+  __duct_msg w "use 'duct array add' instead!"
+  __duct_array_add "$@"
 }
 readonly -f __duct_addarray
 
 # joinarray
 
-# deps:
+# deps: duct-array duct-msg
 # intl: false
-# life: core
-# desc: Joins an array with given string.
-# opts: <join-string> <array@>
+# life: deprecated
+# desc: Alias of `duct array join`.
+# opts:
 __duct_joinarray() {
-  local IFS="${1:-""}"
-  shift
-  local -a ARRAY=( "$@" )
-
-  echo "${ARRAY[*]}"
+  __duct_msg w "use 'duct array join' instead!"
+  __duct_array_join "$@"
 }
 readonly -f __duct_joinarray
 
 # striparray
 
-# deps:
+# deps: duct-array duct-msg
 # intl: false
-# life: core
-# desc: Find and strip a regex from an array.
-# opts: <strip-regex> <array[@]>
+# life: deprecated
+# desc: Alias of `duct array strip`.
+# opts:
 __duct_striparray() {
-  local STRIP="$1"
-  shift
-  local -a ARRAY=( "$@" )
-  local _ARRAY
-
-  for _ARRAY in "${ARRAY[@]}"
-  do
-    if [[ ! "$_ARRAY" =~ $STRIP ]]
-    then
-      echo "$_ARRAY"
-    fi
-  done
+  __duct_msg w "use 'duct array strip' instead!"
+  __duct_array_strip "$@"
 }
 readonly -f __duct_striparray
 
 # sortarray
 
-# deps:
+# deps: duct-array duct-msg
 # intl: false
-# life: core
-# desc: Sort an array.
-# opts: <array[@]>
+# life: deprecated
+# desc: Alias of `duct array sort`.
+# opts:
 __duct_sortarray() {
-  local -a ARRAY=( "$@" )
-  local IFS=$'\n'
-
-  readarray -t ARRAY < <( sort -V <<< "${ARRAY[*]}" )
-  echo "${ARRAY[*]}"
+  __duct_msg w "use 'duct array sort' instead!"
+  __duct_array_sort "$@"
 }
 readonly -f __duct_sortarray
 
 # uniquearray
 
-# deps:
+# deps: duct-array duct-msg
 # intl: false
-# life: core
-# desc: Unique an array without sorting.
-# opts: <array[@]>
+# life: deprecated
+# desc: Alias of `duct array unique`.
+# opts:
 __duct_uniquearray() {
-  local -a ARRAY=( "$@" )
-  local -a _ARRAY=()
-  local UNIQUE
-
-  for UNIQUE in "${ARRAY[@]}"
-  do
-    if [[ ! "${_ARRAY[*]}" =~ $UNIQUE ]]
-    then
-      _ARRAY+=( "$UNIQUE" )
-    fi
-  done
-  printf "%q\n" "${_ARRAY[@]}"
+  __duct_msg w "use 'duct array unique' instead!"
+  __duct_array_unique "$@"
 }
 readonly -f __duct_uniquearray
 
