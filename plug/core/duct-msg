@@ -25,29 +25,56 @@
 # ANSI color code for alert messages.
 declare -g DUCT_MSG_COLOR_ALERT="${DUCT_MSG_COLOR_ALERT:-"1;35"}"
 
+# Display name for alert messages.
+declare -g DUCT_MSG_DNAME_ALERT="${DUCT_MSG_DNAME_ALERT:-"ALR"}"
+
 # ANSI color code for critical messages.
 declare -g DUCT_MSG_COLOR_CRITICAL="${DUCT_MSG_COLOR_CRITICAL:-"0;35"}"
+
+# Display name for critical messages.
+declare -g DUCT_MSG_DNAME_CRITICAL="${DUCT_MSG_DNAME_CRITICAL:-"CRT"}"
 
 # ANSI color code for debug messages.
 declare -g DUCT_MSG_COLOR_DEBUG="${DUCT_MSG_COLOR_DEBUG:-"1;34"}"
 
+# Display name for debug messages.
+declare -g DUCT_MSG_DNAME_DEBUG="${DUCT_MSG_DNAME_DEBUG:-"DBG"}"
+
 # ANSI color code for emergency messages.
 declare -g DUCT_MSG_COLOR_EMERGENCY="${DUCT_MSG_COLOR_EMERGENCY:-"1;31"}"
+
+# Display name for emergency messages.
+declare -g DUCT_MSG_DNAME_EMERGENCY="${DUCT_MSG_DNAME_EMERGENCY:-"EMG"}"
 
 # ANSI color code for error messages.
 declare -g DUCT_MSG_COLOR_ERROR="${DUCT_MSG_COLOR_ERROR:-"0;31"}"
 
+# Display name for error messages.
+declare -g DUCT_MSG_DNAME_ERROR="${DUCT_MSG_DNAME_ERROR:-"ERR"}"
+
 # ANSI color code for info messages.
 declare -g DUCT_MSG_COLOR_INFO="${DUCT_MSG_COLOR_INFO:-"1;36"}"
+
+# Display name for info messages.
+declare -g DUCT_MSG_DNAME_INFO="${DUCT_MSG_DNAME_INFO:-"NFO"}"
 
 # ANSI color code for notice messages.
 declare -g DUCT_MSG_COLOR_NOTICE="${DUCT_MSG_COLOR_NOTICE:-"0;37"}"
 
+# Display name for notice messages.
+declare -g DUCT_MSG_DNAME_NOTICE="${DUCT_MSG_DNAME_NOTICE:-"NTC"}"
+
 # ANSI color code for other messages.
 declare -g DUCT_MSG_COLOR_OTHER="${DUCT_MSG_COLOR_OTHER:-"0;32"}"
 
+# Display name for other messages.
+declare -g DUCT_MSG_DNAME_OTHER="${DUCT_MSG_DNAME_OTHER:-"OTH"}"
+
 # ANSI color code for warning messages.
 declare -g DUCT_MSG_COLOR_WARNING="${DUCT_MSG_COLOR_WARNING:-"0;33"}"
+
+# Display name for warning messages.
+declare -g DUCT_MSG_DNAME_WARNING="${DUCT_MSG_DNAME_WARNING:-"WRN"}"
 
 # Default message date format.
 declare -g DUCT_MSG_DATE_FORMAT="${DUCT_MSG_DATE_FORMAT:-"%F %T"}"
@@ -61,23 +88,26 @@ declare -g DUCT_MSG_DATE_ENABLE="${DUCT_MSG_DATE_ENABLE:-true}"
 # Maximum level for messages (7 = debug).
 declare -g -i DUCT_MSG_MAX_LEVEL="${DUCT_MSG_MAX_LEVEL:-7}"
 
-# deps: duct-util
+# deps:
 # intl: false
 # life: core
 # desc: Print (colorized) message with the given level to stderr.
 # opts: <level> <message>
 __duct_msg() {
   local MSG_LEVEL="${1:-"error"}"
-  shift
+  shift || :
   local MSG_OUTPUT=( "$@" )
-  local MSG_SELF="${FUNCNAME[0]}"
+
   local -a MSG_FUNC=( "${FUNCNAME[@]}" )
+
   local MSG_BASH="${BASH_SOURCE[-1]##*/}"
   local MSG_CALL=""
+  local MSG_SELF="${MSG_FUNC[0]}"
 
-  local MSG_DATE=""
   local MSG_COLOR=""
   local MSG_COLOR_NONE="\033[0m"
+  local MSG_DATE=""
+  local MSG_DNAME=""
   local MSG_RC=0
 
   local -a _CALL=()
@@ -85,27 +115,27 @@ __duct_msg() {
   case "$MSG_LEVEL"
   in
     em|emergency|0)
-      MSG_LEVEL="EMG" # EMERGENCY
+      MSG_DNAME="$DUCT_MSG_DNAME_EMERGENCY"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_EMERGENCY}m"
     ;;
 
     a|alert|1)
-      MSG_LEVEL="ALR" # ALERT
+      MSG_DNAME="$DUCT_MSG_DNAME_ALERT"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_ALERT}m"
     ;;
 
     c|critical|2)
-      MSG_LEVEL="CRT" # CRITICAL
+      MSG_DNAME="$DUCT_MSG_DNAME_CRITICAL"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_CRITICAL}m"
     ;;
 
     e|error|3)
-      MSG_LEVEL="ERR" # ERROR
+      MSG_DNAME="$DUCT_MSG_DNAME_ERROR"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_ERROR}m"
     ;;
 
     w|warning|4)
-      MSG_LEVEL="WRN" # WARNING
+      MSG_DNAME="$DUCT_MSG_DNAME_WARNING"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_WARNING}m"
     ;;
 
@@ -114,7 +144,7 @@ __duct_msg() {
       then
         return
       fi
-      MSG_LEVEL="NTC" # NOTICE
+      MSG_DNAME="$DUCT_MSG_DNAME_NOTICE"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_NOTICE}m"
     ;;
 
@@ -123,7 +153,7 @@ __duct_msg() {
       then
         return
       fi
-      MSG_LEVEL="NFO" # INFO
+      MSG_DNAME="$DUCT_MSG_DNAME_INFO"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_INFO}m"
     ;;
 
@@ -132,17 +162,17 @@ __duct_msg() {
       then
         return
       fi
-      MSG_LEVEL="DBG" # DEBUG
+      MSG_DNAME="$DUCT_MSG_DNAME_DEBUG"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_DEBUG}m"
     ;;
 
     x|o|other|8)
-      MSG_LEVEL="OTH" # OTHER
+      MSG_DNAME="$DUCT_MSG_DNAME_OTHER"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_OTHER}m"
     ;;
 
     *)
-      MSG_LEVEL="ERR"
+      MSG_DNAME="$DUCT_MSG_DNAME_ERROR"
       MSG_COLOR="\033[${DUCT_MSG_COLOR_ERROR}m"
 
       if [[ $DUCT_MSG_COLOR_ENABLE == false ]]
@@ -150,9 +180,9 @@ __duct_msg() {
         MSG_COLOR=""
         MSG_COLOR_NONE=""
       fi
-      # shellcheck disable=SC2183
-      >&2 printf "%b\n" "${MSG_COLOR}${MSG_DATE}[${MSG_LEVEL}] ${MSG_BASH}:${MSG_CALL} ${MSG_SELF//__duct_}: wrong level!${MSG_COLOR_NONE}"
-      return 1
+
+      MSG_RC=1
+      MSG_OUTPUT+=( "(wrong msg level: $MSG_LEVEL)" )
     ;;
   esac
 
@@ -166,11 +196,6 @@ __duct_msg() {
   then
     MSG_DATE="$( printf "%($DUCT_MSG_DATE_FORMAT)T\\n" -1 ) "
   fi
-
-  #if [[ -z "${MSG_OUTPUT[*]}" ]]
-  #then
-  #  readarray -t MSG_OUTPUT || MSG_RC=$?
-  #fi
 
   for (( IDX=${#MSG_FUNC[@]}-1; IDX>=0; IDX-- ))
   do
@@ -193,7 +218,7 @@ __duct_msg() {
     MSG_CALL=" ${MSG_CALL}:"
   fi
 
-  >&2 printf "%b\n" "${MSG_COLOR}${MSG_DATE}[${MSG_LEVEL}] ${MSG_BASH}:${MSG_CALL} ${MSG_OUTPUT[*]}${MSG_COLOR_NONE}"
+  >&2 printf "%b\n" "${MSG_COLOR}${MSG_DATE}[${MSG_DNAME}] ${MSG_BASH}:${MSG_CALL} ${MSG_OUTPUT[*]}${MSG_COLOR_NONE}"
   return $MSG_RC
 }
 readonly -f __duct_msg
