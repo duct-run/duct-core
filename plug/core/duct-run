@@ -29,7 +29,13 @@ declare -g DUCT_RUN_HOOK=${DUCT_RUN_HOOK:-false}
 declare -g -A DUCT_RUN_HOOK_SCRIPTS=()
 
 # Enable/disable masking of secrets in messages (WARNING!).
-declare -g DUCT_RUN_MASK=${DUCT_RUN_MASK:-true}
+declare -g DUCT_RUN_MASK_ENABLE=${DUCT_RUN_MASK_ENABLE:-true}
+
+# Bash regex match to mask.
+declare -g DUCT_RUN_MASK_MATCH="${DUCT_RUN_MASK_MATCH:-}"
+
+# Bash rematch index to mask.
+declare -g -i DUCT_RUN_MASK_INDEX="${DUCT_RUN_MASK_INDEX:-0}"
 
 # String to mask secrets with.
 declare -g DUCT_RUN_MASK_STRING=${DUCT_RUN_MASK_STRING:-"[MASKED]"}
@@ -62,7 +68,7 @@ __duct_run() {
   _RUN="${RUN[*]}"
 
   # mask
-  if [[ "$DUCT_RUN_MASK" == true ]]
+  if [[ "$DUCT_RUN_MASK_ENABLE" == true ]]
   then
     # gitlab curl
     if [[ "$_RUN" =~ (PRIVATE-TOKEN: ([0-9A-Za-z_\-]*)) ]]
@@ -80,6 +86,15 @@ __duct_run() {
     if [[ "$_RUN" =~ (([0-9A-Za-z_\-]*):([0-9A-Za-z_\-]*)@) ]]
     then
       _RUN="${_RUN//${BASH_REMATCH[3]}/${DUCT_RUN_MASK_STRING}}"
+    fi
+
+    # match & mask index
+    if [[ -n "$DUCT_RUN_MASK_MATCH" ]]
+    then
+      if [[ "$_RUN" =~ $DUCT_RUN_MASK_MATCH ]]
+      then
+        _RUN="${_RUN//${BASH_REMATCH[$DUCT_RUN_MASK_INDEX]}/${DUCT_RUN_MASK_STRING}}"
+      fi
     fi
   fi
 
