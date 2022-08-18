@@ -96,7 +96,15 @@ declare -g -i DUCT_MSG_MAX_LEVEL="${DUCT_MSG_MAX_LEVEL:-7}"
 __duct_msg() {
   local MSG_LEVEL="${1:-"error"}"
   shift || :
-  local MSG_OUTPUT=( "$@" )
+  local -a MSG_OUTPUT=( "$@" )
+
+  local MSG_RC=0
+
+  if [[ -z "${MSG_OUTPUT[*]}" ]]
+  then
+    MSG_OUTPUT+=( "no message! (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})" )
+    MSG_RC=1
+  fi
 
   local -a MSG_FUNC=( "${FUNCNAME[@]}" )
 
@@ -108,7 +116,6 @@ __duct_msg() {
   local MSG_COLOR_NONE="\033[0m"
   local MSG_DATE=""
   local MSG_DNAME=""
-  local MSG_RC=0
 
   local -a _CALL=()
 
@@ -181,8 +188,8 @@ __duct_msg() {
         MSG_COLOR_NONE=""
       fi
 
+      MSG_OUTPUT+=( "wrong msg level: $MSG_LEVEL (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})" )
       MSG_RC=1
-      MSG_OUTPUT+=( "(wrong msg level: $MSG_LEVEL)" )
     ;;
   esac
 
