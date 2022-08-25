@@ -70,18 +70,6 @@ __duct_run() {
   # mask
   if [[ "$DUCT_RUN_MASK_ENABLE" == true ]]
   then
-    # gitlab curl
-    if [[ "$_RUN" =~ (PRIVATE-TOKEN: ([0-9A-Za-z_\-]*)) ]]
-    then
-      _RUN="${_RUN//${BASH_REMATCH[2]}/${DUCT_RUN_MASK_STRING}}"
-    fi
-
-    # github curl
-    if [[ "$_RUN" =~ (-u ([0-9A-Za-z_\-]*):([0-9A-Za-z_\-]*)) ]]
-    then
-      _RUN="${_RUN//${BASH_REMATCH[3]}/${DUCT_RUN_MASK_STRING}}"
-    fi
-
     # generic user:password@
     if [[ "$_RUN" =~ (([0-9A-Za-z_\-]*):([0-9A-Za-z_\-]*)@) ]]
     then
