@@ -70,7 +70,8 @@ __duct_array_add2() {
     return 1
   fi
 
-  if [[ ! "${ARRAY[*]}" =~ $ADD ]]
+  # shellcheck disable=SC2076
+  if [[ ! "${ARRAY[*]}" =~ "$ADD" ]]
   then
     readarray -t -n 0 -O "${#ARRAY[@]}" "${!ARRAY}" <<< "$ADD"
   fi
