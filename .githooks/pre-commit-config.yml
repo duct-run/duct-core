@@ -36,8 +36,10 @@ repos:
         stages: [ commit-msg ]
         args:
           - build
+          - change
           - chore
           - ci
+          - deprecate
           - docs
           - feat
           - fix
@@ -45,7 +47,8 @@ repos:
           - merge
           - perf
           - refactor
+          - remove
           - revert
+          - security
           - style
           - test
-          - todo
