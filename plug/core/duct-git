@@ -1032,3 +1032,214 @@ __duct_git_refs_cleanup() {
   done
 }
 readonly -f __duct_git_refs_cleanup
+
+# git check
+
+# Allowed conventional commit types (defaults).
+declare -r -a _DUCT_GIT_CHECK_TYPE=(
+  "build"
+  "change"
+  "chore"
+  "ci"
+  "deprecate"
+  "docs"
+  "feat"
+  "fix"
+  "import"
+  "merge"
+  "perf"
+  "refactor"
+  "remove"
+  "revert"
+  "security"
+  "style"
+  "test"
+)
+
+# Allowed conventional commit scope (defaults).
+declare -r -a _DUCT_GIT_CHECK_SCOPE=(
+  "[:digit:]"
+  "[:lower:]"
+  "[:punct:]"
+  "[:space:]"
+)
+
+# Allowed conventional commit description (defaults).
+declare -r -a _DUCT_GIT_CHECK_DESC=(
+  "[:digit:]"
+  "[:lower:]"
+  "[:punct:]"
+  "[:space:]"
+)
+
+# Path to check conventional commits.
+declare -g DUCT_GIT_CHECK_PATH="${DUCT_GIT_CHECK_PATH:-$DUCT_GIT_WORKDIR}"
+
+# Allowed conventional commit types.
+declare -g -a DUCT_GIT_CHECK_TYPE=( "${DUCT_GIT_CHECK_TYPE[@]:-${_DUCT_GIT_CHECK_TYPE[@]}}" )
+
+# Allowed conventional commit scope.
+declare -g -a DUCT_GIT_CHECK_SCOPE=( "${DUCT_GIT_CHECK_SCOPE[@]:-${_DUCT_GIT_CHECK_SCOPE[@]}}" )
+
+# Allowed conventional commit description.
+declare -g -a DUCT_GIT_CHECK_DESC=( "${DUCT_GIT_CHECK_DESC[@]:-${_DUCT_GIT_CHECK_DESC[@]}}" )
+
+# Minimal length of conventional commit scope.
+declare -g -i DUCT_GIT_CHECK_SCOPE_MIN=${DUCT_GIT_CHECK_SCOPE_MIN:-5}
+
+# Maximal length of conventional commit scope.
+declare -g -i DUCT_GIT_CHECK_SCOPE_MAX=${DUCT_GIT_CHECK_SCOPE_MAX:-75}
+
+# Minimal length of conventional commit description.
+declare -g -i DUCT_GIT_CHECK_DESC_MIN=${DUCT_GIT_CHECK_DESC_MIN:-5}
+
+# Maximal length of conventional commit description.
+declare -g -i DUCT_GIT_CHECK_DESC_MAX=${DUCT_GIT_CHECK_DESC_MAX:-75}
+
+# Check conventional commit body (TODO).
+declare -g DUCT_GIT_CHECK_BODY="${DUCT_GIT_CHECK_BODY:-false}"
+
+# Check signed commit (TODO).
+declare -g DUCT_GIT_CHECK_SIGNED="${DUCT_GIT_CHECK_SIGNED:-false}"
+
+# Show passed conventional commits.
+declare -g DUCT_GIT_CHECK_PASS="${DUCT_GIT_CHECK_PASS:-false}"
+
+# Show failed conventional commits.
+declare -g DUCT_GIT_CHECK_FAIL="${DUCT_GIT_CHECK_FAIL:-true}"
+
+# Commit(s) to check (default all).
+declare -g DUCT_GIT_CHECK_COMMIT="${DUCT_GIT_CHECK_COMMIT:-}"
+
+# deps: duct-array duct-msg duct-run
+# intl: false
+# life: test
+# desc: Check git conventional commits (<https://www.conventionalcommits.org/>).
+# opts: [commit]
+__duct_git_check() {
+  local GIT_COMMIT="${1:-$DUCT_GIT_CHECK_COMMIT}"
+
+  local -A GIT_DATA
+  local -a GIT_BODY
+  local -a GIT_FAIL=()
+  local -a GIT_FAIL_BODY=()
+  local -a GIT_FAIL_SIGNED=()
+  local -a GIT_FILE
+  local -a GIT_LOG
+  local -a GIT_PASS=()
+  #local -a GIT_PASS_BODY=()
+  #local -a GIT_PASS_SIGNED=()
+  local -i GIT_RC=0
+
+  # https://git-scm.com/docs/pretty-formats
+  local GIT_LOG_MAIN="format:%H %s%n%at %an <%ae> %G?"
+  local GIT_LOG_BODY="format:%b%-"
+
+  if [[ ! -d "$DUCT_GIT_CHECK_PATH/.git" ]]
+  then
+    __duct_msg e "$DUCT_GIT_CHECK_PATH not git repository! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    return 1
+  fi
+
+  if [[ -n "$GIT_COMMIT" ]]
+  then
+    readarray -t -n 0 GIT_LOG < <( __duct_run git -C "$DUCT_GIT_CHECK_PATH" log --name-status --pretty="$GIT_LOG_MAIN" "$GIT_COMMIT" )
+  else
+    readarray -t -n 0 GIT_LOG < <( __duct_run git -C "$DUCT_GIT_CHECK_PATH" log --name-status --pretty="$GIT_LOG_MAIN" )
+  fi
+
+  # add final newline (end of commit)
+  GIT_LOG+=( "" )
+
+  for VAL in "${GIT_LOG[@]}"
+  do
+    # commit hash + subject
+    if [[ "$VAL" =~ ^(([0-9a-f]{40,64}) (.*)) ]]
+    then
+      GIT_DATA["hash"]="${BASH_REMATCH[2]}"
+      GIT_DATA["subject"]="${BASH_REMATCH[3]}"
+
+    # author date + author name + author email
+    elif [[ "$VAL" =~ ^(([0-9]{1,11}) (.*) \<(.*)\> (G|B|U|X|Y|R|E|N))$ ]] # TODO: better regex
+    then
+      GIT_DATA["date"]="${BASH_REMATCH[2]}"
+      GIT_DATA["author"]="${BASH_REMATCH[3]}"
+      GIT_DATA["email"]="${BASH_REMATCH[4]}"
+      GIT_DATA["signed"]="${BASH_REMATCH[5]}"
+
+    # status + filename(s)
+  elif [[ "$VAL" =~ ^((A|C[0-9]+|D|M([0-9]+)?|R[0-9]+|T|U|X|B)[[:space:]](.*)) ]] # TODO: better regex
+    then
+      GIT_FILE+=( "${BASH_REMATCH[4]}" )
+
+    # end of commit & check
+    elif [[ "$VAL" =~ ^()$ ]]
+    then
+      if [[ "$DUCT_GIT_CHECK_BODY" == true ]]
+      then
+        readarray -t -n 0 GIT_BODY < <( __duct_run git -C "$DUCT_GIT_CHECK_PATH" log --pretty="$GIT_LOG_BODY" "${GIT_DATA["hash"]}^!" )
+      fi
+
+      _GIT_INFO="${GIT_DATA["subject"]} (${GIT_DATA["author"]} <${GIT_DATA["email"]}> ${GIT_DATA["signed"]}) [${GIT_DATA["hash"]} ${GIT_FILE[*]}]"
+
+      # join matches
+      local IFS
+      IFS="|" _GIT_TYPE="${DUCT_GIT_CHECK_TYPE[*]}"
+      IFS=""  _GIT_SCOPE="${DUCT_GIT_CHECK_SCOPE[*]}"
+      IFS=""  _GIT_DESC="${DUCT_GIT_CHECK_DESC[*]}"
+      _GIT_MATCH=(
+        "^((${_GIT_TYPE})(\([${_GIT_SCOPE}]{${DUCT_GIT_CHECK_SCOPE_MIN},${DUCT_GIT_CHECK_SCOPE_MAX}}\))?(!)?:"
+        "([${_GIT_DESC}]{${DUCT_GIT_CHECK_DESC_MIN},${DUCT_GIT_CHECK_DESC_MAX}})$)"
+      )
+      unset IFS
+
+      # check valid subject
+      if [[ "${GIT_DATA["subject"]}" =~ ${_GIT_MATCH[*]} ]]
+      then
+        GIT_PASS+=( "SUBJECT PASS: $_GIT_INFO" )
+      else
+        GIT_FAIL+=( "SUBJECT FAIL: $_GIT_INFO" )
+      fi
+
+      # TODO: check valid body
+      # TODO: check valid signed
+      if [[ "$DUCT_GIT_CHECK_SIGNED" == true ]]
+      then
+        if [[ "${GIT_DATA["signed"]}" =~ ^(G)$ ]] # TODO
+        then
+          GIT_PASS+=( "SIGNED PASS: $_GIT_INFO" )
+        else
+          GIT_FAIL+=( "SIGNED FAIL: $_GIT_INFO" )
+        fi
+      fi
+
+      # reset commit, body & file
+      GIT_DATA=()
+      GIT_BODY=()
+      GIT_FILE=()
+    fi
+  done
+
+  if [[ "$DUCT_GIT_CHECK_PASS" == true ]]
+  then
+    for VAL in "${GIT_PASS[@]}"
+    do
+      __duct_msg n "$VAL"
+    done
+  fi
+
+  if [[ "$DUCT_GIT_CHECK_FAIL" == true ]]
+  then
+    for VAL in "${GIT_FAIL[@]}"
+    do
+      __duct_msg e "$VAL"
+      (( GIT_RC+=1 ))
+    done
+  fi
+
+  if [[ "$GIT_RC" -gt 0 ]]
+  then
+    return 1
+  fi
+}
+readonly -f __duct_git_check
