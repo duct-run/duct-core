@@ -29,6 +29,7 @@ declare -g -r -a _DUCT_INIT_REQUIRED=(
   curl
   git
   jq
+  sleep
   sort
   unzip
   xz
