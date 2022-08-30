@@ -331,3 +331,60 @@ __duct_array_keyval() {
   done
 }
 readonly -f __duct_array_keyval
+
+# array json
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Generate a simple JSON from an formated array.
+# opts: <array-name>
+__duct_array_json() {
+  local -n ARRAY="${1:-DUCT_NULL}"
+
+  local JSON_KEY
+  local JSON_VAL
+
+  # begin json
+  printf "%s\n" "{"
+
+  for KEY in "${!ARRAY[@]}"
+  do
+    JSON_KEY="${ARRAY[$KEY]%%:*}"
+    JSON_VAL="${ARRAY[$KEY]#*:}"
+
+    # digit or bool
+    if [[ "$JSON_VAL" =~ ^([[:digit:]]+|true|false|yes|no)$ ]]
+    then
+      printf '  "%s": %s' "$JSON_KEY" "$JSON_VAL"
+
+    # list
+    elif [[ "$JSON_VAL" =~ ^(\[(.*)\])$ ]]
+    then
+      printf '  "%s": [ ' "$JSON_KEY"
+
+      IFS=", " read -r -a _JSON_VAL <<< "${BASH_REMATCH[2]}"
+
+      _LIST_VAL=$( printf '"%s", ' "${_JSON_VAL[@]}" )
+
+      printf '%s' "${_LIST_VAL::-2}"
+      printf ' ]'
+
+    # string
+    else
+      printf '  "%s": "%s"' "$JSON_KEY" "$JSON_VAL"
+    fi
+
+    # seperator
+    if [[ "$KEY" -lt "${#ARRAY[@]}-1" ]]
+    then
+      printf ",\n"
+    else
+      printf "\n"
+    fi
+  done
+
+  # end json
+  printf "%s\n" "}"
+}
+readonly -f __duct_array_json
