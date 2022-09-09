@@ -206,7 +206,7 @@ readonly -f __duct_urldecode
 # umask
 
 # Use umask
-declare -g DUCT_UMASK="${DUCT_UMASK:-"$( umask )"}"
+declare -g DUCT_UMASK="${DUCT_UMASK:-022}"
 
 # Directory mode from umask (set at run-time).
 declare -g -x DUCT_UMASK_DMODE=""
