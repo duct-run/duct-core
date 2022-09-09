@@ -90,7 +90,7 @@ __duct_conf() {
           fi
 
           # number
-          if [[ "$VAL" =~ ^([0-9]+) ]]
+          if [[ "$VAL" =~ ^(0|[1-9]([0-9]+)?)$ ]]
           then
             declare -i "$VAR=$VAL"
           # array
