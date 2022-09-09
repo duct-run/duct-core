@@ -63,17 +63,15 @@ __duct_env
 source "${DUCT_PLUG_DIR}/core/duct-conf"
 __duct_conf
 
-# load core plugins
+# install and load core plugins
 # shellcheck disable=SC1091
 source "${DUCT_PLUG_DIR}/core/duct-plug"
+__duct_plug_install core
 __duct_plug_load core
 
 # init & umask
 __duct_init
 __duct_umask
-
-# self update core
-__duct_plug_install core
 
 # install and load main & vendor plugins
 __duct_plug_install main

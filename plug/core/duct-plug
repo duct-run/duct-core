@@ -149,10 +149,10 @@ declare -g DUCT_PLUG_INSTALL_UPDATE="${DUCT_PLUG_INSTALL_UPDATE:-true}"
 # Enable/disable plugin install.
 declare -g DUCT_PLUG_INSTALL_ENABLE="${DUCT_PLUG_INSTALL_ENABLE:-true}"
 
-# deps: duct-git duct-msg
+# deps: duct-msg
 # intl: true
 # life: core
-# desc: Install duct vendor plugins.
+# desc: Install and update duct plugins.
 # opts: <plugin-type>
 __duct_plug_install() {
   local -a PLUG=()
@@ -164,7 +164,7 @@ __duct_plug_install() {
 
   if [[ "$DUCT_PLUG_INSTALL_ENABLE" != true ]]
   then
-    __duct_msg d "$PLUG_TYPE disabled"
+    __duct_msg d "$PLUG_TYPE (disabled)"
     return
   fi
 
@@ -226,33 +226,30 @@ __duct_plug_install() {
       DUCT_MSG_MAX_LEVEL=0
     fi
 
-    __duct_msg d "${PLUG_URL}"
+    # add .git to url
+    if [[ ! "$PLUG_URL" =~ \.git$ ]]
+    then
+      PLUG_URL="${PLUG_URL}.git"
+    fi
 
-    # git clone
-    # store options
-    # shellcheck disable=SC2206
-    local -a _GIT_CLONE_OPTIONS=( ${DUCT_GIT_CLONE_OPTIONS[@]} )
-    # shellcheck disable=SC2206
-    local -a _GIT_PULL_OPTIONS=( ${DUCT_GIT_PULL_OPTIONS[@]} )
+    # git clone or pull
+    if [[ ! -d "${PLUG_DIR}/.git" ]]
+    then
+      __duct_msg n "$PLUG_NAME (clone) [$PLUG_URL]"
+      git clone --quiet "$PLUG_URL" "$PLUG_DIR" || __duct_msg e "git failed!"
+    else
+      __duct_msg n "$PLUG_NAME (pull)"
+      git -C "$PLUG_DIR" pull --quiet --prune || __duct_msg e "git failed!"
+    fi
 
-    # set options
-    DUCT_GIT_CLONE_OPTIONS=( --quiet )
-    DUCT_GIT_PULL_OPTIONS=( --quiet --prune )
+    # git checkout
+    PLUG_HEAD="$( git -C "$PLUG_DIR" describe --all --contains || __duct_msg e "git failed!" )"
 
-    DUCT_GIT_CLONE_BRANCH="$PLUG_TAG" \
-    DUCT_GIT_CLONE_CHECKOUT="$PLUG_TAG" \
-    DUCT_GIT_CLONE_PATH="$PLUG_DIR" \
-    DUCT_GIT_CLONE_PULL="$DUCT_PLUG_INSTALL_UPDATE" \
-    DUCT_GIT_CLONE_URL="$PLUG_URL" \
-    DUCT_RUN_SIMULATE=false \
-    __duct_git_clone
-
-    # reset options
-    DUCT_MSG_MAX_LEVEL="$_MSG_MAX_LEVEL"
-    # shellcheck disable=SC2206
-    DUCT_GIT_CLONE_OPTIONS=( ${_GIT_CLONE_OPTIONS[@]} )
-    # shellcheck disable=SC2206
-    DUCT_GIT_PULL_OPTIONS=( ${_GIT_PULL_OPTIONS[@]} )
+    if [[ "$PLUG_HEAD" != "$PLUG_TAG" ]]
+    then
+      __duct_msg n "$PLUG_NAME (checkout) [$PLUG_TAG]"
+      git -C "$PLUG_DIR" checkout --quiet "$PLUG_TAG" || __duct_msg e "git failed!"
+    fi
   done
 }
 readonly -f __duct_plug_install
