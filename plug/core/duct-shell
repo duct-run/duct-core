@@ -220,6 +220,9 @@ declare -g -x DUCT_UMASK_FMODE=""
 # desc: Set a umask to work with.
 # opts:
 __duct_umask() {
+  __duct_msg d "$DUCT_UMASK"
+  umask "$DUCT_UMASK"
+
   DUCT_UMASK_DMODE="$( printf '%#o' $(( 0777 & ~DUCT_UMASK )) )"
   __duct_msg d "dirmode $DUCT_UMASK_DMODE"
 
