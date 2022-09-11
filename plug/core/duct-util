@@ -142,7 +142,7 @@ __duct_debase64() {
   fi
 
   set +e
-  DEBASE64="$( echo "$DEBASE64_STRING" | base64 -d 2>/dev/null )"
+  DEBASE64="$( base64 -d <<< "$DEBASE64_STRING" 2>/dev/null )"
   DEBASE64_RC=$?
   set -e
 
