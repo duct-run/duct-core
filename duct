@@ -31,8 +31,8 @@ declare -r DUCT_ROOT_DIR="$( cd "${BASH_SOURCE[0]%/*}" && echo "$PWD" )"
 declare -r DUCT_PLUG_DIR="${DUCT_ROOT_DIR}/plug"
 
 # shellcheck disable=SC2034
-declare DUCT_TMP_DIR="${DUCT_TMP_DIR:-${TMPDIR:-"/tmp"}}"
-declare DUCT_WORK_DIR="${DUCT_WORK_DIR:-${PWD:-"."}}"
+declare DUCT_TMP_DIR="${DUCT_TMP_DIR:-${TMPDIR:-"$HOME/tmp"}}"
+declare DUCT_WORK_DIR="${DUCT_WORK_DIR:-$PWD}"
 declare DUCT_TERM="${DUCT_TERM:-${TERM:-"dumb"}}"
 
 # self
