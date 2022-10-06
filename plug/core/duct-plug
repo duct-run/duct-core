@@ -250,6 +250,9 @@ __duct_plug_install() {
       __duct_msg n "$PLUG_NAME (checkout) [$PLUG_TAG]"
       git -C "$PLUG_DIR" checkout --quiet "$PLUG_TAG" || __duct_msg e "git failed!"
     fi
+
+    # restore
+    DUCT_MSG_MAX_LEVEL="$_MSG_MAX_LEVEL"
   done
 }
 readonly -f __duct_plug_install
