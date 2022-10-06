@@ -37,7 +37,7 @@ declare -g DUCT_SSH_KEYGEN_COMMENT="${DUCT_SSH_KEYGEN_COMMENT:-"duct generated"}
 # Filename of the key file.
 declare -g DUCT_SSH_KEYGEN_KEYFILE="${DUCT_SSH_KEYGEN_KEYFILE:-"duct-ssh"}"
 
-# The key passphrase.
+# The key passphrase (base64 or plain).
 declare -g DUCT_SSH_KEYGEN_PASSPHRASE="${DUCT_SSH_KEYGEN_PASSPHRASE:-}"
 
 # Key format for key generation.
@@ -145,17 +145,11 @@ readonly -f __duct_ssh_keyscan
 
 # ssh agent
 
-# SSH agent environment file.
-declare -g DUCT_SSH_AGENT_ENV_FILE="${DUCT_SSH_AGENT_ENV_FILE:-"duct-ssh-agent.env"}"
-
-# Optional SSH key to add to the agent.
+# Optional SSH key to add to the agent (base64 or plain).
 declare -g DUCT_SSH_AGENT_KEY_ADD="${DUCT_SSH_AGENT_KEY_ADD:-}"
 
-# Optional SSH key passphrase.
+# Optional SSH key passphrase (base64 or plain).
 declare -g DUCT_SSH_AGENT_KEY_PASSPHRASE="${DUCT_SSH_AGENT_KEY_PASSPHRASE:-}"
-
-# SSH ask pass
-declare -g DUCT_SSH_AGENT_ASKPASS="${DUCT_SSH_AGENT_ASKPASS:-"duct-ssh-askpass.sh"}"
 
 # deps: duct-msg duct-util
 # intl: false
@@ -163,7 +157,12 @@ declare -g DUCT_SSH_AGENT_ASKPASS="${DUCT_SSH_AGENT_ASKPASS:-"duct-ssh-askpass.s
 # desc: Start the SSH agent.
 # opts:
 __duct_ssh_agent() {
+  local -a SSH_AGENT_ASKPASS_DATA
   local -i SSH_AGENT_RUN=0
+  local SSH_AGENT_ASKPASS
+  local SSH_AGENT_ENV
+  local SSH_AGENT_KEY_ADD
+  local SSH_AGENT_KEY_PASSPHRASE
 
   __duct_bin_check "ssh-agent" || return
   __duct_bin_check "ssh-add" || return
@@ -190,23 +189,43 @@ __duct_ssh_agent() {
   then
     __duct_msg n "start SSH agent"
 
-    DUCT_RUN_OUTPUT="$DUCT_SSH_AGENT_ENV_FILE" \
+    SSH_AGENT_ENV="$( DUCT_MSG_MAX_LEVEL=0 DUCT_MKTMPFILE_PREFIX="duct-ssh-agent-" __duct_mktmpfile )"
+
+    DUCT_RUN_OUTPUT="$SSH_AGENT_ENV" \
     __duct_run out ssh-agent -s >/dev/null
-    __duct_source "$DUCT_SSH_AGENT_ENV_FILE"
+    __duct_source "$SSH_AGENT_ENV" && \
+    __duct_run rm -f "$SSH_AGENT_ENV"
   fi
 
   if [[ -n "$DUCT_SSH_AGENT_KEY_ADD" ]]
   then
+    __duct_msg d "SSH key"
+    SSH_AGENT_KEY_ADD="$( __duct_debase64 "$DUCT_SSH_AGENT_KEY_ADD" )"
+
     if [[ -n "$DUCT_SSH_AGENT_KEY_PASSPHRASE" ]]
     then
-      # TODO: generate $DUCT_SSH_AGENT_ASKPASS
-      #export SSH_ASKPASS="$DUCT_SSH_AGENT_ASKPASS"
-      #export SSH_ASKPASS_REQUIRE="force"
-      :
+      __duct_msg d "SSH key passphrase"
+      SSH_AGENT_KEY_PASSPHRASE="$( __duct_debase64 "$DUCT_SSH_AGENT_KEY_PASSPHRASE" )"
+      SSH_AGENT_ASKPASS="$( DUCT_MSG_MAX_LEVEL=0 DUCT_MKTMPFILE_PREFIX="duct-ssh-askpass-" DUCT_MKTMPFILE_MODE="0700" __duct_mktmpfile )"
+
+      __duct_msg d "SSH askpass ($SSH_AGENT_ASKPASS)"
+      SSH_AGENT_ASKPASS_DATA=(
+        "#!/usr/bin/env bash"
+        "echo \"$SSH_AGENT_KEY_PASSPHRASE\""
+      )
+      printf "%b\n" "${SSH_AGENT_ASKPASS_DATA[@]}" > "$SSH_AGENT_ASKPASS"
+
+      export SSH_ASKPASS="$SSH_AGENT_ASKPASS"
+      export SSH_ASKPASS_REQUIRE="force"
     fi
 
     __duct_msg n "add SSH key"
-    __duct_run ssh-add - <<< "$DUCT_SSH_AGENT_KEY_ADD"
+    __duct_run ssh-add - <<< "$SSH_AGENT_KEY_ADD" && \
+    __duct_run rm -f "$SSH_AGENT_ASKPASS"
+
+    unset SSH_ASKPASS
+    unset SSH_ASKPASS_REQUIRE
+    unset SSH_AGENT_ASKPASS_DATA
   fi
 }
 readonly -f __duct_ssh_agent
