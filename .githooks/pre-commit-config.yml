@@ -29,7 +29,7 @@ repos:
       - id: markdownlint
 
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v2.0.0
+    rev: v2.1.1
     hooks:
       - id: conventional-pre-commit
         name: "check conventional commit message"
