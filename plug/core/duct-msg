@@ -102,8 +102,8 @@ __duct_msg() {
 
   if [[ -z "${MSG_OUTPUT[*]}" ]]
   then
-    MSG_OUTPUT+=( "no message! (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})" )
-    MSG_RC=1
+    MSG_OUTPUT+=( "null (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})" )
+    MSG_RC=0
   fi
 
   local -a MSG_FUNC=( "${FUNCNAME[@]}" )
