@@ -734,6 +734,138 @@ __duct_git_commit() {
 }
 readonly -f __duct_git_commit
 
+# git tag
+
+# Path to tag (inherit `DUCT_GIT_WORKDIR`).
+declare -g DUCT_GIT_TAG_PATH="${DUCT_GIT_TAG_PATH:-$DUCT_GIT_WORKDIR}"
+
+# The tag name.
+declare -g DUCT_GIT_TAG_NAME="${DUCT_GIT_TAG_NAME:-}"
+
+# Commit hash to use for tag.
+declare -g DUCT_GIT_TAG_COMMIT="${DUCT_GIT_TAG_COMMIT:-}"
+
+# Tag message (annoted or signed).
+declare -g DUCT_GIT_TAG_MESSAGE="${DUCT_GIT_TAG_MESSAGE:-}"
+
+# Annotate the tag (requires `DUCT_GIT_TAG_MESSAGE`).
+declare -g DUCT_GIT_TAG_ANNOTATE="${DUCT_GIT_TAG_ANNOTATE:-false}"
+
+# Sign the tag (requires `DUCT_GIT_TAG_MESSAGE`).
+declare -g DUCT_GIT_TAG_SIGN="${DUCT_GIT_TAG_SIGN:-false}"
+
+# Push tag.
+declare -g DUCT_GIT_TAG_PUSH="${DUCT_GIT_TAG_PUSH:-true}"
+
+# deps: duct-msg duct-run
+# intl: false
+# life: core
+# desc: Create a git tag.
+# opts: <tagname>
+__duct_git_tag() {
+  local GIT_TAG="${1:-$DUCT_GIT_TAG_NAME}"
+
+  local -a GIT_OPTS=()
+  local GIT_ERROR=0
+
+  if [[ "$DUCT_GIT_TAG_SIGN" == true ]]
+  then
+    GIT_OPTS=(
+      --sign
+      --message="$DUCT_GIT_TAG_MESSAGE"
+    )
+
+  elif [[ "$DUCT_GIT_TAG_ANNOTATE" == true ]]
+  then
+    GIT_OPTS=(
+      --annotate
+      --message="$DUCT_GIT_TAG_MESSAGE"
+    )
+  fi
+
+  if [[ "${#GIT_OPTS[@]}" -ge 1 ]] && [[ -z "$DUCT_GIT_TAG_MESSAGE" ]]
+  then
+    __duct_msg e "no message!"
+    (( GIT_ERROR+=1 ))
+  fi
+
+  if [[ -z "$GIT_TAG" ]]
+  then
+    __duct_msg e "no tagname!"
+    (( GIT_ERROR+=1 ))
+  fi
+
+  if [[ "$GIT_ERROR" -gt 0 ]]
+  then
+    return 1
+  fi
+
+  __duct_run git -C "$DUCT_GIT_TAG_PATH" tag "${GIT_OPTS[@]}" "$GIT_TAG"
+}
+readonly -f __duct_git_tag
+
+# git tag list
+
+# Path to list tag from (inherit `DUCT_GIT_WORKDIR`).
+declare -g DUCT_GIT_TAG_LIST_PATH="${DUCT_GIT_TAG_LIST_PATH:-$DUCT_GIT_WORKDIR}"
+
+# Tag to list (`all` or `latest`).
+declare -g DUCT_GIT_TAG_LIST_SEARCH="${DUCT_GIT_TAG_LIST_SEARCH:-"all"}"
+
+# List ('all') annotation or commit message (git tag -n#).
+declare -g -i DUCT_GIT_TAG_LIST_ANNOTATION="${DUCT_GIT_TAG_LIST_ANNOTATION:-0}"
+
+# Regex match of a tag.
+declare -g DUCT_GIT_TAG_LIST_MATCH="${DUCT_GIT_TAG_LIST_MATCH:-"^((v)?[0-9.]+)"}"
+
+# deps: duct-msg duct-run
+# intl: false
+# life: core
+# desc: List git tags (latest or all).
+# opts:
+__duct_git_tag_list() {
+  local -a GIT_TAG_LIST
+  local -a GIT_OPTS=()
+
+  if [[ "$DUCT_GIT_TAG_LIST_ANNOTATION" -ge 1 ]]
+  then
+    GIT_OPTS=( --format="%(refname:lstrip=2) %(contents:lines=$DUCT_GIT_TAG_LIST_ANNOTATION)" )
+  else
+    GIT_OPTS=( --format="%(refname:lstrip=2)" )
+  fi
+
+  if [[ "$DUCT_GIT_TAG_LIST_SEARCH" == "latest" ]]
+  then
+    readarray -t -n 0 GIT_TAG_LIST < <( __duct_run git -C "$DUCT_GIT_TAG_LIST_PATH" describe --tags --abbrev --always )
+
+    if [[ "${#GIT_TAG_LIST[@]}" -eq 1 ]]
+    then
+      if [[ "${GIT_TAG_LIST[0]}" =~ ^([a-f0-9]+)$ ]]
+      then
+        __duct_msg w "no latest tag found!"
+
+      elif [[ "${GIT_TAG_LIST[0]}" =~ $DUCT_GIT_TAG_LIST_MATCH ]]
+      then
+        printf "%b\n" "${GIT_TAG_LIST[0]}"
+      fi
+    else
+      __duct_msg e "no tag or commit yet!"
+    fi
+
+  elif [[ "$DUCT_GIT_TAG_LIST_SEARCH" == "all" ]]
+  then
+    readarray -t -n 0 GIT_TAG_LIST < <( __duct_run git -C "$DUCT_GIT_TAG_LIST_PATH" tag --list "${GIT_OPTS[@]}" )
+
+    if [[ "${#GIT_TAG_LIST[@]}" -ge 1 ]]
+    then
+      printf "%b\n" "${GIT_TAG_LIST[@]}"
+    else
+      __duct_msg w "no tag found!"
+    fi
+  fi
+}
+readonly -f __duct_git_tag_list
+
 # git strip remote
 
 # deps: duct-msg duct-run
