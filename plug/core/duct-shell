@@ -37,7 +37,7 @@ __duct_basename() {
     return 1
   fi
 
-  __duct_msg d "$PATHNAME $SUFFIX"
+  #__duct_msg d "$PATHNAME $SUFFIX"
 
   PATHNAME="${PATHNAME##*/}"
   PATHNAME="${PATHNAME%"${SUFFIX}"}"
@@ -62,7 +62,7 @@ __duct_dirname() {
     return 1
   fi
 
-  __duct_msg d "$PATHNAME"
+  #__duct_msg d "$PATHNAME"
 
   printf "%b\n" "${PATHNAME%/*}"
 }
@@ -347,7 +347,7 @@ __duct_cat() {
 
   if [[ -z "${CAT_FILES[*]+x}" ]]
   then
-    __duct_msg d "reading from stdin"
+    #__duct_msg d "reading from stdin"
     readarray -t -n 0 CAT_DATA
     printf "%s\n" "${CAT_DATA[@]}"
   else
@@ -355,7 +355,7 @@ __duct_cat() {
     do
       if [[ -s "$CAT_FILE" ]]
       then
-        __duct_msg d "reading from file $CAT_FILE"
+        #__duct_msg d "reading from file $CAT_FILE"
         mapfile -t -n 0 CAT_DATA < "$CAT_FILE"
         printf "%s\n" "${CAT_DATA[@]}"
       fi
@@ -379,11 +379,11 @@ __duct_head() {
 
   if [[ -z "$HEAD_FILE" ]]
   then
-    __duct_msg d "reading $HEAD_LINES from stdin"
+    #__duct_msg d "reading $HEAD_LINES from stdin"
     readarray -t -n "$HEAD_LINES" HEAD_DATA
   elif [[ -s "$HEAD_FILE" ]]
   then
-    __duct_msg d "reading $HEAD_LINES from file $HEAD_FILE"
+    #__duct_msg d "reading $HEAD_LINES from file $HEAD_FILE"
     mapfile -t -n "$HEAD_LINES" HEAD_DATA < "$HEAD_FILE"
   fi
 
@@ -411,11 +411,11 @@ __duct_tail() {
 
   if [[ -z "$TAIL_FILE" ]]
   then
-    __duct_msg d "reading $TAIL_LINES from stdin"
+    #__duct_msg d "reading $TAIL_LINES from stdin"
     readarray -t -n 0 TAIL_DATA
   elif [[ -s "$TAIL_FILE" ]]
   then
-    __duct_msg d "reading $TAIL_LINES from file $TAIL_FILE"
+    #__duct_msg d "reading $TAIL_LINES from file $TAIL_FILE"
     mapfile -t -n 0 TAIL_DATA < "$TAIL_FILE"
   fi
 
