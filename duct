@@ -79,6 +79,8 @@ __duct_plug_load main
 __duct_plug_install vendor
 __duct_plug_load vendor
 
+# duct
+
 # deps: duct-msg
 # intl: true
 # life: core
