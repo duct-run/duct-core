@@ -233,6 +233,12 @@ __duct_array_sort2() {
     return 1
   fi
 
+  if [[ "${#ARRAY[@]}" -eq 0 ]]
+  then
+    __duct_msg w "${!ARRAY} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    return
+  fi
+
   readarray -t -n 0 "${!ARRAY}" < <( sort -V <<< "${ARRAY[*]}" )
   unset IFS
 }
