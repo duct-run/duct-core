@@ -117,6 +117,12 @@ __duct_array_join2() {
     return 1
   fi
 
+  if [[ "${#ARRAY[@]}" -eq 0 ]]
+  then
+    __duct_msg w "${!ARRAY} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    return 0
+  fi
+
   if [[ -z "$IFS" ]]
   then
     __duct_msg e "no join string! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
@@ -173,6 +179,12 @@ __duct_array_strip2() {
   then
     __duct_msg e "${!ARRAY} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
+  fi
+
+  if [[ "${#ARRAY[@]}" -eq 0 ]]
+  then
+    __duct_msg w "${!ARRAY} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    return 0
   fi
 
   if [[ -z "$STRIP" ]]
@@ -236,7 +248,7 @@ __duct_array_sort2() {
   if [[ "${#ARRAY[@]}" -eq 0 ]]
   then
     __duct_msg w "${!ARRAY} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
-    return
+    return 0
   fi
 
   readarray -t -n 0 "${!ARRAY}" < <( sort -V <<< "${ARRAY[*]}" )
