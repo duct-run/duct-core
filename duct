@@ -53,6 +53,12 @@ then
   declare -r DUCT_SCRIPT_PATH="${DUCT_SCRIPT_FILE%/*}"
 fi
 
+# info
+# shellcheck disable=SC2034
+declare -r DUCT_URL="https://duct.run/"
+# shellcheck disable=SC2034,SC2155
+declare -r DUCT_VERSION="$( < "${DUCT_ROOT}/.duct-version" )"
+
 # environment (also loads duct-msg)
 # shellcheck disable=SC1091
 source "${DUCT_PLUG_DIR}/core/duct-env"

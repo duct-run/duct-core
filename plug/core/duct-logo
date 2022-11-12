@@ -26,14 +26,7 @@ declare -g -r _DUCT_LOGO_MAIN="ICAgICAgIBtbMzg7MjswOzA7MTcwbeKWhOKWhOKWhOKWhOKWh
 # duct minimal logo.
 declare -g -r _DUCT_LOGO_MINI="ICAgIHx8ICAgX19ffF9fCiBbb298fF98fF9fIHwK"
 
-# core
-
-# shellcheck disable=SC2155
-# Current duct version.
-declare -g -r _DUCT_LOGO_VERSION="$( < "${DUCT_ROOT_DIR}/.duct-version" )"
-
-# The duct URL.
-declare -g -r _DUCT_LOGO_URL="https://duct.run/"
+# logo
 
 # Enable/disable logo display.
 declare -g DUCT_LOGO_ENABLE="${DUCT_LOGO_ENABLE:-true}"
@@ -53,6 +46,6 @@ __duct_logo() {
       printf "%b" "$_DUCT_LOGO_MINI" | base64 -d
     fi
   fi
-  printf "%b\n" "$DUCT_SELF_NAME $_DUCT_LOGO_VERSION ($_DUCT_LOGO_URL)"
+  printf "%b\n" " $DUCT_SELF_NAME $DUCT_VERSION ($DUCT_URL)\n"
 }
 readonly -f __duct_logo
