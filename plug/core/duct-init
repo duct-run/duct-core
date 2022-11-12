@@ -66,9 +66,6 @@ __duct_init() {
   # host type
   __duct_hosttype
 
-  # os/host type
-  __duct_msg n "$DUCT_OSTYPE ($DUCT_HOSTTYPE)"
-
   # check requirements
   __duct_bin_check "${_DUCT_INIT_REQUIRED[@]}" || (( INIT_RC+=$? ))
 
