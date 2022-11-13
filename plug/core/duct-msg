@@ -88,6 +88,9 @@ declare -g DUCT_MSG_DATE_ENABLE="${DUCT_MSG_DATE_ENABLE:-true}"
 # Maximum level for messages (7 = debug).
 declare -g -i DUCT_MSG_MAX_LEVEL="${DUCT_MSG_MAX_LEVEL:-7}"
 
+# Enable/disable keep newline.
+declare -g DUCT_MSG_KEEP_NEWLINE="${DUCT_MSG_KEEP_NEWLINE:-true}"
+
 # deps:
 # intl: false
 # life: core
@@ -118,6 +121,7 @@ __duct_msg() {
   local MSG_DNAME=""
 
   local -a _CALL=()
+  local _MSG_OUTPUT
 
   case "$MSG_LEVEL"
   in
@@ -225,7 +229,16 @@ __duct_msg() {
     MSG_CALL=" ${MSG_CALL}:"
   fi
 
-  >&2 printf "%b\n" "${MSG_COLOR}${MSG_DATE}[${MSG_DNAME}] ${MSG_BASH}:${MSG_CALL} ${MSG_OUTPUT[*]}${MSG_COLOR_NONE}"
+  _MSG_OUTPUT="${MSG_OUTPUT[*]}"
+
+  # keep newline chars (\n \r)
+  if [[ "$DUCT_MSG_KEEP_NEWLINE" == true ]]
+  then
+    _MSG_OUTPUT="${_MSG_OUTPUT//\\n/\\\\n}"
+    _MSG_OUTPUT="${_MSG_OUTPUT//\\r/\\\\r}"
+  fi
+
+  >&2 printf "%b\n" "${MSG_COLOR}${MSG_DATE}[${MSG_DNAME}] ${MSG_BASH}:${MSG_CALL} ${_MSG_OUTPUT}${MSG_COLOR_NONE}"
   return $MSG_RC
 }
 readonly -f __duct_msg
