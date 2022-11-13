@@ -301,7 +301,12 @@ __duct_source() {
     return 1
   fi
 
-  if [[ -s "$SRC_FILE" ]]
+  if [[ ! -e "$SRC_FILE" ]]
+  then
+    __duct_msg e "$SRC_FILE not found! (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})"
+    return 1
+
+  elif [[ -s "$SRC_FILE" ]]
   then
     # shellcheck disable=SC1090
     readarray -t SRC_CONTENT < <( ( set -x; source "$SRC_FILE"; set +x ) 2>&1 )
@@ -325,9 +330,8 @@ __duct_source() {
         fi
       fi
     done
-
   else
-    __duct_msg w "$SRC_FILE is empty!"
+    __duct_msg w "$SRC_FILE is empty! (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})"
   fi
 }
 readonly -f __duct_source
