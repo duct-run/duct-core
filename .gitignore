@@ -70,7 +70,7 @@ plug/vendor/*
 attic/
 
 # debug
-**/debug.sh
+**/debug.*
 debug/
 
 # excludes
