@@ -88,6 +88,9 @@ __duct_plug_load vendor
 
 # duct
 
+# Enable/disable duct caller debug.
+declare -g DUCT_DEBUG="${DUCT_DEBUG:-false}"
+
 # deps: duct-msg
 # intl: true
 # life: core
@@ -110,40 +113,50 @@ duct() {
   DUCT_OPTS=( "${DUCT_OPTS[@]}" )
   DUCT_CALL="__duct_${DUCT_PLUG}"
 
-  # handle direct calls
+  # handle plugin direct function calls
   if [[ "$( type -t "${DUCT_CALL}" )" == "function" ]]
   then
     DUCT_FUNC="$DUCT_CALL"
+
+    if [[ "$DUCT_DEBUG" == true ]]
+    then
+      __duct_msg d "func: $DUCT_FUNC"
+    fi
   fi
 
-  # get function from opts
-  for OPTS in "${DUCT_OPTS[@]}"
+  # handle plugin sub function calls
+  for IDX in "${!DUCT_OPTS[@]}"
   do
-    DUCT_CALL+="_${OPTS}"
-    if [[ "$( type -t "${DUCT_CALL}" )" == "function" ]]
+    DUCT_CALL+="_${DUCT_OPTS[$IDX]}"
+    if [[ "$( type -t "${DUCT_CALL}" )"  == "function" ]]
     then
       DUCT_FUNC="$DUCT_CALL"
+      unset "DUCT_OPTS[$IDX]"
+
+      if [[ "$DUCT_DEBUG" == true ]]
+      then
+        __duct_msg d "func: $DUCT_FUNC"
+      fi
     fi
   done
 
-  # remove function from opts
-  for _FUNC in ${DUCT_FUNC//_/ }
-  do
-    for _IDX in "${!DUCT_OPTS[@]}"
-    do
-      if [[ "${DUCT_OPTS[$_IDX]}" == "$_FUNC" ]]
-      then
-        unset "DUCT_OPTS[_IDX]"
-      fi
-    done
-  done
+  # rewrite index
   DUCT_OPTS=( "${DUCT_OPTS[@]}" )
+
+  if [[ "$DUCT_DEBUG" == true ]]
+  then
+    __duct_msg d "opts: ${DUCT_OPTS[*]}"
+  fi
 
   if [[ -z "$DUCT_FUNC" ]]
   then
     __duct_msg e "'duct $DUCT_PLUG ${DUCT_OPTS[*]:-\b}' not found!"
     return 1
   else
+    if [[ "$DUCT_DEBUG" == true ]]
+    then
+      __duct_msg d "call: $DUCT_FUNC ${DUCT_OPTS[*]}"
+    fi
     $DUCT_FUNC "${DUCT_OPTS[@]}"
   fi
 }
