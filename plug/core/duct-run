@@ -50,7 +50,7 @@ declare -g DUCT_RUN_SIMULATE="${DUCT_RUN_SIMULATE:-true}"
 declare -g DUCT_RUN_RETURN="${DUCT_RUN_RETURN:-true}"
 
 # Store return code (see: duct run rc).
-declare -g DUCT_RUN_STORE_RC="${DUCT_RUN_STORE_RC:-true}"
+declare -g DUCT_RUN_STORE_RC="${DUCT_RUN_STORE_RC:-false}"
 
 # deps: duct-msg
 # intl: false
