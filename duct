@@ -78,7 +78,6 @@ __duct_plug_load core
 
 # bash
 __duct_bash
-__duct_bash_shopt
 
 # init & umask
 __duct_init
@@ -89,6 +88,9 @@ __duct_plug_install main
 __duct_plug_load main
 __duct_plug_install vendor
 __duct_plug_load vendor
+
+# bash shopt
+__duct_bash_shopt
 
 # duct
 
