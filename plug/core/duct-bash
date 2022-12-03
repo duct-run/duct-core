@@ -98,6 +98,3 @@ __duct_bash_shopt() {
   fi
 }
 readonly -f __duct_bash_shopt
-
-__duct_bash
-__duct_bash_shopt

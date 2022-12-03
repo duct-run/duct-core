@@ -76,6 +76,10 @@ source "${DUCT_PLUG_DIR}/core/duct-plug"
 __duct_plug_install core
 __duct_plug_load core
 
+# bash
+__duct_bash
+__duct_bash_shopt
+
 # init & umask
 __duct_init
 __duct_umask
