@@ -60,7 +60,7 @@ readonly -f __duct_bash
 # shopt
 
 # Bash options to set.
-declare -g -r -a DUCT_SHOPT_SET=(
+declare -g -r -a DUCT_BASH_SHOPT_SET=(
   dotglob
   extglob
   globstar
@@ -69,7 +69,7 @@ declare -g -r -a DUCT_SHOPT_SET=(
 )
 
 # Bash options to unset.
-declare -g -r -a DUCT_SHOPT_UNSET=(
+declare -g -r -a DUCT_BASH_SHOPT_UNSET=(
   extdebug
 )
 
@@ -78,26 +78,26 @@ declare -g -r -a DUCT_SHOPT_UNSET=(
 # life: core
 # desc: Set/unset Bash options.
 # opts:
-__duct_shopt() {
+__duct_bash_shopt() {
   local SHOPT
 
-  if [[ "${#DUCT_SHOPT_SET[@]}" -ge 1 ]]
+  if [[ "${#DUCT_BASH_SHOPT_SET[@]}" -ge 1 ]]
   then
-    for SHOPT in "${DUCT_SHOPT_SET[@]}"
+    for SHOPT in "${DUCT_BASH_SHOPT_SET[@]}"
     do
       shopt -s "$SHOPT" 2>/dev/null || __duct_msg w "set: $SHOPT not available!"
     done
   fi
 
-  if [[ "${#DUCT_SHOPT_UNSET[@]}" -ge 1 ]]
+  if [[ "${#DUCT_BASH_SHOPT_UNSET[@]}" -ge 1 ]]
   then
-    for SHOPT in "${DUCT_SHOPT_UNSET[@]}"
+    for SHOPT in "${DUCT_BASH_SHOPT_UNSET[@]}"
     do
       shopt -u "$SHOPT" 2>/dev/null || __duct_msg w "unset: $SHOPT not available!"
     done
   fi
 }
-readonly -f __duct_shopt
+readonly -f __duct_bash_shopt
 
 __duct_bash
-__duct_shopt
+__duct_bash_shopt
