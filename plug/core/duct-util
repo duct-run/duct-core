@@ -83,10 +83,8 @@ __duct_trim() {
 
   __duct_msg d "$STRING"
 
-  shopt -s extglob
   STRING="${STRING##*([[:space:]])}"
   STRING="${STRING%%*([[:space:]])}"
-  shopt -u extglob
 
   printf "%b\n" "$STRING"
 }

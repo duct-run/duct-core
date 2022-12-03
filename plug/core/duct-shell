@@ -99,9 +99,6 @@ __duct_find() {
   local FIND_TYPE="${2:-""}"
   local FIND_MATCH="${3:-""}"
 
-  shopt -s globstar
-  shopt -s dotglob
-
   __duct_msg d "searching $FIND_ROOT type:${FIND_TYPE:-"all"} match:${FIND_MATCH:-"all"}"
 
   for FIND in "${FIND_ROOT}"/**/*
@@ -138,9 +135,6 @@ __duct_find() {
 
     echo "$FIND"
   done
-
-  shopt -u globstar
-  shopt -u dotglob
 
   __duct_msg d "runtime: ${SECONDS}s"
 }
