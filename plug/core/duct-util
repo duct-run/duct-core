@@ -596,8 +596,14 @@ __duct_ver_check() {
   # remove *-
   VER_VERSION="${VER_VERSION#*-}"
 
+  # unknown version
+  if [[ "$VER_VERSION" =~ (\-) ]]
+  then
+    __duct_msg w "$VER_CMD version unknown ($VER_VERSION)!"
+    return
+
   # accept master|main version
-  if [[ ! "$VER_VERSION" =~ (master|main) ]]
+  elif [[ ! "$VER_VERSION" =~ (master|main) ]]
   then
     IFS="." read -r -a VER_VERSINFO <<< "$VER_VERSION"
 
