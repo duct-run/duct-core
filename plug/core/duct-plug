@@ -232,23 +232,29 @@ __duct_plug_install() {
       PLUG_URL="${PLUG_URL}.git"
     fi
 
-    # git clone or pull
-    if [[ ! -d "${PLUG_DIR}/.git" ]]
+    # check git
+    if command -v git
     then
-      __duct_msg n "$PLUG_NAME (clone) [$PLUG_URL]"
-      git clone --quiet "$PLUG_URL" "$PLUG_DIR" || __duct_msg e "git failed!"
+      # git clone or pull
+      if [[ ! -d "${PLUG_DIR}/.git" ]]
+      then
+        __duct_msg n "$PLUG_NAME (clone) [$PLUG_URL]"
+        git clone --quiet "$PLUG_URL" "$PLUG_DIR" || __duct_msg e "git failed!"
+      else
+        __duct_msg n "$PLUG_NAME (pull)"
+        git -C "$PLUG_DIR" pull --quiet --prune || __duct_msg e "git failed!"
+      fi
+
+      # git checkout
+      PLUG_HEAD="$( git -C "$PLUG_DIR" describe --all --contains || __duct_msg e "git failed!" )"
+
+      if [[ "$PLUG_HEAD" != "$PLUG_TAG" ]]
+      then
+        __duct_msg n "$PLUG_NAME (checkout) [$PLUG_TAG]"
+        git -C "$PLUG_DIR" checkout --quiet "$PLUG_TAG" || __duct_msg e "git failed!"
+      fi
     else
-      __duct_msg n "$PLUG_NAME (pull)"
-      git -C "$PLUG_DIR" pull --quiet --prune || __duct_msg e "git failed!"
-    fi
-
-    # git checkout
-    PLUG_HEAD="$( git -C "$PLUG_DIR" describe --all --contains || __duct_msg e "git failed!" )"
-
-    if [[ "$PLUG_HEAD" != "$PLUG_TAG" ]]
-    then
-      __duct_msg n "$PLUG_NAME (checkout) [$PLUG_TAG]"
-      git -C "$PLUG_DIR" checkout --quiet "$PLUG_TAG" || __duct_msg e "git failed!"
+      __duct_msg w "git not found!"
     fi
 
     # restore
