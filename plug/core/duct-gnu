@@ -34,7 +34,7 @@ declare -g DUCT_GNU_TOOLS["tar"]="tar"
 # desc: Check and set GNU versions to `DUCT_GNU_TOOLS`.
 # opts:
 __duct_gnu_check() {
-  __duct_intl "${BASH_SOURCE[@]}"
+  __duct_intl
 
   local GNU_SET
   local GNU

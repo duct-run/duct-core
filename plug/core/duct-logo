@@ -40,7 +40,7 @@ declare -g DUCT_LOGO_ENABLE="${DUCT_LOGO_ENABLE:-true}"
 # desc: Show duct logo and version information.
 # opts:
 __duct_logo() {
-  __duct_intl "${BASH_SOURCE[@]}"
+  __duct_intl
 
   if [[ "$DUCT_LOGO_ENABLE" == true ]]
   then

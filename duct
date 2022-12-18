@@ -66,15 +66,14 @@ declare -r DUCT_VERSION="$( < "${DUCT_ROOT_DIR}/.duct-version" )"
 # intl: true
 # life: core
 # desc: Check duct internal source.
-# opts: <source[@]>
+# opts:
 __duct_intl() {
-  local -a INTL_SRC=( "$@" )
   local INTL_RUN=0
   local INTL_FUNC=""
 
-  for SRC in "${INTL_SRC[@]}"
+  for FUNC in "${FUNCNAME[@]}"
   do
-    if [[ "${SRC##*/}" == "duct" ]]
+    if [[ "$FUNC" == "source" ]]
     then
       INTL_RUN=1
     fi
@@ -82,14 +81,12 @@ __duct_intl() {
 
   if [[ "$INTL_RUN" -eq 0 ]]
   then
-    INTL_FUNC="${FUNCNAME[-2]}"
+    INTL_FUNC="${FUNCNAME[1]}"
     INTL_FUNC="${INTL_FUNC/#__}"
     INTL_FUNC="${INTL_FUNC//_/ }"
 
     __duct_msg e "'$INTL_FUNC' internal only!"
     return 1
-  else
-    return 0
   fi
 }
 readonly -f __duct_intl

@@ -52,7 +52,7 @@ declare -g -r _DUCT_INIT_JQ_VERSION="1.6"
 # desc: Check all duct requirements.
 # opts:
 __duct_init() {
-  __duct_intl "${BASH_SOURCE[@]}"
+  __duct_intl
 
   local INIT_RC=0
   local MSG_LEVEL="$DUCT_MSG_MAX_LEVEL"

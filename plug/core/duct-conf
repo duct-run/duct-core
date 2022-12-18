@@ -43,7 +43,7 @@ declare -g -a -r _DUCT_CONF_FILES=(
 # desc: Read and process duct environment configuration.
 # opts:
 __duct_conf() {
-  __duct_intl "${BASH_SOURCE[@]}"
+  __duct_intl
 
   local CONF_FILE
   local -a CONF_ENV
