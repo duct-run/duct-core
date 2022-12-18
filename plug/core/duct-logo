@@ -40,6 +40,8 @@ declare -g DUCT_LOGO_ENABLE="${DUCT_LOGO_ENABLE:-true}"
 # desc: Show duct logo and version information.
 # opts:
 __duct_logo() {
+  __duct_intl "${BASH_SOURCE[@]}"
+
   if [[ "$DUCT_LOGO_ENABLE" == true ]]
   then
     if [[ "$DUCT_TERM" == "dumb" ]] || [[ "$DUCT_TERM_PROGRAM" == "Apple_Terminal" ]]

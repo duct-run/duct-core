@@ -34,6 +34,8 @@ declare -g DUCT_ENV_QUIET="${DUCT_ENV_QUIET:-false}"
 # desc: Show any user duct environment configuration.
 # opts:
 __duct_env() {
+  __duct_intl "${BASH_SOURCE[@]}"
+
   local -a USER_ENV
 
   # shellcheck disable=SC1091

@@ -214,6 +214,8 @@ declare -g -x DUCT_UMASK_FMODE=""
 # desc: Set a umask to work with.
 # opts:
 __duct_umask() {
+  __duct_intl "${BASH_SOURCE[@]}"
+
   __duct_msg d "$DUCT_UMASK"
   umask "$DUCT_UMASK"
 

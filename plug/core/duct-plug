@@ -49,6 +49,8 @@ declare -g DUCT_PLUG_LOAD_QUIET="${DUCT_PLUG_LOAD_QUIET:-${DUCT_PLUG_QUIET}}"
 # desc: Load duct plugins.
 # opts: <plugin-type>
 __duct_plug_load() {
+  __duct_intl "${BASH_SOURCE[@]}"
+
   local PLUG
   local PLUG_DIR
   local PLUG_FIND
@@ -155,6 +157,8 @@ declare -g DUCT_PLUG_INSTALL_ENABLE="${DUCT_PLUG_INSTALL_ENABLE:-true}"
 # desc: Install and update duct plugins.
 # opts: <plugin-type>
 __duct_plug_install() {
+  __duct_intl "${BASH_SOURCE[@]}"
+
   local -a PLUG=()
   local PLUG_DIR
   local PLUG_TAG
