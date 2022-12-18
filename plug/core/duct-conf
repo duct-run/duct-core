@@ -52,9 +52,10 @@ __duct_conf() {
   fi
 
   local ENV
+  local KEY
   local VAL
   local VAR
-  local _REMATCH
+  local _KEY
   local _VAL
 
   for CONF_FILE in "${_DUCT_CONF_FILES[@]}"
@@ -68,15 +69,23 @@ __duct_conf() {
       fi
 
       # shellcheck disable=SC1090
-      readarray -t CONF_ENV < <( ( set -x; source "$CONF_FILE"; set +x ) 2>&1 )
+      readarray -t CONF_ENV < <( ( set -x +u; source "$CONF_FILE"; set +x -u ) 2>&1 )
 
       for ENV in "${CONF_ENV[@]}"
       do
-        if [[ "$ENV" =~ (DUCT_[A-Z_]+)=([[:alnum:][:punct:][:blank:]]+) ]]
+        if [[ "$ENV" =~ (DUCT_[A-Z_]+)(\[[[:alnum:][:punct:][:blank:]]+\])?=([[:alnum:][:punct:][:blank:]]+) ]]
         then
-          _REMATCH=( "${BASH_REMATCH[@]}" )
-          VAR="${_REMATCH[1]}"
-          VAL="${_REMATCH[2]//"'"}"
+          VAR="${BASH_REMATCH[1]}"
+          KEY="${BASH_REMATCH[2]}"
+          VAL="${BASH_REMATCH[3]}"
+          VAL="${VAL/#\'}"
+          VAL="${VAL/%\'}"
+
+          _KEY="$KEY"
+          _KEY="${_KEY//\[}"
+          _KEY="${_KEY//\]}"
+          _KEY="${_KEY//\"}"
+
           _VAL="$VAL"
 
           if [[ "$VAR" =~ (TOKEN|SECRET|PASS) ]]
@@ -86,21 +95,29 @@ __duct_conf() {
 
           if [[ "$DUCT_CONF_QUIET" != true ]]
           then
-            __duct_msg d "${VAR}=${_VAL}"
+            __duct_msg d "${VAR}${KEY}=${_VAL}"
           fi
 
-          # number
-          if [[ "$VAL" =~ ^(0|[1-9]([0-9]+)?)$ ]]
+          # indexed array specified
+          if [[ "$KEY" =~ (\[[0-9]+\]) ]]
           then
-            declare -i "$VAR=$VAL"
-          # array
-          elif [[ "$VAL" =~ ^((\()([[:alnum:][:punct:][:blank:]]+)(\)))$ ]]
+            declare -g -a "$VAR"
+            declare -g -a "${VAR}[$_KEY]=${VAL}"
+          # associative array
+          elif [[ "$KEY" =~ (\[[[:alnum:][:punct:][:blank:]]+\]) ]]
           then
-            VAL="${BASH_REMATCH[3]}"
-            declare -g -a "$VAR=( $VAL )"
-          # string
+            declare -g -A "$VAR"
+            declare -g -A "${VAR}[$_KEY]=${VAL}"
+          # indexed array
+          elif [[ "$VAL" =~ ^(\()([[:alnum:][:punct:][:blank:]]+)(\))$ ]]
+          then
+            VAL="${BASH_REMATCH[2]}"
+            declare -g -a "${VAR}=( $VAL )"
+          elif [[ "$VAL" =~ ^(0|[1-9]([0-9]+)?)$ ]]
+          then
+            declare -g -i "${VAR}=${VAL}"
           else
-            declare -g "$VAR=$VAL"
+            declare -g "${VAR}=${VAL}"
           fi
         fi
       done
