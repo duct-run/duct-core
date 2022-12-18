@@ -90,7 +90,7 @@ __duct_conf() {
 
           _VAL="$VAL"
 
-          if [[ "$VAR" =~ (TOKEN|SECRET|PASS) ]]
+          if [[ "$VAR" =~ (TOKEN|SECRET|PASS) ]] || [[ "$KEY" =~ (TOKEN|SECRET|PASS) ]]
           then
             _VAL="[HIDDEN]"
           fi
