@@ -573,7 +573,7 @@ readonly -f __duct_var_check
 # ver check
 
 # deps: duct-msg
-# intl: true
+# intl: false
 # life: core
 # desc: Check minimal required version.
 # opts: <command> <minimal-version> <match>
@@ -1067,7 +1067,7 @@ readonly -f __duct_hosttype
 # unpack
 
 # deps: duct-gnu duct-msg duct-run
-# intl: true
+# intl: false
 # life:
 # desc: Unpack files from an archive.
 # opts:
