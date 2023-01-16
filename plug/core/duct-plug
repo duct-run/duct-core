@@ -237,7 +237,7 @@ __duct_plug_install() {
     fi
 
     # check git
-    if command -v git
+    if command -v git >/dev/null 2>&1
     then
       # git clone or pull
       if [[ ! -d "${PLUG_DIR}/.git" ]]
