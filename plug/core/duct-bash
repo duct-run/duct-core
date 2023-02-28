@@ -41,9 +41,7 @@ __duct_bash() {
     __duct_msg e "unsupported bash version $BASH_VERSION"
     __duct_msg e "minimal bash version 4.0.0"
     return 1
-  elif [[ ${BASH_VERSINFO[0]} -ge 5 ]] && \
-       [[ ${BASH_VERSINFO[1]} -ge 1 ]] && \
-       [[ ${BASH_VERSINFO[2]} -ge 4 ]]
+  elif [[ ${BASH_VERSINFO[0]} -ge 5 ]] && [[ ${BASH_VERSINFO[1]} -ge 1 ]] && [[ ${BASH_VERSINFO[2]} -ge 4 ]]
   then
     export DUCT_BASH_EPOCH=true
     export DUCT_BASH_SRANDOM=true
