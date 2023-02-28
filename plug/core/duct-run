@@ -61,8 +61,15 @@ __duct_run() {
   local -a RUN=( "$@" )
   local RUN_OUT=false
   local RUN_RC=0
+  local RUN_SUB=false
   local _RUN
   local _HOOK
+
+  # sub
+  if [[ "$$" -ne "$BASHPID" ]]
+  then
+    RUN_SUB=true
+  fi
 
   if [[ "${RUN[0]}" =~ ^(out|output)$ ]]
   then
@@ -118,6 +125,7 @@ __duct_run() {
     fi
   fi
 
+  __duct_msg d "subshell: $RUN_SUB"
   __duct_msg d "runtime: ${SECONDS}s"
 
   if [[ $RUN_RC -gt 0 ]]
