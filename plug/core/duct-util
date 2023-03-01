@@ -307,18 +307,19 @@ __duct_random() {
   local -a RANDOM_LIST=()
   local RANDOM_STR
   local RANDOM_CHARS
+  local RAND
 
   RANDOM_CHARS="${DUCT_RANDOM_CHARS[*]}"
   RANDOM_CHARS="${RANDOM_CHARS// }"
 
-  for (( IDX=0; IDX<${#RANDOM_CHARS}; IDX++ ))
+  for (( RAND=0; RAND<${#RANDOM_CHARS}; RAND++ ))
   do
-    RANDOM_LIST+=( "${RANDOM_CHARS:$IDX:1}" )
+    RANDOM_LIST+=( "${RANDOM_CHARS:$RAND:1}" )
   done
 
   __duct_msg d "$RANDOM_LEN chars out of '$RANDOM_CHARS'"
 
-  for (( IDX=0; IDX<RANDOM_LEN; IDX++ ))
+  for (( RAND=0; RAND<RANDOM_LEN; RAND++ ))
   do
     if [[ "$DUCT_BASH_SRANDOM" == true ]]
     then
