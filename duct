@@ -136,7 +136,7 @@ declare -g DUCT_DEBUG="${DUCT_DEBUG:-false}"
 duct() {
   local -a DUCT_OPTS=( "$@" )
 
-  local -a DUCT_KEEP
+  local -a DUCT_KEEP=()
   local DUCT
   local DUCT_BASE
   local DUCT_CALL
