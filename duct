@@ -135,9 +135,12 @@ declare -g DUCT_DEBUG="${DUCT_DEBUG:-false}"
 # opts: <plugin> <command> [extra-options]
 duct() {
   local -a DUCT_OPTS=( "$@" )
+
+  local -a DUCT_KEEP
+  local DUCT
+  local DUCT_BASE
   local DUCT_CALL
   local DUCT_FUNC=""
-  local DUCT_PLUG
 
   if [[ -z "${DUCT_OPTS[*]}" ]] || [[ "${DUCT_OPTS[*]}" =~ ^(logo|version)$ ]]
   then
@@ -145,10 +148,18 @@ duct() {
     return
   fi
 
-  DUCT_PLUG="${DUCT_OPTS[0]}"
+  DUCT_BASE="${DUCT_OPTS[0]}"
   unset "DUCT_OPTS[0]"
+
+  # rewrite index
   DUCT_OPTS=( "${DUCT_OPTS[@]}" )
-  DUCT_CALL="__duct_${DUCT_PLUG}"
+  DUCT_CALL="__duct_${DUCT_BASE}"
+
+  if [[ "$DUCT_DEBUG" == true ]]
+  then
+    __duct_msg d "base: $DUCT_BASE"
+    __duct_msg d "opts: ${DUCT_OPTS[*]}"
+  fi
 
   # handle plugin direct function calls
   if [[ "$( type -t "${DUCT_CALL}" )" == "function" ]]
@@ -162,23 +173,32 @@ duct() {
   fi
 
   # handle plugin sub function calls
-  for IDX in "${!DUCT_OPTS[@]}"
+  for (( DUCT=${#DUCT_OPTS[@]}-1; DUCT>=0; DUCT--))
   do
-    DUCT_CALL+="_${DUCT_OPTS[$IDX]}"
-    if [[ "$( type -t "${DUCT_CALL}" )"  == "function" ]]
+    DUCT_TEST="${DUCT_CALL}_${DUCT_OPTS[*]:0:(( DUCT + 1 ))}"
+    DUCT_TEST="${DUCT_TEST// /_}"
+
+    if [[ "$( type -t "${DUCT_TEST}" )"  == "function"  ]]
     then
-      DUCT_FUNC="$DUCT_CALL"
-      unset "DUCT_OPTS[$IDX]"
+      DUCT_FUNC="$DUCT_TEST"
+
+      if [[ "$DUCT_DEBUG" == true  ]]
+      then
+        __duct_msg d "func: $DUCT_TEST"
+      fi
+    else
+      DUCT_KEEP+=( "${DUCT_OPTS[DUCT]}" )
 
       if [[ "$DUCT_DEBUG" == true ]]
       then
-        __duct_msg d "func: $DUCT_FUNC"
+        __duct_msg d "keep: ${DUCT_KEEP[*]}"
       fi
     fi
   done
 
-  # rewrite index
-  DUCT_OPTS=( "${DUCT_OPTS[@]}" )
+  # rewrite opts
+  DUCT_OPTS=( "${DUCT_KEEP[@]}" )
+  unset DUCT_KEEP
 
   if [[ "$DUCT_DEBUG" == true ]]
   then
@@ -187,14 +207,14 @@ duct() {
 
   if [[ -z "$DUCT_FUNC" ]]
   then
-    __duct_msg e "'duct $DUCT_PLUG ${DUCT_OPTS[*]:-\b}' not found!"
+    __duct_msg e "'duct $DUCT_BASE ${DUCT_OPTS[*]:-\b}' not found!"
     return 1
   else
     if [[ "$DUCT_DEBUG" == true ]]
     then
       __duct_msg d "call: $DUCT_FUNC ${DUCT_OPTS[*]}"
     fi
-    $DUCT_FUNC "${DUCT_OPTS[@]}"
+    "$DUCT_FUNC" "${DUCT_OPTS[@]}"
   fi
 }
 readonly -f duct
