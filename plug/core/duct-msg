@@ -101,6 +101,7 @@ __duct_msg() {
   shift || :
   local -a MSG_OUTPUT=( "$@" )
 
+  local MSG
   local MSG_RC=0
 
   if [[ -z "${MSG_OUTPUT[*]}" ]]
@@ -208,17 +209,17 @@ __duct_msg() {
     MSG_DATE="$( printf "%($DUCT_MSG_DATE_FORMAT)T\\n" -1 ) "
   fi
 
-  for (( IDX=${#MSG_FUNC[@]}-1; IDX>=0; IDX-- ))
+  for (( MSG=${#MSG_FUNC[@]}-1; MSG>=0; MSG-- ))
   do
-    if [[ "${MSG_FUNC[IDX]}" =~ ^(main|duct|${MSG_SELF})$ ]] # remove well known
+    if [[ "${MSG_FUNC[MSG]}" =~ ^(main|duct|${MSG_SELF})$ ]] # remove well known
     then
-      unset 'MSG_FUNC[IDX]'
-    elif [[ "${MSG_FUNC[IDX]}" =~ ^(source)$ ]]
+      unset 'MSG_FUNC[MSG]'
+    elif [[ "${MSG_FUNC[MSG]}" =~ ^(source)$ ]]
     then
-      MSG_FUNC[IDX]="duct"
-      _CALL+=( "${MSG_FUNC[IDX]//__duct_}" )
+      MSG_FUNC[MSG]="duct"
+      _CALL+=( "${MSG_FUNC[MSG]//__duct_}" )
     else
-      _CALL+=( "${MSG_FUNC[IDX]//__duct_}" )
+      _CALL+=( "${MSG_FUNC[MSG]//__duct_}" )
     fi
   done
 
