@@ -198,7 +198,11 @@ duct() {
   done
 
   # rewrite opts
-  DUCT_OPTS=( "${DUCT_KEEP[@]}" )
+  DUCT_OPTS=()
+  for (( DUCT=${#DUCT_KEEP[@]}-1; DUCT>=0; DUCT-- ))
+  do
+    DUCT_OPTS+=( "${DUCT_KEEP[DUCT]}" )
+  done
   unset DUCT_KEEP
 
   if [[ "$DUCT_DEBUG" == true ]]
