@@ -186,6 +186,7 @@ duct() {
       then
         __duct_msg d "func: $DUCT_TEST"
       fi
+      break
     else
       DUCT_KEEP+=( "${DUCT_OPTS[DUCT]}" )
 
