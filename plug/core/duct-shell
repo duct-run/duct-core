@@ -40,7 +40,7 @@ __duct_basename() {
   BASENAME_PATHNAME="${BASENAME_PATHNAME##*/}"
   BASENAME_PATHNAME="${BASENAME_PATHNAME%"${BASENAME_SUFFIX}"}"
 
-  printf "%b\n" "$BASENAME_PATHNAME"
+  printf "%s\n" "$BASENAME_PATHNAME"
 }
 readonly -f __duct_basename
 
@@ -60,7 +60,7 @@ __duct_dirname() {
     return 1
   fi
 
-  printf "%b\n" "${DIRNAME_PATHNAME%/*}"
+  printf "%s\n" "${DIRNAME_PATHNAME%/*}"
 }
 readonly -f __duct_dirname
 
@@ -94,6 +94,8 @@ __duct_find() {
   local FIND_ROOT="${1:-"$PWD"}"
   local FIND_TYPE="${2:-""}"
   local FIND_MATCH="${3:-""}"
+
+  local FIND
 
   __duct_msg d "searching $FIND_ROOT type:${FIND_TYPE:-"all"} match:${FIND_MATCH:-"all"}"
 
@@ -191,7 +193,7 @@ __duct_urldecode() {
   fi
 
   STR="${STR//+/ }"
-  printf '%b\n' "${STR//%/\\x}"
+  printf "%s\n" "${STR//%/\\x}"
 }
 readonly -f __duct_urldecode
 
@@ -353,7 +355,7 @@ __duct_cat() {
       if [[ -s "$CAT_FILE" ]]
       then
         mapfile -t -n 0 CAT_DATA < "$CAT_FILE"
-        printf "%b\n" "${CAT_DATA[@]}"
+        printf "%s\n" "${CAT_DATA[@]}"
       fi
     done
   fi
@@ -375,11 +377,9 @@ __duct_head() {
 
   if [[ -z "$HEAD_FILE" ]]
   then
-    #__duct_msg d "reading $HEAD_LINES from stdin"
     readarray -t -n "$HEAD_LINES" HEAD_DATA
   elif [[ -s "$HEAD_FILE" ]]
   then
-    #__duct_msg d "reading $HEAD_LINES from file $HEAD_FILE"
     mapfile -t -n "$HEAD_LINES" HEAD_DATA < "$HEAD_FILE"
   fi
 
@@ -407,11 +407,9 @@ __duct_tail() {
 
   if [[ -z "$TAIL_FILE" ]]
   then
-    #__duct_msg d "reading $TAIL_LINES from stdin"
     readarray -t -n 0 TAIL_DATA
   elif [[ -s "$TAIL_FILE" ]]
   then
-    #__duct_msg d "reading $TAIL_LINES from file $TAIL_FILE"
     mapfile -t -n 0 TAIL_DATA < "$TAIL_FILE"
   fi
 
