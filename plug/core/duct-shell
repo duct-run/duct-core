@@ -345,7 +345,6 @@ __duct_cat() {
 
   if [[ -z "${CAT_FILES[*]+x}" ]]
   then
-    #__duct_msg d "reading from stdin"
     readarray -t -n 0 CAT_DATA
     printf "%s\n" "${CAT_DATA[@]}"
   else
@@ -353,9 +352,8 @@ __duct_cat() {
     do
       if [[ -s "$CAT_FILE" ]]
       then
-        #__duct_msg d "reading from file $CAT_FILE"
         mapfile -t -n 0 CAT_DATA < "$CAT_FILE"
-        printf "%s\n" "${CAT_DATA[@]}"
+        printf "%b\n" "${CAT_DATA[@]}"
       fi
     done
   fi
