@@ -59,11 +59,12 @@ declare -g DUCT_RUN_STORE_RC="${DUCT_RUN_STORE_RC:-false}"
 # opts: <command> | output <command>
 __duct_run() {
   local -a RUN=( "$@" )
+
+  local RUN_HOOK
+  local RUN_MSG
   local RUN_OUT=false
   local RUN_RC=0
   local RUN_SUB=false
-  local _RUN
-  local _HOOK
 
   # sub
   if [[ "$$" -ne "$BASHPID" ]]
@@ -78,49 +79,50 @@ __duct_run() {
     RUN=( "${RUN[@]}" )
   fi
 
-  _RUN="${RUN[*]}"
+  # store message
+  RUN_MSG="${RUN[*]}"
 
   # mask
   if [[ "$DUCT_RUN_MASK_ENABLE" == true ]]
   then
     # generic user:password@
-    if [[ "$_RUN" =~ (([0-9A-Za-z_\-]*):([0-9A-Za-z_\-]*)@) ]]
+    if [[ "$RUN_MSG" =~ (([0-9A-Za-z_\-]*):([0-9A-Za-z_\-]*)@) ]]
     then
-      _RUN="${_RUN//${BASH_REMATCH[3]}/${DUCT_RUN_MASK_STRING}}"
+      RUN_MSG="${RUN_MSG//${BASH_REMATCH[3]}/${DUCT_RUN_MASK_STRING}}"
     fi
 
     # match & mask index
     if [[ -n "$DUCT_RUN_MASK_MATCH" ]]
     then
-      if [[ "$_RUN" =~ $DUCT_RUN_MASK_MATCH ]]
+      if [[ "$RUN_MSG" =~ $DUCT_RUN_MASK_MATCH ]]
       then
-        _RUN="${_RUN//${BASH_REMATCH[$DUCT_RUN_MASK_INDEX]}/${DUCT_RUN_MASK_STRING}}"
+        RUN_MSG="${RUN_MSG//${BASH_REMATCH[$DUCT_RUN_MASK_INDEX]}/${DUCT_RUN_MASK_STRING}}"
       fi
     fi
   fi
 
   if [[ "$DUCT_RUN_SIMULATE" == true ]]
   then
-    __duct_msg d "$_RUN"
-    __duct_msg x "[SIMULATE] $_RUN"
+    __duct_msg d "$RUN_MSG"
+    __duct_msg x "[SIMULATE] $RUN_MSG"
 
   elif [[ "$RUN_OUT" == true ]]
   then
-    __duct_msg d "$_RUN (output: $DUCT_RUN_OUTPUT)"
+    __duct_msg d "$RUN_MSG (output: $DUCT_RUN_OUTPUT)"
     command "${RUN[@]}" 2>&1 | __duct_tee "$DUCT_RUN_OUTPUT" || RUN_RC=$?
   else
-    __duct_msg d "$_RUN"
+    __duct_msg d "$RUN_MSG"
     command "${RUN[@]}" || RUN_RC=$?
   fi
 
   if [[ "$DUCT_RUN_HOOK" == true ]]
   then
-    _HOOK="${RUN[0]##*/}"
+    RUN_HOOK="${RUN[0]##*/}"
 
-    if [[ -n "${DUCT_RUN_HOOK_SCRIPTS[${_HOOK}]+duct}" ]]
+    if [[ -n "${DUCT_RUN_HOOK_SCRIPTS[${RUN_HOOK}]+duct}" ]]
     then
-      __duct_msg d "$_HOOK hook: ${DUCT_RUN_HOOK_SCRIPTS[${_HOOK}]}"
-      __duct_run "${DUCT_RUN_HOOK_SCRIPTS[${_HOOK}]}" "$RUN_RC" "${RUN[@]}"
+      __duct_msg d "$RUN_HOOK hook: ${DUCT_RUN_HOOK_SCRIPTS[${RUN_HOOK}]}"
+      __duct_run "${DUCT_RUN_HOOK_SCRIPTS[${RUN_HOOK}]}" "$RUN_RC" "${RUN[@]}"
       RUN_RC=$?
     fi
   fi
