@@ -28,21 +28,19 @@
 # desc: Return filename portion of pathname, with optional suffix removal.
 # opts: <pathname> [suffix]
 __duct_basename() {
-  local PATHNAME="${1:-}"
-  local SUFFIX="${2:-}"
+  local BASENAME_PATHNAME="${1:-}"
+  local BASENAME_SUFFIX="${2:-}"
 
-  if [[ -z "$PATHNAME" ]]
+  if [[ -z "$BASENAME_PATHNAME" ]]
   then
     __duct_msg e "no pathname! (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})"
     return 1
   fi
 
-  #__duct_msg d "$PATHNAME $SUFFIX"
+  BASENAME_PATHNAME="${BASENAME_PATHNAME##*/}"
+  BASENAME_PATHNAME="${BASENAME_PATHNAME%"${BASENAME_SUFFIX}"}"
 
-  PATHNAME="${PATHNAME##*/}"
-  PATHNAME="${PATHNAME%"${SUFFIX}"}"
-
-  printf "%b\n" "$PATHNAME"
+  printf "%b\n" "$BASENAME_PATHNAME"
 }
 readonly -f __duct_basename
 
@@ -54,17 +52,15 @@ readonly -f __duct_basename
 # desc: Return directory portion of pathname.
 # opts: <pathname>
 __duct_dirname() {
-  local PATHNAME="${1:-}"
+  local DIRNAME_PATHNAME="${1:-}"
 
-  if [[ -z "$PATHNAME" ]]
+  if [[ -z "$DIRNAME_PATHNAME" ]]
   then
     __duct_msg e "no pathname! (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})"
     return 1
   fi
 
-  #__duct_msg d "$PATHNAME"
-
-  printf "%b\n" "${PATHNAME%/*}"
+  printf "%b\n" "${DIRNAME_PATHNAME%/*}"
 }
 readonly -f __duct_dirname
 
@@ -79,11 +75,11 @@ declare -g DUCT_DATE_FORMAT=${DUCT_DATE_FORMAT:-"%F %T"}
 # desc: Print current date and time.
 # opts: [format]
 __duct_date() {
-  local FORMAT="${1:-"$DUCT_DATE_FORMAT"}"
+  local DATE_FORMAT="${1:-"$DUCT_DATE_FORMAT"}"
 
-  __duct_msg d "format $FORMAT"
+  __duct_msg d "format $DATE_FORMAT"
 
-  printf "%($FORMAT)T\\n" "-1"
+  printf "%($DATE_FORMAT)T\\n" "-1"
 }
 readonly -f __duct_date
 
