@@ -962,44 +962,44 @@ declare -g -a DUCT_OSTYPE_MAP=( ${DUCT_OSTYPE_MAP[@]:-${_DUCT_OSTYPE_MAP[@]}} )
 # desc: Process ostype mapping and set matching ostype to `DUCT_OSTYPE`.
 # opts:
 __duct_ostype() {
-  local MAP
-  local SRC
-  local DST
-  local _OSTYPE="$OSTYPE"
+  local OSTYPE_DST
+  local OSTYPE_MAP
+  local OSTYPE_SHELL="$OSTYPE"
+  local OSTYPE_SRC
 
   # name-extra
-  if [[ "$_OSTYPE" =~ ([a-z]+)-?([a-z]+)?$ ]]
+  if [[ "$OSTYPE_SHELL" =~ ([a-z]+)-?([a-z]+)?$ ]]
   then
     DUCT_OSTYPE_EXTRA="${BASH_REMATCH[-1]}"
-    _OSTYPE="${BASH_REMATCH[-2]}"
+    OSTYPE_SHELL="${BASH_REMATCH[-2]}"
 
   # nameversion
-  elif [[ "$_OSTYPE" =~ ([a-z]+)([0-9.]+)?$ ]]
+  elif [[ "$OSTYPE_SHELL" =~ ([a-z]+)([0-9.]+)?$ ]]
   then
     DUCT_OSTYPE_EXTRA="${BASH_REMATCH[-1]}"
-    _OSTYPE="${BASH_REMATCH[-2]}"
+    OSTYPE_SHELL="${BASH_REMATCH[-2]}"
   fi
 
   if [[ "${#DUCT_OSTYPE_MAP[@]}" -eq 0 ]]
   then
-    export DUCT_OSTYPE="$_OSTYPE"
+    DUCT_OSTYPE="$OSTYPE_SHELL"
     return
   fi
 
-  __duct_msg d "$_OSTYPE mapping '${DUCT_OSTYPE_MAP[*]}'"
+  __duct_msg d "$OSTYPE_SHELL mapping '${DUCT_OSTYPE_MAP[*]}'"
 
-  for MAP in "${DUCT_OSTYPE_MAP[@]}"
+  for OSTYPE_MAP in "${DUCT_OSTYPE_MAP[@]}"
   do
-    SRC="${MAP%%=*}"
-    DST="${MAP##*=}"
+    OSTYPE_SRC="${OSTYPE_MAP%%=*}"
+    OSTYPE_DST="${OSTYPE_MAP##*=}"
 
-    if [[ "$_OSTYPE" == "$SRC" ]]
+    if [[ "$OSTYPE_SHELL" == "$OSTYPE_SRC" ]]
     then
-      _OSTYPE="$DST"
+      OSTYPE_SHELL="$OSTYPE_DST"
     fi
   done
 
-  export DUCT_OSTYPE="$_OSTYPE"
+  DUCT_OSTYPE="$OSTYPE_SHELL"
 }
 readonly -f __duct_ostype
 
@@ -1024,12 +1024,12 @@ declare -g -x -a DUCT_HOSTTYPE_COMMON=()
 # desc: Process hosttype mapping and set matching hosttype to `DUCT_HOSTTYPE`.
 # opts:
 __duct_hosttype() {
-  local DST
-  local MAP
-  local SRC
-  local _HOSTTYPE="$HOSTTYPE"
+  local HOSTTYPE_DST
+  local HOSTTYPE_MAP
+  local HOSTTYPE_SHELL="$HOSTTYPE"
+  local HOSTTYPE_SRC
 
-  case "$_HOSTTYPE"
+  case "$HOSTTYPE_SHELL"
   in
     aarch64)  DUCT_HOSTTYPE_COMMON+=( "arm64" ) ;;
     amd64)    DUCT_HOSTTYPE_COMMON+=( "x86_64" ) ;;
@@ -1039,28 +1039,28 @@ __duct_hosttype() {
     arm*)     DUCT_HOSTTYPE_COMMON+=( "arm" ) ;;
   esac
 
-  DUCT_HOSTTYPE_COMMON+=( "$_HOSTTYPE" )
+  DUCT_HOSTTYPE_COMMON+=( "$HOSTTYPE_SHELL" )
 
   if [[ "${#DUCT_HOSTTYPE_MAP[@]}" -eq 0 ]]
   then
-    export DUCT_HOSTTYPE="$_HOSTTYPE"
+    DUCT_HOSTTYPE="$HOSTTYPE_SHELL"
     return
   fi
 
-  __duct_msg d "$_HOSTTYPE mapping '${DUCT_HOSTTYPE_MAP[*]}'"
+  __duct_msg d "$HOSTTYPE_SHELL mapping '${DUCT_HOSTTYPE_MAP[*]}'"
 
-  for MAP in "${DUCT_HOSTTYPE_MAP[@]}"
+  for HOSTTYPE_MAP in "${DUCT_HOSTTYPE_MAP[@]}"
   do
-    SRC="${MAP%%=*}"
-    DST="${MAP##*=}"
+    HOSTTYPE_SRC="${HOSTTYPE_MAP%%=*}"
+    HOSTTYPE_DST="${HOSTTYPE_MAP##*=}"
 
-    if [[ "$_HOSTTYPE" == "$SRC" ]]
+    if [[ "$HOSTTYPE_SHELL" == "$HOSTTYPE_SRC" ]]
     then
-      _HOSTTYPE="$DST"
+      HOSTTYPE_SHELL="$HOSTTYPE_DST"
     fi
   done
 
-  export DUCT_HOSTTYPE="$_HOSTTYPE"
+  DUCT_HOSTTYPE="$HOSTTYPE_SHELL"
 }
 readonly -f __duct_hosttype
 
