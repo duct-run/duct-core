@@ -12,7 +12,7 @@ for use in CI/CD pipelines to reduce boilerplate code and dependencies.
 The `duct-core` is licensed under the GNU Affero General Public License v3.
 
 ```txt
-Copyright (C) 2022 Chris 'sh0shin' Frage
+Copyright (C) 2022-2023 Chris 'sh0shin' Frage
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License, version 3,
