@@ -138,10 +138,10 @@ duct() {
   local -a DUCT_OPTS=( "$@" )
 
   local -a DUCT_KEEP=()
-  local DUCT
   local DUCT_BASE
   local DUCT_CALL
   local DUCT_FUNC=""
+  local DUCT_ITEM
 
   if [[ -z "${DUCT_OPTS[*]}" ]] || [[ "${DUCT_OPTS[*]}" =~ ^(logo|version)$ ]]
   then
@@ -174,9 +174,9 @@ duct() {
   fi
 
   # handle plugin sub function calls
-  for (( DUCT=${#DUCT_OPTS[@]}-1; DUCT>=0; DUCT--))
+  for (( DUCT_ITEM=${#DUCT_OPTS[@]}-1; DUCT_ITEM>=0; DUCT_ITEM--))
   do
-    DUCT_TEST="${DUCT_CALL}_${DUCT_OPTS[*]:0:(( DUCT + 1 ))}"
+    DUCT_TEST="${DUCT_CALL}_${DUCT_OPTS[*]:0:(( DUCT_ITEM + 1 ))}"
     DUCT_TEST="${DUCT_TEST// /_}"
 
     if [[ "$( type -t "${DUCT_TEST}" )"  == "function"  ]]
@@ -189,7 +189,7 @@ duct() {
       fi
       break
     else
-      DUCT_KEEP+=( "${DUCT_OPTS[DUCT]}" )
+      DUCT_KEEP+=( "${DUCT_OPTS[DUCT_ITEM]}" )
 
       if [[ "$DUCT_DEBUG" == true ]]
       then
@@ -200,9 +200,9 @@ duct() {
 
   # rewrite opts
   DUCT_OPTS=()
-  for (( DUCT=${#DUCT_KEEP[@]}-1; DUCT>=0; DUCT-- ))
+  for (( DUCT_ITEM=${#DUCT_KEEP[@]}-1; DUCT_ITEM>=0; DUCT_ITEM-- ))
   do
-    DUCT_OPTS+=( "${DUCT_KEEP[DUCT]}" )
+    DUCT_OPTS+=( "${DUCT_KEEP[DUCT_ITEM]}" )
   done
   unset DUCT_KEEP
 
