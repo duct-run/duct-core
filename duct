@@ -68,12 +68,13 @@ declare -r DUCT_VERSION="$( < "${DUCT_ROOT_DIR}/.duct-version" )"
 # desc: Check duct internal source.
 # opts:
 __duct_intl() {
-  local INTL_RUN=0
   local INTL_FUNC=""
+  local INTL_RUN=0
+  local INTL_SRC
 
-  for FUNC in "${FUNCNAME[@]}"
+  for INTL_SRC in "${FUNCNAME[@]}"
   do
-    if [[ "$FUNC" == "source" ]]
+    if [[ "$INTL_SRC" == "source" ]]
     then
       INTL_RUN=1
     fi
