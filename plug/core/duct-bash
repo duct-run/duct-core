@@ -73,7 +73,7 @@ declare -g -r -a DUCT_BASH_SHOPT_UNSET=(
   extdebug
 )
 
-# deps:
+# deps: duct-msg
 # intl: true
 # life: core
 # desc: Set/unset Bash options.
@@ -81,21 +81,21 @@ declare -g -r -a DUCT_BASH_SHOPT_UNSET=(
 __duct_bash_shopt() {
   __duct_intl
 
-  local SHOPT
+  local BASH_SHOPT
 
   if [[ "${#DUCT_BASH_SHOPT_SET[@]}" -ge 1 ]]
   then
-    for SHOPT in "${DUCT_BASH_SHOPT_SET[@]}"
+    for BASH_SHOPT in "${DUCT_BASH_SHOPT_SET[@]}"
     do
-      shopt -s "$SHOPT" 2>/dev/null || __duct_msg w "set: $SHOPT not available!"
+      shopt -s "$BASH_SHOPT" 2>/dev/null || __duct_msg w "set: $BASH_SHOPT not available!"
     done
   fi
 
   if [[ "${#DUCT_BASH_SHOPT_UNSET[@]}" -ge 1 ]]
   then
-    for SHOPT in "${DUCT_BASH_SHOPT_UNSET[@]}"
+    for BASH_SHOPT in "${DUCT_BASH_SHOPT_UNSET[@]}"
     do
-      shopt -u "$SHOPT" 2>/dev/null || __duct_msg w "unset: $SHOPT not available!"
+      shopt -u "$BASH_SHOPT" 2>/dev/null || __duct_msg w "unset: $BASH_SHOPT not available!"
     done
   fi
 }
