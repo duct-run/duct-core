@@ -36,7 +36,12 @@ declare -g DUCT_ENV_QUIET="${DUCT_ENV_QUIET:-false}"
 __duct_env() {
   __duct_intl
 
-  local -a USER_ENV
+  local -a ENV_USER
+  local ENV_ITEM
+
+  local ENV_MSG
+  local ENV_VAL
+  local ENV_VAR
 
   # shellcheck disable=SC1091
   # load mandatory message plugin
@@ -47,30 +52,25 @@ __duct_env() {
     return
   fi
 
-  local ENV
-  local VAR
-  local VAL
-  local _VAL
+  readarray -t ENV_USER < <( ( set -x; env; set +x ) 2>&1 )
 
-  readarray -t USER_ENV < <( ( set -x; env; set +x ) 2>&1 )
-
-  for ENV in "${USER_ENV[@]}"
+  for ENV_ITEM in "${ENV_USER[@]}"
   do
-    if [[ "$ENV" =~ (DUCT_[A-Z_]+)=([[:alnum:][:punct:][:blank:]]+) ]]
+    if [[ "$ENV_ITEM" =~ (DUCT_[A-Z_]+)=([[:alnum:][:punct:][:blank:]]+) ]]
     then
-      VAR="${BASH_REMATCH[1]:?}"
-      VAL="${BASH_REMATCH[2]:?}"
-      VAL="${VAL//"'"}"
-      _VAL="$VAL"
+      ENV_VAR="${BASH_REMATCH[1]:?}"
+      ENV_VAL="${BASH_REMATCH[2]:?}"
+      ENV_VAL="${ENV_VAL//"'"}"
+      ENV_MSG="$ENV_VAL"
 
-      if [[ "$VAR" =~ (TOKEN|SECRET|PASS) ]]
+      if [[ "$ENV_VAR" =~ (TOKEN|SECRET|PASS) ]]
       then
-        _VAL="[HIDDEN]"
+        ENV_MSG="[HIDDEN]"
       fi
 
       if [[ "$DUCT_ENV_QUIET" != true ]]
       then
-        __duct_msg d "${VAR}=${_VAL}"
+        __duct_msg d "${ENV_VAR}=${ENV_MSG}"
       fi
     fi
   done
