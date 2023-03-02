@@ -45,8 +45,8 @@ declare -g -a -r _DUCT_CONF_FILES=(
 __duct_conf() {
   __duct_intl
 
-  local CONF_FILE
   local -a CONF_ENV
+  local CONF_FILE
 
   if [[ "$DUCT_CONF_ENABLE" != true ]]
   then
