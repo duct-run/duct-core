@@ -91,30 +91,29 @@ readonly -f __duct_date
 # desc: Simple `find` in pure Bash.
 # opts: <path> [type] [match|regex]
 __duct_find() {
-  local FIND_ROOT="${1:-"$PWD"}"
+  local FIND_PATH="${1:-"$PWD"}"
   local FIND_TYPE="${2:-""}"
   local FIND_MATCH="${3:-""}"
 
-  local FIND
+  local FIND_ITEM
 
-  __duct_msg d "searching $FIND_ROOT type:${FIND_TYPE:-"all"} match:${FIND_MATCH:-"all"}"
+  __duct_msg d "searching $FIND_PATH type:${FIND_TYPE:-"all"} match:${FIND_MATCH:-"all"}"
 
-  for FIND in "${FIND_ROOT}"/**/*
+  for FIND_ITEM in "${FIND_PATH}"/**/*
   do
-
     # type
     if [[ -n "${FIND_TYPE}" ]]
     then
       case "$FIND_TYPE"
       in
         d|dir|directory)
-          if [[ ! -d "$FIND" ]]
+          if [[ ! -d "$FIND_ITEM" ]]
           then
             continue
           fi
         ;;
         f|file)
-          if [[ ! -f "$FIND" ]]
+          if [[ ! -f "$FIND_ITEM" ]]
           then
             continue
           fi
@@ -125,13 +124,13 @@ __duct_find() {
     # match
     if [[ -n "$FIND_MATCH" ]]
     then
-      if [[ ! "$FIND" =~ $FIND_MATCH ]]
+      if [[ ! "$FIND_ITEM" =~ $FIND_MATCH ]]
       then
         continue
       fi
     fi
 
-    echo "$FIND"
+    printf "%s\n" "$FIND_ITEM"
   done
 
   __duct_msg d "runtime: ${SECONDS}s"
