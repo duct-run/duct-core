@@ -2,7 +2,7 @@
 # shellcheck shell=bash
 
 #
-# Copyright (C) 2022 Chris 'sh0shin' Frage
+# Copyright (C) 2022-2023 Chris 'sh0shin' Frage
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License, version 3,
@@ -27,7 +27,7 @@ declare -g DUCT_CONF_ENABLE="${DUCT_CONF_ENABLE:-true}"
 declare -g DUCT_CONF_QUIET="${DUCT_CONF_QUIET:-false}"
 
 # Configuration file search list (internal).
-declare -g -a -r _DUCT_CONF_FILES=(
+declare -r -a _DUCT_CONF_FILES=(
   "${HOME}/.config/duct/config"
   "${HOME}/.config/duct/env"
   "${HOME}/.ductconfig"
@@ -47,18 +47,18 @@ __duct_conf() {
 
   local -a CONF_ENV
   local CONF_FILE
+  local CONF_ITEM
+
+  local CONF_ARR
+  local CONF_KEY
+  local CONF_MSG
+  local CONF_VAL
+  local CONF_VAR
 
   if [[ "$DUCT_CONF_ENABLE" != true ]]
   then
     return
   fi
-
-  local ENV
-  local KEY
-  local VAL
-  local VAR
-  local _KEY
-  local _VAL
 
   for CONF_FILE in "${_DUCT_CONF_FILES[@]}"
   do
@@ -73,53 +73,58 @@ __duct_conf() {
       # shellcheck disable=SC1090
       readarray -t CONF_ENV < <( ( set -x +u; source "$CONF_FILE"; set +x -u ) 2>&1 )
 
-      for ENV in "${CONF_ENV[@]}"
+      for CONF_ITEM in "${CONF_ENV[@]}"
       do
-        if [[ "$ENV" =~ (DUCT_[A-Z_]+)(\[[[:alnum:][:punct:][:blank:]]+\])?=([[:alnum:][:punct:][:blank:]]+) ]]
+        if [[ "$CONF_ITEM" =~ (DUCT_[A-Z_]+)(\[[[:alnum:][:punct:][:blank:]]+\])?=([[:alnum:][:punct:][:blank:]]+) ]]
         then
-          VAR="${BASH_REMATCH[1]}"
-          KEY="${BASH_REMATCH[2]}"
-          VAL="${BASH_REMATCH[3]}"
-          VAL="${VAL/#\'}"
-          VAL="${VAL/%\'}"
+          CONF_VAR="${BASH_REMATCH[1]}"
 
-          _KEY="$KEY"
-          _KEY="${_KEY//\[}"
-          _KEY="${_KEY//\]}"
-          _KEY="${_KEY//\"}"
+          CONF_KEY="${BASH_REMATCH[2]}"
+          CONF_ARR="$CONF_KEY"
+          CONF_ARR="${CONF_ARR//\[}"
+          CONF_ARR="${CONF_ARR//\]}"
+          CONF_ARR="${CONF_ARR//\"}"
 
-          _VAL="$VAL"
+          CONF_VAL="${BASH_REMATCH[3]}"
+          CONF_VAL="${CONF_VAL/#\'}"
+          CONF_VAL="${CONF_VAL/%\'}"
 
-          if [[ "$VAR" =~ (TOKEN|SECRET|PASS) ]] || [[ "$KEY" =~ (TOKEN|SECRET|PASS) ]]
+          CONF_MSG="$CONF_VAL"
+
+          if [[ "$CONF_VAR" =~ (TOKEN|SECRET|PASS) ]] || [[ "$CONF_KEY" =~ (TOKEN|SECRET|PASS) ]]
           then
-            _VAL="[HIDDEN]"
+            CONF_MSG="[HIDDEN]"
           fi
 
           if [[ "$DUCT_CONF_QUIET" != true ]]
           then
-            __duct_msg d "${VAR}${KEY}=${_VAL}"
+            __duct_msg d "${CONF_VAR}${CONF_KEY}=${CONF_MSG}"
           fi
 
           # indexed array specified
-          if [[ "$KEY" =~ (\[[0-9]+\]) ]]
+          if [[ "$CONF_KEY" =~ (\[[0-9]+\]) ]]
           then
-            declare -g -a "$VAR"
-            declare -g -a "${VAR}[$_KEY]=${VAL}"
+            declare -g -a "$CONF_VAR"
+            declare -g -a "${CONF_VAR}[$CONF_ARR]=${CONF_VAL}"
+
           # associative array
-          elif [[ "$KEY" =~ (\[[[:alnum:][:punct:][:blank:]]+\]) ]]
+          elif [[ "$CONF_KEY" =~ (\[[[:alnum:][:punct:][:blank:]]+\]) ]]
           then
-            declare -g -A "$VAR"
-            declare -g -A "${VAR}[$_KEY]=${VAL}"
+            declare -g -A "$CONF_VAR"
+            declare -g -A "${CONF_VAR}[$CONF_ARR]=${CONF_VAL}"
+
           # indexed array
-          elif [[ "$VAL" =~ ^(\()([[:alnum:][:punct:][:blank:]]+)(\))$ ]]
+          elif [[ "$CONF_VAL" =~ ^(\()([[:alnum:][:punct:][:blank:]]+)(\))$ ]]
           then
-            VAL="${BASH_REMATCH[2]}"
-            declare -g -a "${VAR}=( $VAL )"
-          elif [[ "$VAL" =~ ^(0|[1-9]([0-9]+)?)$ ]]
+            CONF_VAL="${BASH_REMATCH[2]}"
+            declare -g -a "${CONF_VAR}=( $CONF_VAL )"
+
+          # integer
+          elif [[ "$CONF_VAL" =~ ^(0|[1-9]([0-9]+)?)$ ]]
           then
-            declare -g -i "${VAR}=${VAL}"
+            declare -g -i "${CONF_VAR}=${CONF_VAL}"
           else
-            declare -g "${VAR}=${VAL}"
+            declare -g "${CONF_VAR}=${CONF_VAL}"
           fi
         fi
       done
