@@ -344,21 +344,21 @@ declare -g DUCT_TMPGEN_LENGTH="${DUCT_TMPGEN_LENGTH:-9}"
 # desc: Generate a temporary path, without creating it.
 # opts: [prefix] [path]
 __duct_tmpgen() {
-  local TMP_PREFIX="${1:-"$DUCT_TMPGEN_PREFIX"}"
-  local TMP_PATH="${2:-"$DUCT_TMPGEN_PATH"}"
-  local TMP_GEN
-  local TMP_RC=0
+  local TMPGEN_PREFIX="${1:-"$DUCT_TMPGEN_PREFIX"}"
+  local TMPGEN_PATH="${2:-"$DUCT_TMPGEN_PATH"}"
 
-  TMP_GEN="${TMP_PATH}/${TMP_PREFIX}$(
+  local TMPGEN_OUTPUT
+
+  TMPGEN_OUTPUT="${TMPGEN_PATH}/${TMPGEN_PREFIX}$(
     export DUCT_RANDOM_CHARS=(
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz"
       "0123456789"
     )
     __duct_random "$DUCT_TMPGEN_LENGTH"
-  )" || TMP_RC=$?
+  )"
 
-  printf "%b\n" "$TMP_GEN"
+  printf "%s\n" "$TMPGEN_OUTPUT"
 }
 readonly -f __duct_tmpgen
 
@@ -379,16 +379,16 @@ declare -g DUCT_MKTMPDIR_MODE="${DUCT_MKTMPDIR_MODE:-0700}"
 # desc: Create a temporary directory using `duct tmpgen`.
 # opts: [prefix] [path]
 __duct_mktmpdir() {
-  local TMP_PREFIX="${1:-"$DUCT_MKTMPDIR_PREFIX"}"
-  local TMP_PATH="${2:-"$DUCT_MKTMPDIR_PATH"}"
-  local TMP_DIR
-  local TMP_RC=0
+  local MKTMPDIR_PREFIX="${1:-"$DUCT_MKTMPDIR_PREFIX"}"
+  local MKTMPDIR_PATH="${2:-"$DUCT_MKTMPDIR_PATH"}"
 
-  TMP_DIR="$( __duct_tmpgen "$TMP_PREFIX" "$TMP_PATH" )"
-  __duct_msg n "creating ${TMP_DIR}"
-  __duct_run mkdir -m "$DUCT_MKTMPDIR_MODE" -p "$TMP_DIR" || TMP_RC=$?
-  printf "%b\n" "$TMP_DIR"
-  return $TMP_RC
+  local MKTMPDIR_DIR
+  local MKTMPDIR_RC=0
+
+  MKTMPDIR_DIR="$( __duct_tmpgen "$MKTMPDIR_PREFIX" "$MKTMPDIR_PATH" )"
+  __duct_run mkdir -m "$DUCT_MKTMPDIR_MODE" -p "$MKTMPDIR_DIR" || MKTMPDIR_RC=$?
+  printf "%s\n" "$MKTMPDIR_DIR"
+  return $MKTMPDIR_RC
 }
 readonly -f __duct_mktmpdir
 
@@ -409,19 +409,19 @@ declare -g DUCT_MKTMPFILE_MODE="${DUCT_MKTMPFILE_MODE:-0600}"
 # desc: Create a temporay file using `duct tmpgen`.
 # opts: [prefix] [path]
 __duct_mktmpfile() {
-  local TMP_PREFIX="${1:-"$DUCT_MKTMPFILE_PREFIX"}"
-  local TMP_PATH="${2:-"$DUCT_MKTMPFILE_PATH"}"
-  local TMP_FILE
-  local TMP_RC=0
+  local MKTMPFILE_PREFIX="${1:-"$DUCT_MKTMPFILE_PREFIX"}"
+  local MKTMPFILE_PATH="${2:-"$DUCT_MKTMPFILE_PATH"}"
 
-  TMP_FILE="$( __duct_tmpgen "$TMP_PREFIX" "$TMP_PATH" )"
-  __duct_msg n "creating ${TMP_FILE}"
+  local MKTMPFILE_FILE
+  local MKTMPFILE_RC=0
+
+  MKTMPFILE_FILE="$( __duct_tmpgen "$MKTMPFILE_PREFIX" "$MKTMPFILE_PATH" )"
   (
-    __duct_run touch "$TMP_FILE" || TMP_RC=$?
-    __duct_run chmod "$DUCT_MKTMPFILE_MODE" "$TMP_FILE"
-  ) || TMP_RC=$?
-  printf "%b\n" "$TMP_FILE"
-  return $TMP_RC
+    __duct_run touch "$MKTMPFILE_FILE" || MKTMPFILE_RC=$?
+    __duct_run chmod "$DUCT_MKTMPFILE_MODE" "$MKTMPFILE_FILE"
+  ) || MKTMPFILE_RC=$?
+  printf "%s\n" "$MKTMPFILE_FILE"
+  return $MKTMPFILE_RC
 }
 readonly -f __duct_mktmpfile
 
