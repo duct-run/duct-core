@@ -49,31 +49,31 @@ readonly -f __duct_array_add
 # desc: Add to an array if not present.
 # opts: <array-name> <add>
 __duct_array_add2() {
-  local -n ARRAY="${1:-DUCT_NULL}"
-  local ADD="${2:-}"
+  local -n ARRAY_NAME="${1:-DUCT_NULL}"
+  local ARRAY_ADD="${2:-}"
 
-  if [[ "${!ARRAY}" == "DUCT_NULL" ]]
+  if [[ "${!ARRAY_NAME}" == "DUCT_NULL" ]]
   then
     __duct_msg e "no array name! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if ! declare -p "${!ARRAY}" >/dev/null 2>&1
+  if ! declare -p "${!ARRAY_NAME}" >/dev/null 2>&1
   then
-    __duct_msg e "${!ARRAY} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg e "${!ARRAY_NAME} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if [[ -z "$ADD" ]]
+  if [[ -z "$ARRAY_ADD" ]]
   then
     __duct_msg e "nothing to add! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
   # shellcheck disable=SC2076
-  if [[ ! "${ARRAY[*]}" =~ "$ADD" ]]
+  if [[ ! "${ARRAY_NAME[*]}" =~ "$ARRAY_ADD" ]]
   then
-    readarray -t -n 0 -O "${#ARRAY[@]}" "${!ARRAY}" <<< "$ADD"
+    readarray -t -n 0 -O "${#ARRAY_NAME[@]}" "${!ARRAY_NAME}" <<< "$ARRAY_ADD"
   fi
 }
 readonly -f __duct_array_add2
@@ -102,24 +102,24 @@ readonly -f __duct_array_join
 # desc: Join array values with given string.
 # opts: <array-name> <join-string>
 __duct_array_join2() {
-  local -n ARRAY="${1:-DUCT_NULL}"
+  local -n ARRAY_NAME="${1:-DUCT_NULL}"
   local IFS="${2:-}"
 
-  if [[ "${!ARRAY}" == "DUCT_NULL" ]]
+  if [[ "${!ARRAY_NAME}" == "DUCT_NULL" ]]
   then
     __duct_msg e "no array name! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if ! declare -p "${!ARRAY}" >/dev/null 2>&1
+  if ! declare -p "${!ARRAY_NAME}" >/dev/null 2>&1
   then
-    __duct_msg e "${!ARRAY} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg e "${!ARRAY_NAME} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if [[ "${#ARRAY[@]}" -eq 0 ]]
+  if [[ "${#ARRAY_NAME[@]}" -eq 0 ]]
   then
-    __duct_msg w "${!ARRAY} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg w "${!ARRAY_NAME} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 0
   fi
 
@@ -129,7 +129,7 @@ __duct_array_join2() {
     return 1
   fi
 
-  echo "${ARRAY[*]}"
+  echo "${ARRAY_NAME[*]}"
   unset IFS
 }
 readonly -f __duct_array_join2
@@ -166,38 +166,40 @@ readonly -f __duct_array_strip
 # desc: Strip a regex match from an array.
 # opts: <array-name> <strip-regex>
 __duct_array_strip2() {
-  local -n ARRAY="${1:-DUCT_NULL}"
-  local STRIP="${2:-}"
+  local -n ARRAY_NAME="${1:-DUCT_NULL}"
+  local ARRAY_STRIP="${2:-}"
 
-  if [[ "${!ARRAY}" == "DUCT_NULL" ]]
+  local ARRAY_KEY
+
+  if [[ "${!ARRAY_NAME}" == "DUCT_NULL" ]]
   then
     __duct_msg e "no array name! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if ! declare -p "${!ARRAY}" >/dev/null 2>&1
+  if ! declare -p "${!ARRAY_NAME}" >/dev/null 2>&1
   then
-    __duct_msg e "${!ARRAY} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg e "${!ARRAY_NAME} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if [[ "${#ARRAY[@]}" -eq 0 ]]
+  if [[ "${#ARRAY_NAME[@]}" -eq 0 ]]
   then
-    __duct_msg w "${!ARRAY} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg w "${!ARRAY_NAME} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 0
   fi
 
-  if [[ -z "$STRIP" ]]
+  if [[ -z "$ARRAY_STRIP" ]]
   then
     __duct_msg e "no strip regex! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  for KEY in "${!ARRAY[@]}"
+  for ARRAY_KEY in "${!ARRAY_NAME[@]}"
   do
-    if [[ "${ARRAY[$KEY]}" =~ $STRIP ]]
+    if [[ "${ARRAY_NAME[$ARRAY_KEY]}" =~ $ARRAY_STRIP ]]
     then
-      unset "ARRAY[$KEY]"
+      unset "ARRAY_NAME[$ARRAY_KEY]"
     fi
   done
 }
@@ -229,29 +231,29 @@ readonly -f __duct_array_sort
 # desc: Sort an array (version sort).
 # opts: <array-name>
 __duct_array_sort2() {
-  local -n ARRAY="${1:-DUCT_NULL}"
+  local -n ARRAY_NAME="${1:-DUCT_NULL}"
 
   local IFS=$'\n'
 
-  if [[ "${!ARRAY}" == "DUCT_NULL" ]]
+  if [[ "${!ARRAY_NAME}" == "DUCT_NULL" ]]
   then
     __duct_msg e "no array name! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if ! declare -p "${!ARRAY}" >/dev/null 2>&1
+  if ! declare -p "${!ARRAY_NAME}" >/dev/null 2>&1
   then
-    __duct_msg e "${!ARRAY} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg e "${!ARRAY_NAME} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if [[ "${#ARRAY[@]}" -eq 0 ]]
+  if [[ "${#ARRAY_NAME[@]}" -eq 0 ]]
   then
-    __duct_msg w "${!ARRAY} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg w "${!ARRAY_NAME} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 0
   fi
 
-  readarray -t -n 0 "${!ARRAY}" < <( sort -V <<< "${ARRAY[*]}" )
+  readarray -t -n 0 "${!ARRAY_NAME}" < <( sort -V <<< "${ARRAY_NAME[*]}" )
   unset IFS
 }
 readonly -f __duct_array_sort2
@@ -288,38 +290,39 @@ readonly -f __duct_array_unique
 # desc: Remove duplicate values from an array without sorting.
 # opts: <array-name>
 __duct_array_unique2() {
-  local -n ARRAY="${1:-DUCT_NULL}"
+  local -n ARRAY_NAME="${1:-DUCT_NULL}"
 
-  local -a UNIQUE=()
+  local -a ARRAY_UNIQUE=()
+  local ARRAY_ITEM
 
-  if [[ "${!ARRAY}" == "DUCT_NULL" ]]
+  if [[ "${!ARRAY_NAME}" == "DUCT_NULL" ]]
   then
     __duct_msg e "no array name! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if ! declare -p "${!ARRAY}" >/dev/null 2>&1
+  if ! declare -p "${!ARRAY_NAME}" >/dev/null 2>&1
   then
-    __duct_msg e "${!ARRAY} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg e "${!ARRAY_NAME} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if [[ "${#ARRAY[@]}" -eq 0 ]]
+  if [[ "${#ARRAY_NAME[@]}" -eq 0 ]]
   then
-    __duct_msg w "${!ARRAY} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg w "${!ARRAY_NAME} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 0
   fi
 
-  for VAL in "${ARRAY[@]}"
+  for ARRAY_ITEM in "${ARRAY_NAME[@]}"
   do
-    if [[ ! "${UNIQUE[*]}" =~ $VAL ]]
+    if [[ ! "${ARRAY_UNIQUE[*]}" =~ $ARRAY_ITEM ]]
     then
-      UNIQUE+=( "$VAL" )
+      ARRAY_UNIQUE+=( "$ARRAY_ITEM" )
     fi
   done
 
   local IFS=$'\n'
-  readarray -t -n 0 "${!ARRAY}" <<< "${UNIQUE[*]}"
+  readarray -t -n 0 "${!ARRAY_NAME}" <<< "${ARRAY_UNIQUE[*]}"
   unset IFS
 }
 readonly -f __duct_array_unique2
@@ -332,26 +335,27 @@ readonly -f __duct_array_unique2
 # desc: Print array key=value (mostly for debug).
 # opts: <array-name>
 __duct_array_keyval() {
-  local -n ARRAY="${1:-DUCT_NULL}"
-  local KEY
+  local -n ARRAY_NAME="${1:-DUCT_NULL}"
 
-  if [[ "${!ARRAY}" == "DUCT_NULL" ]]
+  local ARRAY_KEY
+
+  if [[ "${!ARRAY_NAME}" == "DUCT_NULL" ]]
   then
     __duct_msg e "no array name! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  if ! declare -p "${!ARRAY}" >/dev/null 2>&1
+  if ! declare -p "${!ARRAY_NAME}" >/dev/null 2>&1
   then
-    __duct_msg e "${!ARRAY} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    __duct_msg e "${!ARRAY_NAME} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
     return 1
   fi
 
-  __duct_msg d "${!ARRAY} ${#ARRAY[@]}"
+  __duct_msg d "${!ARRAY_NAME} ${#ARRAY_NAME[@]}"
 
-  for KEY in "${!ARRAY[@]}"
+  for ARRAY_KEY in "${!ARRAY_NAME[@]}"
   do
-    printf "%b\n" "${KEY}=${ARRAY[$KEY]}"
+    printf "%b\n" "${ARRAY_KEY}=${ARRAY_NAME[$ARRAY_KEY]}"
   done
 }
 readonly -f __duct_array_keyval
@@ -364,18 +368,19 @@ readonly -f __duct_array_keyval
 # desc: Generate a simple JSON from an formated array.
 # opts: <array-name>
 __duct_array_json() {
-  local -n ARRAY="${1:-DUCT_NULL}"
+  local -n ARRAY_NAME="${1:-DUCT_NULL}"
 
+  local ARRAY_KEY
   local JSON_KEY
   local JSON_VAL
 
   # begin json
   printf "%s\n" "{"
 
-  for KEY in "${!ARRAY[@]}"
+  for ARRAY_KEY in "${!ARRAY_NAME[@]}"
   do
-    JSON_KEY="${ARRAY[$KEY]%%:*}"
-    JSON_VAL="${ARRAY[$KEY]#*:}"
+    JSON_KEY="${ARRAY_NAME[$ARRAY_KEY]%%:*}"
+    JSON_VAL="${ARRAY_NAME[$ARRAY_KEY]#*:}"
 
     # digit or bool
     if [[ "$JSON_VAL" =~ ^([[:digit:]]+|true|false|yes|no)$ ]]
@@ -400,7 +405,7 @@ __duct_array_json() {
     fi
 
     # seperator
-    if [[ "$KEY" -lt "${#ARRAY[@]}-1" ]]
+    if [[ "$ARRAY_KEY" -lt "${#ARRAY_NAME[@]}-1" ]]
     then
       printf ",\n"
     else
