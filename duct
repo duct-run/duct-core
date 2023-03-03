@@ -60,46 +60,14 @@ declare -r DUCT_URL="https://duct.run/"
 # shellcheck disable=SC2034,SC2155
 declare -r DUCT_VERSION="$( < "${DUCT_ROOT_DIR}/.duct-version" )"
 
-# internal
-
-# deps: duct-msg
-# intl: true
-# life: core
-# desc: Check duct internal source.
-# opts:
-__duct_intl() {
-  local INTL_FUNC=""
-  local INTL_RUN=0
-  local INTL_SRC
-
-  for INTL_SRC in "${FUNCNAME[@]}"
-  do
-    if [[ "$INTL_SRC" == "source" ]]
-    then
-      INTL_RUN=1
-    fi
-  done
-
-  if [[ "$INTL_RUN" -eq 0 ]]
-  then
-    INTL_FUNC="${FUNCNAME[1]}"
-    INTL_FUNC="${INTL_FUNC/#__}"
-    INTL_FUNC="${INTL_FUNC//_/ }"
-
-    __duct_msg e "'$INTL_FUNC' internal only!"
-    return 1
-  fi
-}
-readonly -f __duct_intl
-
-# environment (also loads duct-msg)
+# msg
 # shellcheck disable=SC1091
-source "${DUCT_PLUG_DIR}/core/duct-env"
+source "${DUCT_PLUG_DIR}/core/duct-msg"
+
+# core
+# shellcheck disable=SC1091
+source "${DUCT_PLUG_DIR}/core/duct-core"
 __duct_env
-
-# config
-# shellcheck disable=SC1091
-source "${DUCT_PLUG_DIR}/core/duct-conf"
 __duct_conf
 
 # install and load core plugins
@@ -123,107 +91,6 @@ __duct_plug_load vendor
 
 # bash shopt
 __duct_bash_shopt
-
-# duct
-
-# Enable/disable duct caller debug.
-declare -g DUCT_DEBUG="${DUCT_DEBUG:-false}"
-
-# deps: duct-msg
-# intl: true
-# life: core
-# desc: Main duct plugin and command processor.
-# opts: <plugin> <command> [extra-options]
-duct() {
-  local -a DUCT_OPTS=( "$@" )
-
-  local -a DUCT_KEEP=()
-  local DUCT_BASE
-  local DUCT_CALL
-  local DUCT_FUNC=""
-  local DUCT_ITEM
-
-  if [[ -z "${DUCT_OPTS[*]}" ]] || [[ "${DUCT_OPTS[*]}" =~ ^(logo|version)$ ]]
-  then
-    __duct_logo
-    return
-  fi
-
-  DUCT_BASE="${DUCT_OPTS[0]}"
-  unset "DUCT_OPTS[0]"
-
-  # rewrite index
-  DUCT_OPTS=( "${DUCT_OPTS[@]}" )
-  DUCT_CALL="__duct_${DUCT_BASE}"
-
-  if [[ "$DUCT_DEBUG" == true ]]
-  then
-    __duct_msg d "base: $DUCT_BASE"
-    __duct_msg d "opts: ${DUCT_OPTS[*]}"
-  fi
-
-  # handle plugin direct function calls
-  if [[ "$( type -t "${DUCT_CALL}" )" == "function" ]]
-  then
-    DUCT_FUNC="$DUCT_CALL"
-
-    if [[ "$DUCT_DEBUG" == true ]]
-    then
-      __duct_msg d "func: $DUCT_FUNC"
-    fi
-  fi
-
-  # handle plugin sub function calls
-  for (( DUCT_ITEM=${#DUCT_OPTS[@]}-1; DUCT_ITEM>=0; DUCT_ITEM--))
-  do
-    DUCT_TEST="${DUCT_CALL}_${DUCT_OPTS[*]:0:(( DUCT_ITEM + 1 ))}"
-    DUCT_TEST="${DUCT_TEST// /_}"
-
-    if [[ "$( type -t "${DUCT_TEST}" )"  == "function"  ]]
-    then
-      DUCT_FUNC="$DUCT_TEST"
-
-      if [[ "$DUCT_DEBUG" == true  ]]
-      then
-        __duct_msg d "func: $DUCT_TEST"
-      fi
-      break
-    else
-      DUCT_KEEP+=( "${DUCT_OPTS[DUCT_ITEM]}" )
-
-      if [[ "$DUCT_DEBUG" == true ]]
-      then
-        __duct_msg d "keep: ${DUCT_KEEP[*]}"
-      fi
-    fi
-  done
-
-  # rewrite opts
-  DUCT_OPTS=()
-  for (( DUCT_ITEM=${#DUCT_KEEP[@]}-1; DUCT_ITEM>=0; DUCT_ITEM-- ))
-  do
-    DUCT_OPTS+=( "${DUCT_KEEP[DUCT_ITEM]}" )
-  done
-  unset DUCT_KEEP
-
-  if [[ "$DUCT_DEBUG" == true ]]
-  then
-    __duct_msg d "opts: ${DUCT_OPTS[*]}"
-  fi
-
-  if [[ -z "$DUCT_FUNC" ]]
-  then
-    __duct_msg e "'duct $DUCT_BASE ${DUCT_OPTS[*]:-\b}' not found!"
-    return 1
-  else
-    if [[ "$DUCT_DEBUG" == true ]]
-    then
-      __duct_msg d "call: $DUCT_FUNC ${DUCT_OPTS[*]}"
-    fi
-    "$DUCT_FUNC" "${DUCT_OPTS[@]}"
-  fi
-}
-readonly -f duct
 
 # show duct logo and version
 __duct_logo

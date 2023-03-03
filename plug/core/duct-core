@@ -1,0 +1,434 @@
+# vim: set ft=sh syn=bash :
+# shellcheck shell=bash
+
+#
+# Copyright (C) 2022-2023 Chris 'sh0shin' Frage
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License, version 3,
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# duct-core
+# The duct core functions.
+
+# internal
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: Check duct internal source.
+# opts:
+__duct_intl() {
+  local INTL_FUNC=""
+  local INTL_RUN=0
+  local INTL_SRC
+
+  for INTL_SRC in "${FUNCNAME[@]}"
+  do
+    if [[ "$INTL_SRC" == "source" ]]
+    then
+      INTL_RUN=1
+    fi
+  done
+
+  if [[ "$INTL_RUN" -eq 0 ]]
+  then
+    INTL_FUNC="${FUNCNAME[1]}"
+    INTL_FUNC="${INTL_FUNC/#__}"
+    INTL_FUNC="${INTL_FUNC//_/ }"
+
+    __duct_msg e "'$INTL_FUNC' internal only!"
+    return 1
+  fi
+}
+readonly -f __duct_intl
+
+# env
+
+# Enable/disbale environment processing.
+declare -g DUCT_ENV_ENABLE="${DUCT_ENV_ENABLE:-true}"
+
+# Enable/disbale environment debug messages.
+declare -g DUCT_ENV_QUIET="${DUCT_ENV_QUIET:-false}"
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: Show any user duct environment configuration.
+# opts:
+__duct_env() {
+  __duct_intl
+
+  local -a ENV_USER
+  local ENV_ITEM
+
+  local ENV_MSG
+  local ENV_VAL
+  local ENV_VAR
+
+  if [[ "$DUCT_ENV_ENABLE" != true ]]
+  then
+    return
+  fi
+
+  readarray -t ENV_USER < <( ( set -x; env; set +x ) 2>&1 )
+
+  for ENV_ITEM in "${ENV_USER[@]}"
+  do
+    if [[ "$ENV_ITEM" =~ (DUCT_[A-Z_]+)=([[:alnum:][:punct:][:blank:]]+) ]]
+    then
+      ENV_VAR="${BASH_REMATCH[1]:?}"
+      ENV_VAL="${BASH_REMATCH[2]:?}"
+      ENV_VAL="${ENV_VAL//"'"}"
+      ENV_MSG="$ENV_VAL"
+
+      if [[ "$ENV_VAR" =~ (TOKEN|SECRET|PASS) ]]
+      then
+        ENV_MSG="[HIDDEN]"
+      fi
+
+      if [[ "$DUCT_ENV_QUIET" != true ]]
+      then
+        __duct_msg d "${ENV_VAR}=${ENV_MSG}"
+      fi
+    fi
+  done
+}
+readonly -f __duct_env
+
+# conf
+
+# Enable/disbale processing config.
+declare -g DUCT_CONF_ENABLE="${DUCT_CONF_ENABLE:-true}"
+
+# Enable/disbale config debug messages.
+declare -g DUCT_CONF_QUIET="${DUCT_CONF_QUIET:-false}"
+
+# Configuration file search list (internal).
+declare -r -a _DUCT_CONF_FILES=(
+  "${HOME}/.config/duct/config"
+  "${HOME}/.config/duct/env"
+  "${HOME}/.ductconfig"
+  "${HOME}/.ductconf"
+  "${HOME}/.ductenv"
+)
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: Read and process duct environment configuration.
+# opts:
+__duct_conf() {
+  __duct_intl
+
+  local -a CONF_ENV
+  local CONF_FILE
+  local CONF_ITEM
+
+  local CONF_ARR
+  local CONF_KEY
+  local CONF_MSG
+  local CONF_VAL
+  local CONF_VAR
+
+  if [[ "$DUCT_CONF_ENABLE" != true ]]
+  then
+    return
+  fi
+
+  for CONF_FILE in "${_DUCT_CONF_FILES[@]}"
+  do
+    if [[ -s "$CONF_FILE" ]]
+    then
+
+      if [[ "$DUCT_CONF_QUIET" != true ]]
+      then
+        __duct_msg d "$CONF_FILE"
+      fi
+
+      # shellcheck disable=SC1090
+      readarray -t CONF_ENV < <( ( set -x +u; source "$CONF_FILE"; set +x -u ) 2>&1 )
+
+      for CONF_ITEM in "${CONF_ENV[@]}"
+      do
+        if [[ "$CONF_ITEM" =~ (DUCT_[A-Z_]+)(\[[[:alnum:][:punct:][:blank:]]+\])?=([[:alnum:][:punct:][:blank:]]+) ]]
+        then
+          CONF_VAR="${BASH_REMATCH[1]}"
+
+          CONF_KEY="${BASH_REMATCH[2]}"
+          CONF_ARR="$CONF_KEY"
+          CONF_ARR="${CONF_ARR//\[}"
+          CONF_ARR="${CONF_ARR//\]}"
+          CONF_ARR="${CONF_ARR//\"}"
+
+          CONF_VAL="${BASH_REMATCH[3]}"
+          CONF_VAL="${CONF_VAL/#\'}"
+          CONF_VAL="${CONF_VAL/%\'}"
+
+          CONF_MSG="$CONF_VAL"
+
+          if [[ "$CONF_VAR" =~ (TOKEN|SECRET|PASS) ]] || [[ "$CONF_KEY" =~ (TOKEN|SECRET|PASS) ]]
+          then
+            CONF_MSG="[HIDDEN]"
+          fi
+
+          if [[ "$DUCT_CONF_QUIET" != true ]]
+          then
+            __duct_msg d "${CONF_VAR}${CONF_KEY}=${CONF_MSG}"
+          fi
+
+          # indexed array specified
+          if [[ "$CONF_KEY" =~ (\[[0-9]+\]) ]]
+          then
+            declare -g -a "$CONF_VAR"
+            declare -g -a "${CONF_VAR}[$CONF_ARR]=${CONF_VAL}"
+
+          # associative array
+          elif [[ "$CONF_KEY" =~ (\[[[:alnum:][:punct:][:blank:]]+\]) ]]
+          then
+            declare -g -A "$CONF_VAR"
+            declare -g -A "${CONF_VAR}[$CONF_ARR]=${CONF_VAL}"
+
+          # indexed array
+          elif [[ "$CONF_VAL" =~ ^(\()([[:alnum:][:punct:][:blank:]]+)(\))$ ]]
+          then
+            CONF_VAL="${BASH_REMATCH[2]}"
+            declare -g -a "${CONF_VAR}=( $CONF_VAL )"
+
+          # integer
+          elif [[ "$CONF_VAL" =~ ^(0|[1-9]([0-9]+)?)$ ]]
+          then
+            declare -g -i "${CONF_VAR}=${CONF_VAL}"
+          else
+            declare -g "${CONF_VAR}=${CONF_VAL}"
+          fi
+        fi
+      done
+    fi
+  done
+  return
+}
+readonly -f __duct_conf
+
+# duct init
+
+# Enable/disable init debug messages.
+declare -g DUCT_INIT_QUIET="${DUCT_INIT_QUIET:-false}"
+
+# List of duct requirements (internal).
+declare -g -r -a _DUCT_INIT_REQUIRED=(
+  base64
+  curl
+  git
+  jq
+  sleep
+  sort
+  unzip
+  xz
+)
+
+# Minimal curl version.
+declare -g -r _DUCT_INIT_CURL_VERSION="7.29.0"
+
+# Minimal git version.
+declare -g -r _DUCT_INIT_GIT_VERSION="2.25.0"
+
+# Minimal jq version.
+declare -g -r _DUCT_INIT_JQ_VERSION="1.6"
+
+# deps: duct-gnu duct-util
+# intl: true
+# life: core
+# desc: Check all duct requirements.
+# opts:
+__duct_init() {
+  __duct_intl
+
+  local INIT_RC=0
+  local MSG_LEVEL="$DUCT_MSG_MAX_LEVEL"
+
+  if [[ "$DUCT_INIT_QUIET" == true ]]
+  then
+    DUCT_MSG_MAX_LEVEL=0
+  fi
+
+  # os type
+  __duct_ostype
+
+  # host type
+  __duct_hosttype
+
+  # check requirements
+  __duct_bin_check "${_DUCT_INIT_REQUIRED[@]}" || (( INIT_RC+=$? ))
+
+  if [[ "$INIT_RC" -eq 0 ]]
+  then
+    # check curl version
+    __duct_ver_check curl "$_DUCT_INIT_CURL_VERSION" 2 || (( INIT_RC+=$? ))
+
+    # check git version
+    __duct_ver_check git "$_DUCT_INIT_GIT_VERSION" 3 || (( INIT_RC+=$? ))
+
+    # check jq version
+    __duct_ver_check jq "$_DUCT_INIT_JQ_VERSION" 1 || (( INIT_RC+=$? ))
+  fi
+
+  # check gnu
+  __duct_gnu_check || (( INIT_RC+=$? ))
+
+  DUCT_MSG_MAX_LEVEL="$MSG_LEVEL"
+
+  if [[ "$INIT_RC" -gt 0 ]]
+  then
+    __duct_msg e "requirements not met!"
+    return 1
+  else
+    return 0
+  fi
+}
+readonly -f __duct_init
+
+# logo
+
+# duct main logo.
+declare -g -r _DUCT_LOGO_MAIN="ICAgICAgIBtbMzg7MjswOzA7MTcwbeKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhBtbMG0gICAgICAgICAgICAgICAgICAbWzM4OzI7MDswOzE3MG3iloTiloTiloTiloTiloQbWzBtCiAgICAgICAbWzQ4OzI7MDsxMzY7MjU1bRtbMzg7MjswOzA7MTcwbeKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paE4paE4paE4paE4paE4paE4paEIBtbMzg7MjswOzA7MTcwbeKWiBtbMG0gICAgICAgICAgICAgICAgICAbWzQ4OzI7MDsxMzY7MjU1bRtbMzg7MjswOzA7MTcwbeKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paEIBtbMzg7MjswOzA7MTcwbeKWiBtbMG0KICAgICAgIBtbNDg7MjswOzEzNjsyNTVtG1szODsyOzA7MDsxNzBt4paIIBtbMzg7MjsxNzA7MjU1OzIzOG3iloggG1szODsyOzA7MDsxNzBt4paE4paE4paEIBtbMzg7MjsxNzA7MjU1OzIzOG3iloggG1szODsyOzA7MDsxNzBt4paIG1swbSAbWzM4OzI7MDswOzE3MG3iloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloQbWzQ4OzI7MDsxMzY7MjU1beKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paIIBtbMzg7MjswOzA7MTcwbeKWiBtbNDlt4paE4paE4paE4paE4paEG1swbQogG1s0ODsyOzA7MTM2OzI1NW0bWzM4OzI7MDswOzE3MG3ilojiloDiloDiloDiloDiloDiloAgG1szODsyOzE3MDsyNTU7MjM4beKWiCAbWzM4OzI7MDswOzE3MG3ilogbWzBtIBtbNDg7MjswOzEzNjsyNTVtG1szODsyOzA7MDsxNzBt4paIIBtbMzg7MjsxNzA7MjU1OzIzOG3iloggG1szODsyOzA7MDsxNzBt4paIG1swbSAbWzQ4OzI7MDsxMzY7MjU1bRtbMzg7MjswOzA7MTcwbeKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE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"
+
+# duct dumb logo.
+declare -g -r _DUCT_LOGO_DUMB="ICAgICAgIBtbMTszNG0uLS0tLS0tLS0tLhtbMG0gICAgICAgICAgICAgICAgICAbWzE7MzRtLi0tLS4bWzBtCiAgICAgICAbWzE7MzRtfCAbWzE7MzZtLi0tLS0tLiAbWzE7MzRtfCAgICAgICAgICAgICAgICAgIBtbMTszNG18IBtbMTszNm18IBtbMTszNG18G1swbQogICAgICAgG1sxOzM0bXwgG1sxOzM2bXwgG1sxOzM0bS4tLiAbWzE7MzZtfCAbWzE7MzRtfCAbWzE7MzRtLi0tLS0tLS0tLS0tLS0tLS0nIBtbMTszNm18IBtbMTszNG0nLS0tLS4bWzBtCiAbWzE7MzRtLi0tLS0tJyAbWzE7MzZtfCAbWzE7MzRtfCB8IBtbMTszNm18IBtbMTszNG18IHwgG1sxOzM2bS4tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIBtbMTszNG18G1swbQogG1sxOzM0bXwgG1sxOzM2bS4tLS0tIHwgG1sxOzM0bXwgfCAbWzE7MzZtfCAbWzE7MzRtfCB8IBtbMTszNm18IBtbMTszNG0uLS4gG1sxOzM2bXwgG1sxOzM0bS4tLS0tLS0uIBtbMTszNm18IBtbMTszNG0uLS0tLScbWzBtCiAbWzE7MzRtfCAbWzE7MzZtfCAbWzE7MzRtfCB8IBtbMTszNm18IBtbMTszNG18IHwgG1sxOzM2bXwgG1sxOzM0bSctJyAbWzE7MzZtfCAbWzE7MzRtfCB8IBtbMTszNm18IBtbMTszNG0nLS0tLS4gfCAbWzE7MzZtfCAbWzE7MzRtfBtbMG0KIBtbMTszNG18IBtbMTszNm0nLS0tLS0nIBtbMTszNG18IHwgG1sxOzM2bSctLS0tLScgG1sxOzM0bXwgfCAbWzE7MzZtJy0tLS0tIBtbMTszNG18IHwgG1sxOzM2bXwgG1sxOzM0bXwbWzBtCiAbWzE7MzRtJy0tLS0tLS0tLScgJy0tLS0tLS0tLScgJy0tLS0tLS0tJyAnLS0tJxtbMG0K"
+
+# duct minimal logo.
+declare -g -r _DUCT_LOGO_MINI="ICAgIBtbMTszNm18fCAgIF9fX3xfXxtbMG0KIBtbMTszNm1bG1sxOzM0bW9vG1sxOzM2bXx8X3x8X18gfBtbMG0K"
+
+# Enable/disable logo display.
+declare -g DUCT_LOGO_ENABLE="${DUCT_LOGO_ENABLE:-true}"
+
+# deps:
+# intl: true
+# life: core
+# desc: Show duct logo and version information.
+# opts:
+__duct_logo() {
+  __duct_intl
+
+  if [[ "$DUCT_LOGO_ENABLE" == true ]]
+  then
+    if [[ "$DUCT_TERM" == "dumb" ]] || [[ "$DUCT_TERM_PROGRAM" == "Apple_Terminal" ]]
+    then
+      printf "%b" "$_DUCT_LOGO_DUMB" | base64 -d
+    else
+      printf "%b" "$_DUCT_LOGO_MAIN" | base64 -d
+    fi
+  fi
+  printf "%b\n" " $DUCT_SELF_NAME $DUCT_VERSION (${DUCT_OSTYPE}-${DUCT_HOSTTYPE}) [$DUCT_URL]\n"
+}
+readonly -f __duct_logo
+
+# duct
+
+# Enable/disable duct caller debug.
+declare -g DUCT_DEBUG="${DUCT_DEBUG:-false}"
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: Main duct plugin and command processor.
+# opts: <plugin> <command> [extra-options]
+duct() {
+  local -a DUCT_OPTS=( "$@" )
+
+  local -a DUCT_KEEP=()
+  local DUCT_BASE
+  local DUCT_CALL
+  local DUCT_FUNC=""
+  local DUCT_ITEM
+
+  if [[ -z "${DUCT_OPTS[*]}" ]] || [[ "${DUCT_OPTS[*]}" =~ ^(logo|version)$ ]]
+  then
+    __duct_logo
+    return
+  fi
+
+  DUCT_BASE="${DUCT_OPTS[0]}"
+  unset "DUCT_OPTS[0]"
+
+  # rewrite index
+  DUCT_OPTS=( "${DUCT_OPTS[@]}" )
+  DUCT_CALL="__duct_${DUCT_BASE}"
+
+  if [[ "$DUCT_DEBUG" == true ]]
+  then
+    __duct_msg d "base: $DUCT_BASE"
+    __duct_msg d "opts: ${DUCT_OPTS[*]}"
+  fi
+
+  # handle plugin direct function calls
+  if [[ "$( type -t "${DUCT_CALL}" )" == "function" ]]
+  then
+    DUCT_FUNC="$DUCT_CALL"
+
+    if [[ "$DUCT_DEBUG" == true ]]
+    then
+      __duct_msg d "func: $DUCT_FUNC"
+    fi
+  fi
+
+  # handle plugin sub function calls
+  for (( DUCT_ITEM=${#DUCT_OPTS[@]}-1; DUCT_ITEM>=0; DUCT_ITEM--))
+  do
+    DUCT_TEST="${DUCT_CALL}_${DUCT_OPTS[*]:0:(( DUCT_ITEM + 1 ))}"
+    DUCT_TEST="${DUCT_TEST// /_}"
+
+    if [[ "$( type -t "${DUCT_TEST}" )"  == "function"  ]]
+    then
+      DUCT_FUNC="$DUCT_TEST"
+
+      if [[ "$DUCT_DEBUG" == true  ]]
+      then
+        __duct_msg d "func: $DUCT_TEST"
+      fi
+      break
+    else
+      DUCT_KEEP+=( "${DUCT_OPTS[DUCT_ITEM]}" )
+
+      if [[ "$DUCT_DEBUG" == true ]]
+      then
+        __duct_msg d "keep: ${DUCT_KEEP[*]}"
+      fi
+    fi
+  done
+
+  # rewrite opts
+  DUCT_OPTS=()
+  for (( DUCT_ITEM=${#DUCT_KEEP[@]}-1; DUCT_ITEM>=0; DUCT_ITEM-- ))
+  do
+    DUCT_OPTS+=( "${DUCT_KEEP[DUCT_ITEM]}" )
+  done
+  unset DUCT_KEEP
+
+  if [[ "$DUCT_DEBUG" == true ]]
+  then
+    __duct_msg d "opts: ${DUCT_OPTS[*]}"
+  fi
+
+  if [[ -z "$DUCT_FUNC" ]]
+  then
+    __duct_msg e "'duct $DUCT_BASE ${DUCT_OPTS[*]:-\b}' not found!"
+    return 1
+  else
+    if [[ "$DUCT_DEBUG" == true ]]
+    then
+      __duct_msg d "call: $DUCT_FUNC ${DUCT_OPTS[*]}"
+    fi
+    "$DUCT_FUNC" "${DUCT_OPTS[@]}"
+  fi
+}
+readonly -f duct
