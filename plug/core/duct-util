@@ -236,7 +236,6 @@ readonly -f __duct_sfile
 declare -a -r _DUCT_CLEANUP_LIST=()
 
 # shellcheck disable=SC2206
-# - Preserve empty array
 # List of directories and files to cleanup.
 declare -g -a DUCT_CLEANUP_LIST=( ${DUCT_CLEANUP_LIST[@]:-${_DUCT_CLEANUP_LIST[@]}} )
 
@@ -246,9 +245,10 @@ declare -g -a DUCT_CLEANUP_LIST=( ${DUCT_CLEANUP_LIST[@]:-${_DUCT_CLEANUP_LIST[@
 # desc: Cleanup and remove a list of directories and files.
 # opts: [cleanup-list[@]]
 __duct_cleanup() {
-  local CLEANUP
   # shellcheck disable=SC2206
-  local CLEANUP_LIST=( ${DUCT_CLEANUP_LIST[@]:-$@} )
+  local CLEANUP_LIST=( ${@:-${DUCT_CLEANUP_LIST[@]}}  )
+
+  local CLEANUP_ITEM
 
   if [[ ${#CLEANUP_LIST[@]} -eq 0 ]]
   then
@@ -256,19 +256,24 @@ __duct_cleanup() {
     return 0
   fi
 
-  for CLEANUP in "${CLEANUP_LIST[@]}"
+  for CLEANUP_ITEM in "${CLEANUP_LIST[@]}"
   do
-    if [[ -d "${CLEANUP:?}" ]]
+    if [[ -d "$CLEANUP_ITEM" ]]
     then
-      __duct_msg n "removing dir ${CLEANUP:?}"
-      __duct_run rm -fr "${CLEANUP:?}"
+      __duct_msg n "removing dir $CLEANUP_ITEM"
+      __duct_run rm -fr "$CLEANUP_ITEM"
 
-    elif [[ -f "${CLEANUP:?}" ]]
+    elif [[ -L "$CLEANUP_ITEM" ]]
     then
-      __duct_msg n "removing file ${CLEANUP:?}"
-      __duct_run rm -f "${CLEANUP:?}"
+      __duct_msg n "removing link $CLEANUP_ITEM"
+      __duct_run rm -f "$CLEANUP_ITEM"
+
+    elif [[ -f "$CLEANUP_ITEM" ]]
+    then
+      __duct_msg n "removing file $CLEANUP_ITEM"
+      __duct_run rm -f "$CLEANUP_ITEM"
     else
-      __duct_msg w "${CLEANUP:?} not found!"
+      __duct_msg w "$CLEANUP_ITEM not found!"
     fi
   done
 }
