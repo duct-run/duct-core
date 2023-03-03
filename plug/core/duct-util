@@ -28,11 +28,9 @@
 # desc: Return string to lower.
 # opts: <string>
 __duct_lower() {
-  local STRING="$1"
+  local LOWER_STRING="$1"
 
-  __duct_msg d "$STRING -> ${STRING,,}"
-
-  printf "%b\n" "${STRING,,}"
+  printf "%s\n" "${LOWER_STRING,,}"
 }
 readonly -f __duct_lower
 
@@ -44,11 +42,9 @@ readonly -f __duct_lower
 # desc: Return string to upper.
 # opts: <string>
 __duct_upper() {
-  local STRING="$1"
+  local UPPER_STRING="$1"
 
-  __duct_msg d "$STRING -> ${STRING^^}"
-
-  printf "%b\n" "${STRING^^}"
+  printf "%s\n" "${UPPER_STRING^^}"
 }
 readonly -f __duct_upper
 
@@ -60,14 +56,12 @@ readonly -f __duct_upper
 # desc: Slugify a string.
 # opts: <string>
 __duct_slug() {
-  local STRING="$1"
+  local SLUG_STRING="$1"
 
-  __duct_msg d "$STRING"
+  SLUG_STRING="${SLUG_STRING,,}"    # lower
+  SLUG_STRING="${SLUG_STRING// /-}" # whitespace to '-'
 
-  STRING="${STRING,,}"    # lower
-  STRING="${STRING// /-}" # whitespace to '-'
-
-  printf "%b\n" "$STRING"
+  printf "%s\n" "$SLUG_STRING"
 }
 readonly -f __duct_slug
 
@@ -79,14 +73,12 @@ readonly -f __duct_slug
 # desc: Remove leading and trailing whitespaces from string.
 # opts: <string>
 __duct_trim() {
-  local STRING="$1"
+  local TRIM_STRING="$1"
 
-  __duct_msg d "$STRING"
+  TRIM_STRING="${TRIM_STRING##*([[:space:]])}"
+  TRIM_STRING="${TRIM_STRING%%*([[:space:]])}"
 
-  STRING="${STRING##*([[:space:]])}"
-  STRING="${STRING%%*([[:space:]])}"
-
-  printf "%b\n" "$STRING"
+  printf "%s\n" "$TRIM_STRING"
 }
 readonly -f __duct_trim
 
@@ -96,28 +88,29 @@ readonly -f __duct_trim
 # intl: false
 # life: core
 # desc: Strip elements from a string.
-# opts: <strip> <string>
+# opts: <string> <element>
 __duct_strip() {
-  local IFS=" "
-  local -a STRIP
-  local -a STRING
+  local -a STRIP_ELEMENT
+  local -a STRIP_STRING
+  local STRIP_INDEX
+  local STRIP_ITEM
 
-  IFS=" " read -r -a STRIP <<< "$1"
-  IFS=" " read -r -a STRING <<< "$2"
+  # to array
+  IFS=" " read -r -a STRIP_STRING <<< "$1"
+  IFS=" " read -r -a STRIP_ELEMENT <<< "$2"
 
-  __duct_msg d "'${STRIP[*]}' from '${STRING[*]}'"
-
-  for S in "${STRIP[@]}"
+  for STRIP_ITEM in "${STRIP_ELEMENT[@]}"
   do
-    for I in "${!STRING[@]}"
+    for STRIP_INDEX in "${!STRIP_STRING[@]}"
     do
-      if [[ "${STRING[I]}" == "$S" ]]
+      if [[ "${STRIP_STRING[STRIP_INDEX]}" == "$STRIP_ITEM" ]]
       then
-        unset 'STRING[I]'
+        unset 'STRIP_STRING[STRIP_INDEX]'
       fi
     done
   done
-  echo "${STRING[*]}"
+
+  printf "%s\n" "${STRIP_STRING[*]}"
 }
 readonly -f __duct_strip
 
@@ -129,9 +122,10 @@ readonly -f __duct_strip
 # desc: Decode a base64 string to plain-text, or simply output the plain-text input value.
 # opts: <string>
 __duct_debase64() {
-  local DEBASE64
-  local DEBASE64_RC=0
   local DEBASE64_STRING="${1:-}"
+
+  local DEBASE64_OUTPUT
+  local DEBASE64_RC=0
 
   if [[ -z "$DEBASE64_STRING" ]]
   then
@@ -140,22 +134,22 @@ __duct_debase64() {
   fi
 
   set +e
-  DEBASE64="$( base64 -d <<< "$DEBASE64_STRING" 2>/dev/null )"
+  DEBASE64_OUTPUT="$( base64 -d <<< "$DEBASE64_STRING" 2>/dev/null )"
   DEBASE64_RC=$?
   set -e
 
   if [[ "$DEBASE64_RC" -gt 0 ]]
   then
     __duct_msg d "plain string"
-    echo "$DEBASE64_STRING"
+    printf "%s\n" "$DEBASE64_STRING"
   else
-    if [[ ! "$DEBASE64" =~ [[:alpha:]] ]]
+    if [[ ! "$DEBASE64_OUTPUT" =~ [[:alpha:]] ]]
     then
       __duct_msg d "plain string"
-      echo "$DEBASE64_STRING"
+      printf "%s\n" "$DEBASE64_STRING"
     else
       __duct_msg d "base64 string"
-      echo "$DEBASE64"
+      printf "%s\n" "$DEBASE64_OUTPUT"
     fi
   fi
 }
@@ -302,34 +296,34 @@ declare -g -i DUCT_RANDOM_LENGTH=${DUCT_RANDOM_LENGTH:-16}
 # desc: Create a random string from given character list.
 # opts: [length]
 __duct_random() {
-  local -i RANDOM_LEN="${1:-${DUCT_RANDOM_LENGTH}}"
+  local -i RANDOM_LENGTH="${1:-${DUCT_RANDOM_LENGTH}}"
 
   local -a RANDOM_LIST=()
-  local RANDOM_STR
+  local RANDOM_STRING
   local RANDOM_CHARS
-  local RAND
+  local RANDOM_ITEM
 
   RANDOM_CHARS="${DUCT_RANDOM_CHARS[*]}"
   RANDOM_CHARS="${RANDOM_CHARS// }"
 
-  for (( RAND=0; RAND<${#RANDOM_CHARS}; RAND++ ))
+  for (( RANDOM_ITEM=0; RANDOM_ITEM<${#RANDOM_CHARS}; RANDOM_ITEM++ ))
   do
-    RANDOM_LIST+=( "${RANDOM_CHARS:$RAND:1}" )
+    RANDOM_LIST+=( "${RANDOM_CHARS:$RANDOM_ITEM:1}" )
   done
 
-  __duct_msg d "$RANDOM_LEN chars out of '$RANDOM_CHARS'"
+  __duct_msg d "$RANDOM_LENGTH chars out of '$RANDOM_CHARS'"
 
-  for (( RAND=0; RAND<RANDOM_LEN; RAND++ ))
+  for (( RANDOM_ITEM=0; RANDOM_ITEM<RANDOM_LENGTH; RANDOM_ITEM++ ))
   do
     if [[ "$DUCT_BASH_SRANDOM" == true ]]
     then
-      RANDOM_STR+="${RANDOM_LIST[$(( SRANDOM % ${#RANDOM_LIST[@]} ))]}"
+      RANDOM_STRING+="${RANDOM_LIST[$(( SRANDOM % ${#RANDOM_LIST[@]} ))]}"
     else
-      RANDOM_STR+="${RANDOM_LIST[$(( RANDOM % ${#RANDOM_LIST[@]} ))]}"
+      RANDOM_STRING+="${RANDOM_LIST[$(( RANDOM % ${#RANDOM_LIST[@]} ))]}"
     fi
   done
 
-  printf "%b\n" "$RANDOM_STR"
+  printf "%s\n" "$RANDOM_STRING"
 }
 readonly -f __duct_random
 
