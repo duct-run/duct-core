@@ -1142,6 +1142,34 @@ __duct_unpack() {
 }
 readonly -f __duct_unpack
 
+# sleep
+
+# File descriptor for sleep (set at run-time).
+declare -g DUCT_SLEEP_FD="${DUCT_SLEEP_FD:-}"
+
+# deps: duct-msg
+# intl: false
+# life: core
+# desc: Sleep seconds (default 5).
+# opts: [sleep-seconds]
+__duct_sleep() {
+  local SLEEP="${1:-5}"
+
+  __duct_msg d "sleep $SLEEP second(s)"
+
+  if [[ "$DUCT_OSTYPE" =~ (darwin) ]]
+  then
+    read -r -t "$SLEEP" || :
+  else
+    if [[ -z "$DUCT_SLEEP_FD" ]]
+    then
+      exec {DUCT_SLEEP_FD}<> <(:)
+    fi
+    read -r -t "$SLEEP" -u "$DUCT_SLEEP_FD" || :
+  fi
+}
+readonly -f __duct_sleep
+
 # sleep random
 
 # deps: duct-msg
@@ -1150,18 +1178,18 @@ readonly -f __duct_unpack
 # desc: Sleep random seconds (default max 5, min 1 second).
 # opts: [sleep-max] [sleep-min]
 __duct_sleep_random() {
-  local SLEEP_MAX="${1:-5}"
-  local SLEEP_MIN="${2:-1}"
+  local SLEEP_RANDOM_MAX="${1:-5}"
+  local SLEEP_RANDOM_MIN="${2:-1}"
 
   local SLEEP_RANDOM=0
 
-  while [[ "$SLEEP_RANDOM" -lt "$SLEEP_MIN" ]]
+  while [[ "$SLEEP_RANDOM" -lt "$SLEEP_RANDOM_MIN" ]]
   do
-    SLEEP_RANDOM="$(( RANDOM % SLEEP_MAX + 1 ))"
+    SLEEP_RANDOM="$(( RANDOM % SLEEP_RANDOM_MAX + 1 ))"
   done
 
-  __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_MIN/$SLEEP_MAX second(s)"
-  sleep "$SLEEP_RANDOM"
+  __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_RANDOM_MIN/$SLEEP_RANDOM_MAX second(s)"
+  __duct_sleep "$SLEEP_RANDOM"
 }
 readonly -f __duct_sleep_random
 
