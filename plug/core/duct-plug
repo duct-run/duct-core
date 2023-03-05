@@ -156,9 +156,6 @@ readonly -f __duct_plug_install
 
 # plug load
 
-# Regex of already loaded plugins (internal).
-declare -r _DUCT_PLUG_LOAD_EXCLUDE="^(duct-core|duct-msg|duct-plug)$"
-
 # List of plugins to skip (default).
 declare -r -a _DUCT_PLUG_LOAD_SKIP=( duct-none )
 
@@ -182,6 +179,7 @@ __duct_plug_load() {
   local PLUG_LOAD_TYPE="${1:-}"
 
   local -a PLUG_LOAD_LIST
+  local PLUG_LOAD_CORE
   local PLUG_LOAD_INIT
   local PLUG_LOAD_ITEM
   local PLUG_LOAD_NAME
@@ -220,15 +218,17 @@ __duct_plug_load() {
     PLUG_LOAD_NAME="${PLUG_LOAD_ITEM##*/}"
     PLUG_LOAD_INIT="__${PLUG_LOAD_NAME//-/_}_load"
 
-    if [[ ! "$PLUG_LOAD_NAME" =~ ^duct-[a-z]+$ ]] || [[ "$PLUG_LOAD_NAME" =~ $_DUCT_PLUG_LOAD_EXCLUDE ]]
+    PLUG_LOAD_CORE="$( IFS="|"; printf "%s" "${DUCT_PLUG_CORE[*]}" )"
+
+    if [[ ! "$PLUG_LOAD_NAME" =~ ^duct-[a-z]+$ ]] || [[ "$PLUG_LOAD_NAME" =~ ^($PLUG_LOAD_CORE)$ ]]
     then
       continue
     fi
 
     PLUG_LOAD_SKIP=$( IFS="|"; printf "%s" "${DUCT_PLUG_LOAD_SKIP[*]}" )
 
-    # skip plugin (avoid core skips)
-    if [[ "$PLUG_LOAD_NAME" =~ ^($PLUG_LOAD_SKIP)$ ]] && [[ "$PLUG_LOAD_TYPE" != "core" ]]
+    # skip plugin
+    if [[ "$PLUG_LOAD_NAME" =~ ^($PLUG_LOAD_SKIP)$ ]]
     then
       __duct_msg w "skip $PLUG_LOAD_NAME"
       continue
