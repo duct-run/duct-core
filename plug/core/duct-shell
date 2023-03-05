@@ -219,10 +219,10 @@ __duct_umask() {
   umask "$DUCT_UMASK"
 
   DUCT_UMASK_DMODE="$( printf '%#o' $(( 0777 & ~DUCT_UMASK )) )"
-  __duct_msg d "dirmode $DUCT_UMASK_DMODE"
+  __duct_msg d "$DUCT_UMASK_DMODE (dirmode)"
 
   DUCT_UMASK_FMODE="$( printf '%#o' $(( 0777 & ~0111 & ~DUCT_UMASK )) )"
-  __duct_msg d "filemode $DUCT_UMASK_FMODE"
+  __duct_msg d "$DUCT_UMASK_FMODE (filemode)"
 }
 readonly -f __duct_umask
 
