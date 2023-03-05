@@ -68,7 +68,6 @@ declare -r -a DUCT_PLUG_CORE=(
   duct-plug
   duct-run
   duct-shell
-  duct-util
 )
 
 for DUCT_ITEM in "${DUCT_PLUG_CORE[@]}"
@@ -78,20 +77,16 @@ do
 done
 unset DUCT_ITEM
 
-# env & conf
+# run required functions
 __duct_env
 __duct_conf
+__duct_bash
+__duct_init
+__duct_umask
 
 # install and load optional core plugins
 __duct_plug_install core
 __duct_plug_load core
-
-# bash
-__duct_bash
-
-# init & umask
-__duct_init
-__duct_umask
 
 # install and load main & vendor plugins
 __duct_plug_install main
