@@ -140,7 +140,7 @@ __duct_run() {
   # store return code
   if [[ "$DUCT_RUN_STORE_RC" == true ]]
   then
-    DUCT_RUN_RC="$RUN_RC"
+    export DUCT_RUN_RC="$RUN_RC"
 
     __duct_msg d "store return code: $DUCT_RUN_RC_FILE"
     echo "$DUCT_RUN_RC" > "$DUCT_RUN_RC_FILE"
@@ -156,7 +156,7 @@ readonly -f __duct_run
 # run rc
 
 # Run return code (set at runtime).
-declare -g -x -i DUCT_RUN_RC=0
+declare -g -i DUCT_RUN_RC=0
 
 # Return code file.
 declare -g DUCT_RUN_RC_FILE="${DUCT_RUN_RC_FILE:-"${DUCT_TMP_DIR}/duct-run.rc"}"
@@ -173,6 +173,7 @@ __duct_run_rc() {
     then
       DUCT_RUN_RC="$( < "$DUCT_RUN_RC_FILE" )"
       rm -f "${DUCT_RUN_RC_FILE:?}"
+      export DUCT_RUN_RC
     else
       __duct_msg w "empty duct run store rc!"
     fi
