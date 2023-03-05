@@ -20,78 +20,112 @@
 # duct-gnu
 # GNU tools.
 
-# Associative array of GNU tools (set at runtime).
+# gnu load
+__duct_gnu_load() {
+  local GNU_LOAD_RC=0
+
+  __duct_intl
+
+  # check gnu tools
+  __duct_gnu_tools || GNU_LOAD_RC=$?
+
+  if [[ "$GNU_LOAD_RC" -gt 0 ]]
+  then
+    __duct_msg w "gnu tools incomplete!"
+  fi
+}
+readonly -f __duct_gnu_load
+
+# gnu tools
+
+# GNU tools mapping (set at runtime).
 declare -g -A DUCT_GNU_TOOLS=()
+
+# GNU tools mapping (defaults).
+declare -g DUCT_GNU_TOOLS["awk"]="awk"
 declare -g DUCT_GNU_TOOLS["grep"]="grep"
 declare -g DUCT_GNU_TOOLS["sed"]="sed"
 declare -g DUCT_GNU_TOOLS["tar"]="tar"
 
-# gnu check
+__duct_gnu_tools() {
+  local -A GNU_TOOLS_MAP
+  local GNU_TOOLS_BIN
+  local GNU_TOOLS_RC=0
+  local GNU_TOOLS_SET
 
-# deps: duct-msg
-# intl: true
-# life: core
-# desc: Check and set GNU versions to `DUCT_GNU_TOOLS`.
-# opts:
-__duct_gnu_check() {
   __duct_intl
 
-  local GNU_SET
-  local GNU
-  local GNU_ID
-  local GNU_CMD
-  local GNU_VERSION
-  local GNU_RC=0
-
-  case "$OSTYPE"
+  case "$DUCT_OSTYPE"
   in
-    darwin*)
-      GNU_SET="grep=ggrep sed=gsed tar=gtar"
+    darwin)
+      GNU_TOOLS_MAP["awk"]="gawk"
+      GNU_TOOLS_MAP["grep"]="ggrep"
+      GNU_TOOLS_MAP["sed"]="gsed"
+      GNU_TOOLS_MAP["tar"]="gtar"
     ;;
-    freebsd*)
-      GNU_SET="grep=grep sed=gsed tar=gtar"
+    freebsd)
+      GNU_TOOLS_MAP["awk"]="gawk"
+      GNU_TOOLS_MAP["grep"]="grep"
+      GNU_TOOLS_MAP["sed"]="gsed"
+      GNU_TOOLS_MAP["tar"]="gtar"
     ;;
     linux*)
-      GNU_SET="grep=grep sed=sed tar=tar"
+      GNU_TOOLS_MAP["awk"]="gawk"
+      GNU_TOOLS_MAP["grep"]="grep"
+      GNU_TOOLS_MAP["sed"]="sed"
+      GNU_TOOLS_MAP["tar"]="tar"
     ;;
     *)
-      __duct_msg e "$OSTYPE currently unsupported!"
+      __duct_msg e "$DUCT_OSTYPE currently unsupported!"
       return 1
     ;;
   esac
 
-  for GNU in $GNU_SET
+  for GNU_TOOLS_SET in "${!DUCT_GNU_TOOLS[@]}"
   do
-    GNU_ID="${GNU%%=*}"
-    GNU_CMD="${GNU##*=}"
+    GNU_TOOLS_BIN="$( command -v "${GNU_TOOLS_MAP[$GNU_TOOLS_SET]}" || command -v "${DUCT_GNU_TOOLS[$GNU_TOOLS_SET]}" || :)"
 
-    GNU_PATH="$( type -P "$GNU_CMD" || : )"
-
-    if [[ -n "$GNU_PATH" ]]
+    if [[ -n "$GNU_TOOLS_BIN" ]]
     then
-      GNU_VERSION="$( command "$GNU_PATH" --version 2>&1 | __duct_head 1 || : )"
-
-      if [[ "$GNU_VERSION" =~ (GNU $GNU_ID) ]]
+      if [[ $( command "$GNU_TOOLS_BIN" --version | __duct_head 1 || : ) =~ (GNU) ]]
       then
-        DUCT_GNU_TOOLS["$GNU_ID"]="$GNU_CMD"
-        __duct_msg d "'$GNU_PATH' GNU version found"
+        __duct_msg d "'$GNU_TOOLS_BIN' gnu version found"
+        DUCT_GNU_TOOLS[$GNU_TOOLS_SET]="${GNU_TOOLS_MAP[$GNU_TOOLS_SET]}"
       else
-        __duct_msg w "'$GNU_PATH' not a GNU version!"
+        __duct_msg w "'$GNU_TOOLS_BIN' not a gnu version!"
+        (( GNU_TOOLS_RC+=1 ))
       fi
     else
-      __duct_msg e "$GNU_CMD not found!"
-      (( GNU_RC+=1 ))
+      __duct_msg e "${GNU_TOOLS_MAP[$GNU_TOOLS_SET]} not found!"
+      (( GNU_TOOLS_RC+=1 ))
     fi
   done
 
-  if [[ "$GNU_RC" -gt 0 ]]
+  if [[ "$GNU_TOOLS_RC" -gt 0 ]]
   then
     return 1
-  else
-    return 0
   fi
 }
-readonly -f __duct_gnu_check
+readonly -f __duct_gnu_tools
+
+# gnu awk
+
+# deps: duct-run
+# intl: false
+# life: core
+# desc: Run GNU version of `awk` (if available).
+# opts: <awk-options>
+__duct_gnu_awk() {
+  if [[ "${FUNCNAME[1]}" == "duct" ]]
+  then
+    # external
+    __duct_run "${DUCT_GNU_TOOLS["awk"]}" "$@"
+  else
+    # internal
+    command "${DUCT_GNU_TOOLS["awk"]}" "$@"
+  fi
+}
+readonly -f __duct_gnu_awk
 
 # gnu grep
 
