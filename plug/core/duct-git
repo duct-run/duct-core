@@ -29,6 +29,29 @@ declare -g DUCT_GIT_BRANCH="${DUCT_GIT_BRANCH:-"main"}"
 # Default git remote name.
 declare -g DUCT_GIT_REMOTE="${DUCT_GIT_REMOTE:-"origin"}"
 
+
+# git load
+
+# Plugin requirements.
+declare -r -a _DUCT_GIT_LOAD_REQUIREMENTS=(
+  git
+)
+
+# Minimum supported git version.
+declare -r _DUCT_GIT_LOAD_GIT_VERSION="2.25.0"
+
+__duct_git_load() {
+  local GIT_LOAD_RC=0
+
+  __duct_intl
+
+  __duct_bin_check "${_DUCT_GIT_LOAD_REQUIREMENTS[@]}" || GIT_LOAD_RC=$?
+  __duct_ver_check "git" "$_DUCT_GIT_LOAD_GIT_VERSION" 3 || GIT_LOAD_RC=$?
+
+  return $GIT_LOAD_RC
+}
+readonly -f __duct_git_load
+
 # git local head
 
 declare -g DUCT_GIT_LOCAL_HEAD_PATH="${DUCT_GIT_LOCAL_HEAD_PATH:-$DUCT_GIT_WORKDIR}"

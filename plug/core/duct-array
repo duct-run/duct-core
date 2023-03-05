@@ -20,6 +20,23 @@
 # duct-array
 # Collection of array functions.
 
+# array load
+
+declare -r -a _DUCT_ARRAY_LOAD_REQUIREMENTS=(
+  sort
+)
+
+__duct_array_load() {
+  local ARRAY_LOAD_RC=0
+
+  __duct_intl
+
+  __duct_bin_check "${_DUCT_ARRAY_LOAD_REQUIREMENTS[@]}" || ARRAY_LOAD_RC=$?
+
+  return $ARRAY_LOAD_RC
+}
+readonly -f __duct_array_load
+
 # array add
 
 # deps:

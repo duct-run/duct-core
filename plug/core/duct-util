@@ -20,6 +20,18 @@
 # duct-util
 # Collection of core utilities.
 
+# util load
+__duct_util_load() {
+  local UTIL_LOAD_RC=0
+
+  __duct_intl
+
+  __duct_bin_check base64 || UTIL_LOAD_RC=$?
+
+  return $UTIL_LOAD_RC
+}
+readonly -f __duct_util_load
+
 # lower
 
 # deps:

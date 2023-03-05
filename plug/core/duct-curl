@@ -20,6 +20,28 @@
 # duct-curl
 # curl operations.
 
+# curl load
+
+# Plugin requirements.
+declare -r -a _DUCT_CURL_LOAD_REQUIREMENTS=(
+  curl
+)
+
+# Minimum supported curl version.
+declare -r _DUCT_CURL_LOAD_CURL_VERSION="7.29.0"
+
+__duct_curl_load() {
+  local CURL_LOAD_RC=0
+
+  __duct_intl
+
+  __duct_bin_check "${_DUCT_CURL_LOAD_REQUIREMENTS[@]}" || CURL_LOAD_RC=$?
+  __duct_ver_check "curl" "$_DUCT_CURL_LOAD_CURL_VERSION" 2 || CURL_LOAD_RC=$?
+
+  return $CURL_LOAD_RC
+}
+readonly -f __duct_curl_load
+
 # curl
 
 # Options for `curl` (defaults).
