@@ -20,207 +20,94 @@
 # duct-plug
 # Handle duct plugins.
 
-# Plugin core directory (internal).
-declare -g -r _DUCT_PLUG_DIR_CORE="${DUCT_PLUG_DIR}/core"
-
-# Plugin main directory (internal).
-declare -g -r _DUCT_PLUG_DIR_MAIN="${DUCT_PLUG_DIR}/main"
-
-# Plugin vendor directory (internal).
-declare -g -r _DUCT_PLUG_DIR_VENDOR="${DUCT_PLUG_DIR}/vendor"
-
-# Plugin hosting (internal/special).
-declare -g _DUCT_PLUG_HOSTING="${DUCT_PLUG_HOSTING:-${_DUCT_PLUG_HOSTING:-"https://github.com/duct-run"}}"
-
-# Plugin exclude regex, already loaded (internal).
-declare -g -r _DUCT_PLUG_EXCLUDE="^(duct-core|duct-msg|duct-plug)$"
-
-# Be quiet
+# Quiet plugin install and load messages.
 declare -g DUCT_PLUG_QUIET="${DUCT_PLUG_QUIET:-false}"
-
-# plug load
-
-# Enable/disbale plugin loader messages.
-declare -g DUCT_PLUG_LOAD_QUIET="${DUCT_PLUG_LOAD_QUIET:-${DUCT_PLUG_QUIET}}"
-
-# deps: duct-msg
-# intl: true
-# life: core
-# desc: Load duct plugins.
-# opts: <plugin-type>
-__duct_plug_load() {
-  __duct_intl
-
-  local PLUG
-  local PLUG_DIR
-  local PLUG_FIND
-  local PLUG_GLOB
-  local PLUG_NAME
-  local PLUG_TYPE="${1:-}"
-
-  shopt -s dotglob
-  shopt -s globstar
-
-  case "$PLUG_TYPE"
-  in
-    core)
-      PLUG_DIR="$_DUCT_PLUG_DIR_CORE"
-      PLUG_GLOB='**/duct-*'
-    ;;
-    main)
-      PLUG_DIR="$_DUCT_PLUG_DIR_MAIN"
-      PLUG_GLOB='plug/**/duct-*'
-    ;;
-    vendor)
-      PLUG_DIR="$_DUCT_PLUG_DIR_VENDOR"
-      PLUG_GLOB='*/plug/duct-*'
-
-      # skip vendor load
-      if [[ "${#DUCT_PLUG_INSTALL_VENDOR[@]}" -lt 1 ]]
-      then
-        return
-      fi
-    ;;
-    *)
-      __duct_msg e "'$PLUG_TYPE' unsupported plugin type!"
-      return 1
-    ;;
-  esac
-
-  # shellcheck disable=SC2206
-  PLUG_FIND=( "${PLUG_DIR}/"${PLUG_GLOB} )
-
-  if [[ "$DUCT_PLUG_LOAD_QUIET" != true ]]
-  then
-    __duct_msg d "$PLUG_TYPE"
-  fi
-
-  for PLUG in "${PLUG_FIND[@]}"
-  do
-    PLUG_NAME="${PLUG##*/}"
-
-    if [[ ! "$PLUG_NAME" =~ ^duct-[a-z]+$ ]] || [[ "$PLUG_NAME" =~ $_DUCT_PLUG_EXCLUDE ]]
-    then
-      continue
-    fi
-
-    if [[ -f "$PLUG" ]] && [[ -s "$PLUG" ]]
-    then
-
-      if [[ "$DUCT_PLUG_LOAD_QUIET" != true ]]
-      then
-        __duct_msg d "$PLUG_NAME"
-      fi
-
-      # shellcheck disable=SC1090
-      source "$PLUG"
-    fi
-  done
-
-  shopt -u dotglob
-  shopt -u globstar
-}
-readonly -f __duct_plug_load
 
 # plug install
 
-# Core plugins to be updated (internal).
-declare -r -a _DUCT_PLUG_INSTALL_CORE=(
-  duct-core
-)
+# Override plugin hosting (internal & special).
+declare -g _DUCT_PLUG_INSTALL_HOSTING="${DUCT_PLUG_INSTALL_HOSTING:-${_DUCT_PLUG_INSTALL_HOSTING:-"https://github.com/duct-run"}}"
 
-# Main plugins to be installed and updated (internal).
-declare -a -r _DUCT_PLUG_INSTALL_MAIN=(
-  duct-plug-main
-)
-
-# List of vendor plugins to be installed and updated (defaults).
-declare -a -r _DUCT_PLUG_INSTALL_VENDOR=()
+# List of vendor plugins to install and update (defaults).
+declare -r -a _DUCT_PLUG_INSTALL_VENDOR=()
 
 # shellcheck disable=SC2206
-# - Preserve empty array
-# List of vendor plugins to be installed and updated (url::tag).
+# List of vendor plugins to install and update (url::tag|version).
 declare -g -a DUCT_PLUG_INSTALL_VENDOR=( ${DUCT_PLUG_INSTALL_VENDOR[@]:-${_DUCT_PLUG_INSTALL_VENDOR[@]}} )
 
-# Enable/disable plugin installer messages.
+# Quiet plugin install messages.
 declare -g DUCT_PLUG_INSTALL_QUIET="${DUCT_PLUG_INSTALL_QUIET:-${DUCT_PLUG_QUIET}}"
 
-# Enable/disbale plugin update.
-declare -g DUCT_PLUG_INSTALL_UPDATE="${DUCT_PLUG_INSTALL_UPDATE:-true}"
-
-# Enable/disable plugin install.
+# Enable/disable plugin install and update (not recommended!).
 declare -g DUCT_PLUG_INSTALL_ENABLE="${DUCT_PLUG_INSTALL_ENABLE:-true}"
 
 # deps: duct-msg
 # intl: true
 # life: core
-# desc: Install and update duct plugins.
+# desc: The duct plugin installer and updater.
 # opts: <plugin-type>
 __duct_plug_install() {
   __duct_intl
 
-  local -a PLUG=()
-  local PLUG_DIR
-  local PLUG_TAG
-  local PLUG_TYPE="${1:-}"
-  local PLUG_URL
-  local _PLUG
+  local PLUG_INSTALL_TYPE="${1:-}"
+
+  local -a PLUG_INSTALL_LIST=()
+  local PLUG_INSTALL_DIR
+  local PLUG_INSTALL_HEAD
+  local PLUG_INSTALL_ITEM
+  local PLUG_INSTALL_NAME
+  local PLUG_INSTALL_TAG
+  local PLUG_INSTALL_URL
 
   if [[ "$DUCT_PLUG_INSTALL_ENABLE" != true ]]
   then
-    __duct_msg d "$PLUG_TYPE (disabled)"
+    __duct_msg w "$PLUG_INSTALL_TYPE (disabled)"
     return
   fi
 
-  case "$PLUG_TYPE"
+  case "$PLUG_INSTALL_TYPE"
   in
     core)
-      PLUG=( "${_DUCT_PLUG_INSTALL_CORE[@]}" )
+      PLUG_INSTALL_LIST=( "duct-core" )
+      PLUG_INSTALL_DIR="$DUCT_ROOT_DIR"
     ;;
     main)
-      PLUG=( "${_DUCT_PLUG_INSTALL_MAIN[@]}" )
+      PLUG_INSTALL_LIST=( "duct-plug-main" )
+      PLUG_INSTALL_DIR="${DUCT_PLUG_DIR}/main"
     ;;
     vendor)
-      PLUG=( "${DUCT_PLUG_INSTALL_VENDOR[@]}" )
+      PLUG_INSTALL_LIST=( "${DUCT_PLUG_INSTALL_VENDOR[@]}" )
     ;;
     *)
-      __duct_msg e "'$PLUG_TYPE' unsupported plugin type!"
+      __duct_msg e "'$PLUG_INSTALL_TYPE' unsupported plugin type!"
       return 1
     ;;
   esac
 
-  for _PLUG in "${PLUG[@]}"
+  for PLUG_INSTALL_ITEM in "${PLUG_INSTALL_LIST[@]}"
   do
-    PLUG_URL="${_PLUG%%::*}"
-    PLUG_TAG="${_PLUG##*::}"
+    PLUG_INSTALL_URL="${PLUG_INSTALL_ITEM%%::*}"
+    PLUG_INSTALL_TAG="${PLUG_INSTALL_ITEM##*::}"
 
-    if [[ "$PLUG_TAG" == "$PLUG_URL" ]]
+    if [[ "$PLUG_INSTALL_TAG" == "$PLUG_INSTALL_URL" ]]
     then
-      PLUG_TAG="devel" # TODO: change to stable before release!
+      PLUG_INSTALL_TAG="devel" # TODO: change to stable before release!
     fi
 
-    PLUG_NAME="${PLUG_URL##*/}"
-    PLUG_NAME="${PLUG_NAME//.git}"
-    PLUG_NAME="${PLUG_NAME##*duct-plug-}"
-    PLUG_NAME="${PLUG_NAME##*duct-plugin-}"
+    PLUG_INSTALL_NAME="${PLUG_INSTALL_URL##*/}"
+    PLUG_INSTALL_NAME="${PLUG_INSTALL_NAME//.git}"
+    PLUG_INSTALL_NAME="${PLUG_INSTALL_NAME##*duct-plug-}"
+    PLUG_INSTALL_NAME="${PLUG_INSTALL_NAME##*duct-plugin-}"
 
-    case "$PLUG_TYPE"
-    in
-      core)
-        PLUG_DIR="$DUCT_ROOT_DIR"
-      ;;
-      main)
-        PLUG_DIR="$_DUCT_PLUG_DIR_MAIN"
-      ;;
-      vendor)
-        PLUG_DIR="${_DUCT_PLUG_DIR_VENDOR}/${PLUG_NAME}"
-      ;;
-    esac
+    if [[ "$PLUG_INSTALL_TYPE" == "vendor" ]]
+    then
+      PLUG_INSTALL_DIR="${DUCT_PLUG_DIR}/vendor/${PLUG_INSTALL_NAME}"
+    fi
 
     # default pluging hosting
-    if [[ ! "$PLUG_URL" =~ ^(http(s)?|.*@) ]]
+    if [[ ! "$PLUG_INSTALL_URL" =~ ^(http(s)?|.*@) ]]
     then
-      PLUG_URL="${_DUCT_PLUG_HOSTING}/${PLUG_URL}"
+      PLUG_INSTALL_URL="${_DUCT_PLUG_INSTALL_HOSTING}/${PLUG_INSTALL_URL}"
     fi
 
     # store
@@ -231,31 +118,31 @@ __duct_plug_install() {
     fi
 
     # add .git to url
-    if [[ ! "$PLUG_URL" =~ \.git$ ]]
+    if [[ ! "$PLUG_INSTALL_URL" =~ \.git$ ]]
     then
-      PLUG_URL="${PLUG_URL}.git"
+      PLUG_INSTALL_URL="${PLUG_INSTALL_URL}.git"
     fi
 
     # check git
     if command -v git >/dev/null 2>&1
     then
       # git clone or pull
-      if [[ ! -d "${PLUG_DIR}/.git" ]]
+      if [[ ! -d "${PLUG_INSTALL_DIR}/.git" ]]
       then
-        __duct_msg n "$PLUG_NAME (clone) [$PLUG_URL]"
-        git clone --quiet "$PLUG_URL" "$PLUG_DIR" || __duct_msg e "git failed!"
+        __duct_msg n "$PLUG_INSTALL_NAME (clone) [$PLUG_INSTALL_URL]"
+        git clone --quiet "$PLUG_INSTALL_URL" "$PLUG_INSTALL_DIR" || __duct_msg e "git failed!"
       else
-        __duct_msg n "$PLUG_NAME (pull)"
-        git -C "$PLUG_DIR" pull --quiet --prune || __duct_msg e "git failed!"
+        __duct_msg n "$PLUG_INSTALL_NAME (pull)"
+        git -C "$PLUG_INSTALL_DIR" pull --quiet --prune || __duct_msg e "git failed!"
       fi
 
       # git checkout
-      PLUG_HEAD="$( git -C "$PLUG_DIR" describe --all --contains || __duct_msg e "git failed!" )"
+      PLUG_INSTALL_HEAD="$( git -C "$PLUG_INSTALL_DIR" describe --all --contains || __duct_msg e "git failed!" )"
 
-      if [[ "$PLUG_HEAD" != "$PLUG_TAG" ]]
+      if [[ "$PLUG_INSTALL_HEAD" != "$PLUG_INSTALL_TAG" ]]
       then
-        __duct_msg n "$PLUG_NAME (checkout) [$PLUG_TAG]"
-        git -C "$PLUG_DIR" checkout --quiet "$PLUG_TAG" || __duct_msg e "git failed!"
+        __duct_msg n "$PLUG_INSTALL_NAME (checkout) [$PLUG_INSTALL_TAG]"
+        git -C "$PLUG_INSTALL_DIR" checkout --quiet "$PLUG_INSTALL_TAG" || __duct_msg e "git failed!"
       fi
     else
       __duct_msg w "git not found!"
@@ -266,3 +153,104 @@ __duct_plug_install() {
   done
 }
 readonly -f __duct_plug_install
+
+# plug load
+
+# Regex of already loaded plugins (internal).
+declare -r _DUCT_PLUG_LOAD_EXCLUDE="^(duct-core|duct-msg|duct-plug)$"
+
+# List of plugins to skip (default).
+declare -r -a _DUCT_PLUG_LOAD_SKIP=( duct-none )
+
+# Quiet plugin load messages.
+declare -g DUCT_PLUG_LOAD_QUIET="${DUCT_PLUG_LOAD_QUIET:-${DUCT_PLUG_QUIET}}"
+
+# List of plugins to skip loading.
+declare -g DUCT_PLUG_LOAD_SKIP=( "${DUCT_PLUG_LOAD_SKIP[@]:-${_DUCT_PLUG_LOAD_SKIP[@]}}" )
+
+# Run plugin inital load function.
+declare -g DUCT_PLUG_LOAD_INIT="${DUCT_PLUG_LOAD_INIT:-true}"
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: The duct plugin loader.
+# opts: <plugin-type>
+__duct_plug_load() {
+  __duct_intl
+
+  local PLUG_LOAD_TYPE="${1:-}"
+
+  local -a PLUG_LOAD_LIST
+  local PLUG_LOAD_INIT
+  local PLUG_LOAD_ITEM
+  local PLUG_LOAD_NAME
+  local PLUG_LOAD_SKIP
+
+  shopt -s dotglob
+  shopt -s globstar
+
+  case "$PLUG_LOAD_TYPE"
+  in
+    core)
+      PLUG_LOAD_LIST=( "${DUCT_PLUG_DIR}/core/"**/duct-* )
+    ;;
+    main)
+      PLUG_LOAD_LIST=( "${DUCT_PLUG_DIR}/main/"plug/**/duct-* )
+    ;;
+    vendor)
+      # skip vendor load
+      if [[ "${#DUCT_PLUG_INSTALL_VENDOR[@]}" -lt 1 ]]
+      then
+        return
+      fi
+
+      PLUG_LOAD_LIST=( "${DUCT_PLUG_DIR}/vendor/"*/plug/duct-* )
+    ;;
+    *)
+      __duct_msg e "'$PLUG_LOAD_TYPE' unsupported plugin type!"
+      return 1
+    ;;
+  esac
+
+  [[ "$DUCT_PLUG_LOAD_QUIET" != true ]] && __duct_msg d "$PLUG_LOAD_TYPE"
+
+  for PLUG_LOAD_ITEM in "${PLUG_LOAD_LIST[@]}"
+  do
+    PLUG_LOAD_NAME="${PLUG_LOAD_ITEM##*/}"
+    PLUG_LOAD_INIT="__${PLUG_LOAD_NAME//-/_}_load"
+
+    if [[ ! "$PLUG_LOAD_NAME" =~ ^duct-[a-z]+$ ]] || [[ "$PLUG_LOAD_NAME" =~ $_DUCT_PLUG_LOAD_EXCLUDE ]]
+    then
+      continue
+    fi
+
+    PLUG_LOAD_SKIP=$( IFS="|"; printf "%s" "${DUCT_PLUG_LOAD_SKIP[*]}" )
+
+    # skip plugin (avoid core skips)
+    if [[ "$PLUG_LOAD_NAME" =~ ^($PLUG_LOAD_SKIP)$ ]] && [[ "$PLUG_LOAD_TYPE" != "core" ]]
+    then
+      __duct_msg w "skip $PLUG_LOAD_NAME"
+      continue
+    fi
+
+    if [[ -f "$PLUG_LOAD_ITEM" ]] && [[ -s "$PLUG_LOAD_ITEM" ]]
+    then
+      [[ "$DUCT_PLUG_LOAD_QUIET" != true ]] && __duct_msg d "$PLUG_LOAD_NAME"
+
+      # shellcheck disable=SC1090
+      source "$PLUG_LOAD_ITEM"
+
+      if [[ "$DUCT_PLUG_LOAD_INIT" == true ]] && [[ "$( type -t "$PLUG_LOAD_INIT"  )" == "function"  ]]
+      then
+        [[ "$DUCT_PLUG_LOAD_QUIET" != true ]] && __duct_msg d "init: ${PLUG_LOAD_NAME//-/ } load"
+
+        "$PLUG_LOAD_INIT"
+      fi
+    fi
+  done
+
+  shopt -u dotglob
+  shopt -u globstar
+}
+readonly -f __duct_plug_load
