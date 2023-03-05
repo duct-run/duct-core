@@ -60,19 +60,29 @@ declare -r DUCT_URL="https://duct.run/"
 # shellcheck disable=SC2034,SC2155
 declare -r DUCT_VERSION="$( < "${DUCT_ROOT_DIR}/.duct-version" )"
 
-# msg
-# shellcheck disable=SC1091
-source "${DUCT_PLUG_DIR}/core/duct-msg"
+# core plugins
+declare -r -a DUCT_PLUG_CORE=(
+  duct-bash
+  duct-core
+  duct-msg
+  duct-plug
+  duct-run
+  duct-shell
+  duct-util
+)
 
-# core
-# shellcheck disable=SC1091
-source "${DUCT_PLUG_DIR}/core/duct-core"
+for DUCT_ITEM in "${DUCT_PLUG_CORE[@]}"
+do
+  # shellcheck disable=SC1090
+  source "${DUCT_PLUG_DIR}/core/$DUCT_ITEM"
+done
+unset DUCT_ITEM
+
+# env & conf
 __duct_env
 __duct_conf
 
-# install and load core plugins
-# shellcheck disable=SC1091
-source "${DUCT_PLUG_DIR}/core/duct-plug"
+# install and load optional core plugins
 __duct_plug_install core
 __duct_plug_load core
 
