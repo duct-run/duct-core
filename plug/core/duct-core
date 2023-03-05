@@ -349,20 +349,10 @@ declare -g DUCT_INIT_QUIET="${DUCT_INIT_QUIET:-false}"
 
 # List of duct requirements (internal).
 declare -g -r -a _DUCT_INIT_REQUIRED=(
-  base64
-  curl
-  git
   jq
-  sort
   unzip
   xz
 )
-
-# Minimal curl version.
-declare -g -r _DUCT_INIT_CURL_VERSION="7.29.0"
-
-# Minimal git version.
-declare -g -r _DUCT_INIT_GIT_VERSION="2.25.0"
 
 # Minimal jq version.
 declare -g -r _DUCT_INIT_JQ_VERSION="1.6"
@@ -376,7 +366,7 @@ __duct_init() {
   __duct_intl
 
   local INIT_RC=0
-  local MSG_LEVEL="$DUCT_MSG_MAX_LEVEL"
+  local INIT_MSG_LEVEL="$DUCT_MSG_MAX_LEVEL"
 
   if [[ "$DUCT_INIT_QUIET" == true ]]
   then
@@ -394,20 +384,11 @@ __duct_init() {
 
   if [[ "$INIT_RC" -eq 0 ]]
   then
-    # check curl version
-    __duct_ver_check curl "$_DUCT_INIT_CURL_VERSION" 2 || (( INIT_RC+=$? ))
-
-    # check git version
-    __duct_ver_check git "$_DUCT_INIT_GIT_VERSION" 3 || (( INIT_RC+=$? ))
-
     # check jq version
     __duct_ver_check jq "$_DUCT_INIT_JQ_VERSION" 1 || (( INIT_RC+=$? ))
   fi
 
-  # check gnu
-  __duct_gnu_check || (( INIT_RC+=$? ))
-
-  DUCT_MSG_MAX_LEVEL="$MSG_LEVEL"
+  DUCT_MSG_MAX_LEVEL="$INIT_MSG_LEVEL"
 
   if [[ "$INIT_RC" -gt 0 ]]
   then
