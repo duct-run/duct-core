@@ -243,8 +243,6 @@ __duct_plug_load() {
 
       if [[ "$DUCT_PLUG_LOAD_INIT" == true ]] && [[ "$( type -t "$PLUG_LOAD_INIT"  )" == "function"  ]]
       then
-        [[ "$DUCT_PLUG_LOAD_QUIET" != true ]] && __duct_msg d "init: ${PLUG_LOAD_NAME//-/ } load"
-
         "$PLUG_LOAD_INIT"
       fi
     fi
