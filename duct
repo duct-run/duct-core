@@ -64,6 +64,7 @@ declare -r DUCT_VERSION="$( < "${DUCT_ROOT_DIR}/.duct-version" )"
 declare -r -a DUCT_PLUG_CORE=(
   duct-bash
   duct-core
+  duct-logo
   duct-msg
   duct-plug
   duct-run
