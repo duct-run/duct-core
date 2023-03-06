@@ -87,7 +87,7 @@ __duct_gnu_tools() {
 
     if [[ -n "$GNU_TOOLS_BIN" ]]
     then
-      if [[ $( command "$GNU_TOOLS_BIN" --version | __duct_head 1 || : ) =~ (GNU) ]]
+      if [[ $( command "$GNU_TOOLS_BIN" --version || : ) =~ (GNU) ]]
       then
         __duct_msg d "'$GNU_TOOLS_BIN' gnu version found"
         DUCT_GNU_TOOLS[$GNU_TOOLS_SET]="${GNU_TOOLS_MAP[$GNU_TOOLS_SET]}"
