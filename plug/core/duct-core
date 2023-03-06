@@ -378,34 +378,34 @@ readonly -f __duct_umask
 
 # duct init
 
-# Enable/disable init debug messages.
+# Quiet init messages.
 declare -g DUCT_INIT_QUIET="${DUCT_INIT_QUIET:-false}"
 
-# List of duct requirements (internal).
-declare -g -r -a _DUCT_INIT_REQUIRED=(
-  jq
-  unzip
-  xz
-)
-
-# Minimal jq version.
-declare -g -r _DUCT_INIT_JQ_VERSION="1.6"
-
-# deps: duct-gnu duct-util
+# deps: duct-msg
 # intl: true
 # life: core
-# desc: Check all duct requirements.
+# desc: Run initial duct requirements.
 # opts:
 __duct_init() {
-  __duct_intl
+  local INIT_MSG_LEVEL
 
-  local INIT_RC=0
-  local INIT_MSG_LEVEL="$DUCT_MSG_MAX_LEVEL"
+  __duct_intl
 
   if [[ "$DUCT_INIT_QUIET" == true ]]
   then
+    # store msg level
+    INIT_MSG_LEVEL="$DUCT_MSG_MAX_LEVEL"
     DUCT_MSG_MAX_LEVEL=0
   fi
+
+  # bash
+  __duct_bash
+
+  # env
+  __duct_env
+
+  # conf
+  __duct_conf
 
   # os type
   __duct_ostype
@@ -416,61 +416,13 @@ __duct_init() {
   # umask
   __duct_umask
 
-  # check requirements
-  __duct_bin_check "${_DUCT_INIT_REQUIRED[@]}" || (( INIT_RC+=$? ))
-
-  if [[ "$INIT_RC" -eq 0 ]]
+  if [[ "$DUCT_INIT_QUIET" == true ]]
   then
-    # check jq version
-    __duct_ver_check jq "$_DUCT_INIT_JQ_VERSION" 1 || (( INIT_RC+=$? ))
-  fi
-
-  DUCT_MSG_MAX_LEVEL="$INIT_MSG_LEVEL"
-
-  if [[ "$INIT_RC" -gt 0 ]]
-  then
-    __duct_msg e "requirements not met!"
-    return 1
-  else
-    return 0
+    # restore msg level
+    DUCT_MSG_MAX_LEVEL="$INIT_MSG_LEVEL"
   fi
 }
 readonly -f __duct_init
-
-# logo
-
-# duct main logo.
-declare -g -r _DUCT_LOGO_MAIN="ICAgICAgIBtbMzg7MjswOzA7MTcwbeKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhOKWhBtbMG0gICAgICAgICAgICAgICAgICAbWzM4OzI7MDswOzE3MG3iloTiloTiloTiloTiloQbWzBtCiAgICAgICAbWzQ4OzI7MDsxMzY7MjU1bRtbMzg7MjswOzA7MTcwbeKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paE4paE4paE4paE4paE4paE4paEIBtbMzg7MjswOzA7MTcwbeKWiBtbMG0gICAgICAgICAgICAgICAgICAbWzQ4OzI7MDsxMzY7MjU1bRtbMzg7MjswOzA7MTcwbeKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paEIBtbMzg7MjswOzA7MTcwbeKWiBtbMG0KICAgICAgIBtbNDg7MjswOzEzNjsyNTVtG1szODsyOzA7MDsxNzBt4paIIBtbMzg7MjsxNzA7MjU1OzIzOG3iloggG1szODsyOzA7MDsxNzBt4paE4paE4paEIBtbMzg7MjsxNzA7MjU1OzIzOG3iloggG1szODsyOzA7MDsxNzBt4paIG1swbSAbWzM4OzI7MDswOzE3MG3iloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloTiloQbWzQ4OzI7MDsxMzY7MjU1beKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paIIBtbMzg7MjswOzA7MTcwbeKWiBtbNDlt4paE4paE4paE4paE4paEG1swbQogG1s0ODsyOzA7MTM2OzI1NW0bWzM4OzI7MDswOzE3MG3ilojiloDiloDiloDiloDiloDiloAgG1szODsyOzE3MDsyNTU7MjM4beKWiCAbWzM4OzI7MDswOzE3MG3ilogbWzBtIBtbNDg7MjswOzEzNjsyNTVtG1szODsyOzA7MDsxNzBt4paIIBtbMzg7MjsxNzA7MjU1OzIzOG3iloggG1szODsyOzA7MDsxNzBt4paIG1swbSAbWzQ4OzI7MDsxMzY7MjU1bRtbMzg7MjswOzA7MTcwbeKWiCAbWzM4OzI7MTcwOzI1NTsyMzht4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE4paE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"
-
-# duct dumb logo.
-declare -g -r _DUCT_LOGO_DUMB="ICAgICAgIBtbMTszNG0uLS0tLS0tLS0tLhtbMG0gICAgICAgICAgICAgICAgICAbWzE7MzRtLi0tLS4bWzBtCiAgICAgICAbWzE7MzRtfCAbWzE7MzZtLi0tLS0tLiAbWzE7MzRtfCAgICAgICAgICAgICAgICAgIBtbMTszNG18IBtbMTszNm18IBtbMTszNG18G1swbQogICAgICAgG1sxOzM0bXwgG1sxOzM2bXwgG1sxOzM0bS4tLiAbWzE7MzZtfCAbWzE7MzRtfCAbWzE7MzRtLi0tLS0tLS0tLS0tLS0tLS0nIBtbMTszNm18IBtbMTszNG0nLS0tLS4bWzBtCiAbWzE7MzRtLi0tLS0tJyAbWzE7MzZtfCAbWzE7MzRtfCB8IBtbMTszNm18IBtbMTszNG18IHwgG1sxOzM2bS4tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIBtbMTszNG18G1swbQogG1sxOzM0bXwgG1sxOzM2bS4tLS0tIHwgG1sxOzM0bXwgfCAbWzE7MzZtfCAbWzE7MzRtfCB8IBtbMTszNm18IBtbMTszNG0uLS4gG1sxOzM2bXwgG1sxOzM0bS4tLS0tLS0uIBtbMTszNm18IBtbMTszNG0uLS0tLScbWzBtCiAbWzE7MzRtfCAbWzE7MzZtfCAbWzE7MzRtfCB8IBtbMTszNm18IBtbMTszNG18IHwgG1sxOzM2bXwgG1sxOzM0bSctJyAbWzE7MzZtfCAbWzE7MzRtfCB8IBtbMTszNm18IBtbMTszNG0nLS0tLS4gfCAbWzE7MzZtfCAbWzE7MzRtfBtbMG0KIBtbMTszNG18IBtbMTszNm0nLS0tLS0nIBtbMTszNG18IHwgG1sxOzM2bSctLS0tLScgG1sxOzM0bXwgfCAbWzE7MzZtJy0tLS0tIBtbMTszNG18IHwgG1sxOzM2bXwgG1sxOzM0bXwbWzBtCiAbWzE7MzRtJy0tLS0tLS0tLScgJy0tLS0tLS0tLScgJy0tLS0tLS0tJyAnLS0tJxtbMG0K"
-
-# duct minimal logo.
-declare -g -r _DUCT_LOGO_MINI="ICAgIBtbMTszNm18fCAgIF9fX3xfXxtbMG0KIBtbMTszNm1bG1sxOzM0bW9vG1sxOzM2bXx8X3x8X18gfBtbMG0K"
-
-# Enable/disable logo display.
-declare -g DUCT_LOGO_ENABLE="${DUCT_LOGO_ENABLE:-true}"
-
-# deps:
-# intl: true
-# life: core
-# desc: Show duct logo and version information.
-# opts:
-__duct_logo() {
-  __duct_intl
-
-  if [[ "$DUCT_LOGO_ENABLE" == true ]]
-  then
-    if [[ "$DUCT_TERM" == "dumb" ]] || [[ "$DUCT_TERM_PROGRAM" == "Apple_Terminal" ]]
-    then
-      printf "%b" "$_DUCT_LOGO_DUMB" | base64 -d
-    else
-      printf "%b" "$_DUCT_LOGO_MAIN" | base64 -d
-    fi
-  fi
-  printf "%b\n" " $DUCT_SELF_NAME $DUCT_VERSION (${DUCT_OSTYPE}-${DUCT_HOSTTYPE}) [$DUCT_URL]\n"
-}
-readonly -f __duct_logo
 
 # duct
 

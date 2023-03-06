@@ -77,10 +77,7 @@ do
 done
 unset DUCT_ITEM
 
-# run required functions
-__duct_bash
-__duct_env
-__duct_conf
+# init
 __duct_init
 
 # install and load optional core plugins
