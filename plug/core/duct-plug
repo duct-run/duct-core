@@ -185,9 +185,6 @@ __duct_plug_load() {
   local PLUG_LOAD_NAME
   local PLUG_LOAD_SKIP
 
-  shopt -s dotglob
-  shopt -s globstar
-
   case "$PLUG_LOAD_TYPE"
   in
     core)
@@ -247,8 +244,5 @@ __duct_plug_load() {
       fi
     fi
   done
-
-  shopt -u dotglob
-  shopt -u globstar
 }
 readonly -f __duct_plug_load

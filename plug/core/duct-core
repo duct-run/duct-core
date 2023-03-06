@@ -400,6 +400,7 @@ __duct_init() {
 
   # bash
   __duct_bash
+  __duct_bash_shopt
 
   # env
   __duct_env

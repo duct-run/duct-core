@@ -90,8 +90,5 @@ __duct_plug_load main
 __duct_plug_install vendor
 __duct_plug_load vendor
 
-# bash shopt
-__duct_bash_shopt
-
 # show duct logo and version
 __duct_logo
