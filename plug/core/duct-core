@@ -342,6 +342,36 @@ __duct_ostype() {
 }
 readonly -f __duct_ostype
 
+# umask
+
+# Use umask
+declare -g DUCT_UMASK="${DUCT_UMASK:-022}"
+
+# Directory mode from umask (set at run-time).
+declare -g -x DUCT_UMASK_DMODE=""
+
+# File mode from umask (set at run-time).
+declare -g -x DUCT_UMASK_FMODE=""
+
+# deps: duct-msg
+# intl: true
+# life: core
+# desc: Set a umask to work with.
+# opts:
+__duct_umask() {
+  __duct_intl
+
+  __duct_msg d "$DUCT_UMASK"
+  umask "$DUCT_UMASK"
+
+  DUCT_UMASK_DMODE="$( printf '%#o' $(( 0777 & ~DUCT_UMASK )) )"
+  __duct_msg d "$DUCT_UMASK_DMODE (dirmode)"
+
+  DUCT_UMASK_FMODE="$( printf '%#o' $(( 0777 & ~0111 & ~DUCT_UMASK )) )"
+  __duct_msg d "$DUCT_UMASK_FMODE (filemode)"
+}
+readonly -f __duct_umask
+
 # duct init
 
 # Enable/disable init debug messages.
