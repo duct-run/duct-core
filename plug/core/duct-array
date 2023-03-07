@@ -17,8 +17,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# duct-array
-# Collection of array functions.
+# @plug duct-array
+# @desc Collection of Bash array functions.
 
 # array load
 
@@ -58,13 +58,13 @@ __duct_array_add() {
 }
 readonly -f __duct_array_add
 
-# array add2
+# @func array add2
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Add to an array if not present.
-# opts: <array-name> <add>
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Add to an array if not present.
+# @opts <array-name> <add>
 __duct_array_add2() {
   local -n ARRAY_NAME="${1:-DUCT_NULL}"
   local ARRAY_ADD="${2:-}"

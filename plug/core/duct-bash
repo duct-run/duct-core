@@ -17,22 +17,22 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# duct-bash
-# General Bash checks and support settings.
+# @plug duct-bash
+# @desc General Bash checks and support settings.
 
-# bash
+# @func duct bash
 
-# Bash SRANDOM variable instead of RANDOM (set at runtime).
+# @fvar Bash SRANDOM variable instead of RANDOM (set at runtime).
 declare -g DUCT_BASH_SRANDOM=false
 
-# Bash EPOCH variable usage (set at runtime).
+# @fvar Bash EPOCH variable usage (set at runtime).
 declare -g DUCT_BASH_EPOCH=false
 
-# deps:
-# intl: true
-# life: core
-# desc: Check Bash version and features.
-# opts:
+# @deps duct-msg
+# @intl true
+# @life core
+# @desc Check Bash version and features.
+# @opts
 __duct_bash() {
   __duct_intl
 
@@ -55,9 +55,9 @@ __duct_bash() {
 }
 readonly -f __duct_bash
 
-# shopt
+# @func duct bash shopt
 
-# Bash options to set.
+# @fvar Bash options to set.
 declare -g -r -a DUCT_BASH_SHOPT_SET=(
   dotglob
   extglob
@@ -66,16 +66,16 @@ declare -g -r -a DUCT_BASH_SHOPT_SET=(
   shift_verbose
 )
 
-# Bash options to unset.
+# @fvar Bash options to unset.
 declare -g -r -a DUCT_BASH_SHOPT_UNSET=(
   extdebug
 )
 
-# deps: duct-msg
-# intl: true
-# life: core
-# desc: Set/unset Bash options.
-# opts:
+# @deps duct-msg
+# @intl true
+# @life core
+# @desc Set/unset Bash options.
+# @opts
 __duct_bash_shopt() {
   __duct_intl
 

@@ -17,35 +17,35 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# duct-plug
-# Handle duct plugins.
+# @plug duct-plug
+# @desc Handle duct plugins.
 
-# Quiet plugin install and load messages.
+# @pvar Quiet plugin install and load messages.
 declare -g DUCT_PLUG_QUIET="${DUCT_PLUG_QUIET:-false}"
 
-# plug install
+# @func duct plug install
 
-# Override plugin hosting (internal & special).
+# @fvar Override plugin hosting (internal & special).
 declare -g _DUCT_PLUG_INSTALL_HOSTING="${DUCT_PLUG_INSTALL_HOSTING:-${_DUCT_PLUG_INSTALL_HOSTING:-"https://github.com/duct-run"}}"
 
-# List of vendor plugins to install and update (defaults).
+# @fvar List of vendor plugins to install and update (defaults).
 declare -r -a _DUCT_PLUG_INSTALL_VENDOR=()
 
 # shellcheck disable=SC2206
-# List of vendor plugins to install and update (url::tag|version).
+# @fvar List of vendor plugins to install and update (url::tag|version).
 declare -g -a DUCT_PLUG_INSTALL_VENDOR=( ${DUCT_PLUG_INSTALL_VENDOR[@]:-${_DUCT_PLUG_INSTALL_VENDOR[@]}} )
 
-# Quiet plugin install messages.
+# @fvar Quiet plugin install messages.
 declare -g DUCT_PLUG_INSTALL_QUIET="${DUCT_PLUG_INSTALL_QUIET:-${DUCT_PLUG_QUIET}}"
 
-# Enable/disable plugin install and update (not recommended!).
+# @fvar Enable/disable plugin install and update (not recommended!).
 declare -g DUCT_PLUG_INSTALL_ENABLE="${DUCT_PLUG_INSTALL_ENABLE:-true}"
 
-# deps: duct-msg
-# intl: true
-# life: core
-# desc: The duct plugin installer and updater.
-# opts: <plugin-type>
+# @desc The duct plugin installer and updater.
+# @intl true
+# @life core
+# @deps duct-msg
+# @opts <plugin-type>
 __duct_plug_install() {
   __duct_intl
 
@@ -154,25 +154,25 @@ __duct_plug_install() {
 }
 readonly -f __duct_plug_install
 
-# plug load
+# @func duct plug load
 
-# List of plugins to skip (default).
+# @fvar List of plugins to skip (default).
 declare -r -a _DUCT_PLUG_LOAD_SKIP=( duct-none )
 
-# Quiet plugin load messages.
+# @fvar Quiet plugin load messages.
 declare -g DUCT_PLUG_LOAD_QUIET="${DUCT_PLUG_LOAD_QUIET:-${DUCT_PLUG_QUIET}}"
 
-# List of plugins to skip loading.
+# @fvar List of plugins to skip loading.
 declare -g DUCT_PLUG_LOAD_SKIP=( "${DUCT_PLUG_LOAD_SKIP[@]:-${_DUCT_PLUG_LOAD_SKIP[@]}}" )
 
-# Run plugin inital load function.
+# @fvar Run plugin inital load function.
 declare -g DUCT_PLUG_LOAD_INIT="${DUCT_PLUG_LOAD_INIT:-true}"
 
-# deps: duct-msg
-# intl: true
-# life: core
-# desc: The duct plugin loader.
-# opts: <plugin-type>
+# @desc The duct plugin loader.
+# @intl true
+# @life core
+# @deps duct-msg
+# @opts <plugin-type>
 __duct_plug_load() {
   __duct_intl
 

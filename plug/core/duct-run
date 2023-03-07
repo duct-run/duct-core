@@ -17,10 +17,10 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# duct-run
-# The duct runner.
+# @plug duct-run
+# @desc The duct runner.
 
-# run
+# @func duct run
 
 # Enable/disable running hooks.
 declare -g DUCT_RUN_HOOK="${DUCT_RUN_HOOK:-false}"

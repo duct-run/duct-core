@@ -17,10 +17,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# duct-gnu
-# GNU tools.
+# @plug duct-gnu
+# @desc GNU tools.
 
-# gnu load
+# @func gnu load
+
+# @desc Check GNU tools prerequisites.
+# @intl true
+# @life core
+# @deps duct-run
+# @opts
 __duct_gnu_load() {
   local GNU_LOAD_RC=0
 
@@ -36,9 +42,9 @@ __duct_gnu_load() {
 }
 readonly -f __duct_gnu_load
 
-# gnu tools
+# @func gnu tools
 
-# GNU tools mapping (set at runtime).
+# @fvar GNU tools mapping (set at runtime).
 declare -g -A DUCT_GNU_TOOLS=()
 
 # GNU tools mapping (defaults).
@@ -47,6 +53,11 @@ declare -g DUCT_GNU_TOOLS["grep"]="grep"
 declare -g DUCT_GNU_TOOLS["sed"]="sed"
 declare -g DUCT_GNU_TOOLS["tar"]="tar"
 
+# @desc Set GNU tools to the OS based binaries.
+# @intl true
+# @life core
+# @deps duct-run
+# @opts
 __duct_gnu_tools() {
   local -A GNU_TOOLS_MAP
   local GNU_TOOLS_BIN
@@ -108,13 +119,13 @@ __duct_gnu_tools() {
 }
 readonly -f __duct_gnu_tools
 
-# gnu awk
+# @func gnu awk
 
-# deps: duct-run
-# intl: false
-# life: core
-# desc: Run GNU version of `awk` (if available).
-# opts: <awk-options>
+# @desc Run GNU version of `awk` (if available).
+# @intl false
+# @life core
+# @deps duct-run
+# @opts <awk-options>
 __duct_gnu_awk() {
   if [[ "${FUNCNAME[1]}" == "duct" ]]
   then
@@ -127,13 +138,13 @@ __duct_gnu_awk() {
 }
 readonly -f __duct_gnu_awk
 
-# gnu grep
+# @func gnu grep
 
-# deps: duct-run
-# intl: false
-# life: core
-# desc: Run GNU version of `grep` (if available).
-# opts: <grep-options>
+# @desc Run GNU version of `grep` (if available).
+# @intl false
+# @life core
+# @deps duct-run
+# @opts <grep-options>
 __duct_gnu_grep() {
   if [[ "${FUNCNAME[1]}" == "duct" ]]
   then
@@ -146,13 +157,13 @@ __duct_gnu_grep() {
 }
 readonly -f __duct_gnu_grep
 
-# gnu sed
+# @func gnu sed
 
-# deps: duct-run
-# intl: false
-# life: core
-# desc: Run GNU version of `sed` (if available).
-# opts: <sed-options>
+# @desc Run GNU version of `sed` (if available).
+# @intl false
+# @life core
+# @deps duct-run
+# @opts <sed-options>
 __duct_gnu_sed() {
   if [[ "${FUNCNAME[1]}" == "duct" ]]
   then
@@ -165,13 +176,13 @@ __duct_gnu_sed() {
 }
 readonly -f __duct_gnu_sed
 
-# gnu tar
+# @func gnu tar
 
-# deps: duct-run
-# intl: false
-# life: core
-# desc: Run GNU version of `tar` (if available).
-# opts: <tar-options>
+# @desc Run GNU version of `tar` (if available).
+# @intl false
+# @life core
+# @deps duct-run
+# @opts <tar-options>
 __duct_gnu_tar() {
   if [[ "${FUNCNAME[1]}" == "duct" ]]
   then

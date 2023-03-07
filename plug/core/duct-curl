@@ -17,8 +17,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# duct-curl
-# curl operations.
+# @plug duct-curl
+# @desc curl operations.
 
 # curl load
 
@@ -42,9 +42,9 @@ __duct_curl_load() {
 }
 readonly -f __duct_curl_load
 
-# curl
+# @func curl
 
-# Options for `curl` (defaults).
+# @fvar Options for `curl` (defaults).
 declare -a _DUCT_CURL_OPTIONS=(
   --fail        # -f
   --location    # -L
@@ -53,21 +53,21 @@ declare -a _DUCT_CURL_OPTIONS=(
   --silent      # -s
 )
 
-# URL(s) to run `curl` at (defaults).
+# @fvar URL(s) to run `curl` at (defaults).
 declare -r -a _DUCT_CURL_URL=()
 
-# Options for `curl`.
+# @fvar Options for `curl`.
 declare -g -a DUCT_CURL_OPTIONS=( "${DUCT_CURL_OPTIONS[@]:-${_DUCT_CURL_OPTIONS[@]}}" )
 
 # shellcheck disable=SC2206
-# URL(s) to run `curl` at.
-declare -g DUCT_CURL_URL=( ${DUCT_CURL_URL[@]:-${_DUCT_CURL_URL[@]}} )
+# @fvar URL(s) to run `curl` at.
+declare -g -a DUCT_CURL_URL=( ${DUCT_CURL_URL[@]:-${_DUCT_CURL_URL[@]}} )
 
-# deps: duct-run
-# intl: false
-# life: core
-# desc: Run `curl` and mask secrets (see `duct-run`).
-# opts: [url]
+# @deps duct-run
+# @intl false
+# @life core
+# @desc Run `curl` and mask secrets (see `duct-run`).
+# @opts [url]
 __duct_curl() {
   local -a CURL_URL=( "${@:-${DUCT_CURL_URL[@]}}" )
   local CURL_RC=0

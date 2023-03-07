@@ -17,16 +17,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# duct-shell
-# Shell commands as pure Bash alternative.
+# @plug duct-shell
+# @desc Shell commands as pure Bash alternative.
 
-# basename
+# @func duct basename
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Return filename portion of pathname, with optional suffix removal.
-# opts: <pathname> [suffix]
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Return filename portion of pathname, with optional suffix removal.
+# @opts <pathname> [suffix]
 __duct_basename() {
   local BASENAME_PATHNAME="${1:-}"
   local BASENAME_SUFFIX="${2:-}"
@@ -44,13 +44,13 @@ __duct_basename() {
 }
 readonly -f __duct_basename
 
-# dirname
+# @func duct dirname
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Return directory portion of pathname.
-# opts: <pathname>
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Return directory portion of pathname.
+# @opts <pathname>
 __duct_dirname() {
   local DIRNAME_PATHNAME="${1:-}"
 
@@ -64,16 +64,16 @@ __duct_dirname() {
 }
 readonly -f __duct_dirname
 
-# date
+# @func duct date
 
-# Default date and time `strftime` format.
+# @fvar Default date and time `strftime` format.
 declare -g DUCT_DATE_FORMAT=${DUCT_DATE_FORMAT:-"%F %T"}
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Print current date and time.
-# opts: [format]
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Print current date and time.
+# @opts [format]
 __duct_date() {
   local DATE_FORMAT="${1:-"$DUCT_DATE_FORMAT"}"
 
@@ -83,13 +83,13 @@ __duct_date() {
 }
 readonly -f __duct_date
 
-# find
+# @func duct find
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Simple `find` in pure Bash.
-# opts: <path> [type] [match|regex]
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Simple `find` in pure Bash.
+# @opts <path> [type] [match|regex]
 __duct_find() {
   local FIND_PATH="${1:-"$PWD"}"
   local FIND_TYPE="${2:-""}"
@@ -137,16 +137,16 @@ __duct_find() {
 }
 readonly -f __duct_find
 
-# urlencode
+# @func duct urlencode
 
-# Regex match to exclude from encoding.
+# @fvar Regex match to exclude from encoding.
 declare -g DUCT_URLENCODE_EXCLUDE="${DUCT_URLENCODE_EXCLUDE:-"[A-Za-z0-9._-]"}"
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Percent-encode a string.
-# opts: <string>
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Percent-encode a string.
+# @opts <string>
 __duct_urlencode() {
   local STR="${1:-}"
 
@@ -173,13 +173,13 @@ __duct_urlencode() {
 }
 readonly -f __duct_urlencode
 
-# urldecode
+# @func duct urldecode
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Decode a percent-encoded string.
-# opts: <string>
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Decode a percent-encoded string.
+# @opts <string>
 __duct_urldecode() {
   local STR="${1:-}"
 
@@ -196,13 +196,13 @@ __duct_urldecode() {
 }
 readonly -f __duct_urldecode
 
-# realpath
+# @func duct realpath
 
-# deps: duct-msg
-# intl: false
-# life: beta
-# desc: Get real path of a file
-# opts: <file>
+# @deps duct-msg
+# @intl false
+# @life beta
+# @desc Get real path of a file
+# @opts <file>
 __duct_realpath() {
   local FILE="${1:-}"
 
@@ -244,13 +244,13 @@ __duct_realpath() {
 }
 readonly -f __duct_realpath
 
-# source
+# @func duct source
 
-# deps: duct-msg
-# intl: false
-# life: testing
-# desc: Source a variables file and export with optional prefix.
-# opts: <source-file> [prefix]
+# @deps duct-msg
+# @intl false
+# @life testing
+# @desc Source a variables file and export with optional prefix.
+# @opts <source-file> [prefix]
 __duct_source() {
   local SRC_FILE="${1:-}"
   local SRC_PREFIX="${2:-}"
@@ -301,13 +301,13 @@ __duct_source() {
 }
 readonly -f __duct_source
 
-# cat
+# @func duct cat
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Bash `cat` alternative.
-# opts: <file(s)>
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Bash `cat` alternative, supports stdin.
+# @opts <file(s)>
 __duct_cat() {
   local CAT_FILES=( "$@" )
 
@@ -331,13 +331,13 @@ __duct_cat() {
 }
 readonly -f __duct_cat
 
-# head
+# @func duct head
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Bash `head` alternative.
-# opts: <lines> <file>
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Bash `head` alternative, supports stdin.
+# @opts <lines> <file>
 __duct_head() {
   local HEAD_LINES="${1:-0}"
   local HEAD_FILE="${2:-}"
@@ -361,13 +361,13 @@ __duct_head() {
 }
 readonly -f __duct_head
 
-# tail
+# @func duct tail
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Bash `tail` alternative.
-# opts: <lines> <file>
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Bash `tail` alternative.
+# @opts <lines> <file>
 __duct_tail() {
   local TAIL_LINES="${1:-0}"
   local TAIL_FILE="${2:-}"
@@ -391,13 +391,13 @@ __duct_tail() {
 }
 readonly -f __duct_tail
 
-# tee
+# @func duct tee
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Bash `tee` alternative.
-# opts: <file> [append: true|false]
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Bash `tee` alternative.
+# @opts <file> [append: true|false]
 __duct_tee() {
   local TEE_FILE="${1:-}"
   local TEE_APPEND="${2:-false}"
