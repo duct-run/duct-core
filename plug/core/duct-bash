@@ -50,6 +50,9 @@ __duct_bash() {
     export DUCT_BASH_SRANDOM=false
   fi
 
+  __duct_msg d "$DUCT_BASH_EPOCH (DUCT_BASH_EPOCH)"
+  __duct_msg d "$DUCT_BASH_SRANDOM (DUCT_BASH_SRANDOM)"
+
   readonly DUCT_BASH_EPOCH
   readonly DUCT_BASH_SRANDOM
 }
