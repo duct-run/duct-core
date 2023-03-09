@@ -225,14 +225,15 @@ readonly -f __duct_conf
 declare -a -r _DUCT_HOSTTYPE_MAP=()
 
 # @fvar Exported hosttype mapping results (set at runtime).
-declare -g -x DUCT_HOSTTYPE=""
+declare -g DUCT_HOSTTYPE="${DUCT_HOSTTYPE:-}"
 
 # shellcheck disable=SC2206
 # @fvar Mapping of hosttype source=destination.
 declare -g -a DUCT_HOSTTYPE_MAP=( ${DUCT_HOSTTYPE_MAP[@]:-${_DUCT_HOSTTYPE_MAP[@]}} )
 
+# shellcheck disable=SC2206
 # @fvar Exported hosttype common variants.
-declare -g -x -a DUCT_HOSTTYPE_COMMON=()
+declare -g -a DUCT_HOSTTYPE_COMMON=( ${DUCT_HOSTTYPE_COMMON[@]:-} )
 
 # @desc Process hosttype mapping and set matching hosttype to `DUCT_HOSTTYPE`.
 # @deps duct-msg
@@ -256,11 +257,13 @@ __duct_hosttype() {
   esac
 
   DUCT_HOSTTYPE_COMMON+=( "$HOSTTYPE_SHELL" )
+  export DUCT_HOSTTYPE_COMMON
 
   if [[ "${#DUCT_HOSTTYPE_MAP[@]}" -eq 0 ]]
   then
     DUCT_HOSTTYPE="$HOSTTYPE_SHELL"
     __duct_msg d "$DUCT_HOSTTYPE (DUCT_HOSTTYPE)"
+    export DUCT_HOSTTYPE
     return
   fi
 
@@ -279,6 +282,7 @@ __duct_hosttype() {
 
   DUCT_HOSTTYPE="$HOSTTYPE_SHELL"
   __duct_msg d "$DUCT_HOSTTYPE (DUCT_HOSTTYPE)"
+  export DUCT_HOSTTYPE
 }
 readonly -f __duct_hosttype
 
@@ -288,10 +292,10 @@ readonly -f __duct_hosttype
 declare -a -r _DUCT_OSTYPE_MAP=()
 
 # @fvar Exported ostype mapping results (set at runtime).
-declare -g -x DUCT_OSTYPE="${DUCT_OSTYPE:-}"
+declare -g DUCT_OSTYPE="${DUCT_OSTYPE:-}"
 
 # @fvar Exported ostype extra information (set at runtime).
-declare -g -x DUCT_OSTYPE_EXTRA="${DUCT_OSTYPE_EXTRA:-}"
+declare -g DUCT_OSTYPE_EXTRA="${DUCT_OSTYPE_EXTRA:-}"
 
 # shellcheck disable=SC2206
 # @fvar Mapping of ostype source=destination.
@@ -311,19 +315,19 @@ __duct_ostype() {
   # name-extra
   if [[ "$OSTYPE_SHELL" =~ ([a-z]+)-?([a-z]+)?$ ]]
   then
-    DUCT_OSTYPE_EXTRA="${BASH_REMATCH[-1]}"
+    export DUCT_OSTYPE_EXTRA="${BASH_REMATCH[-1]}"
     OSTYPE_SHELL="${BASH_REMATCH[-2]}"
 
   # nameversion
   elif [[ "$OSTYPE_SHELL" =~ ([a-z]+)([0-9.]+)?$ ]]
   then
-    DUCT_OSTYPE_EXTRA="${BASH_REMATCH[-1]}"
+    export DUCT_OSTYPE_EXTRA="${BASH_REMATCH[-1]}"
     OSTYPE_SHELL="${BASH_REMATCH[-2]}"
   fi
 
   if [[ "${#DUCT_OSTYPE_MAP[@]}" -eq 0 ]]
   then
-    DUCT_OSTYPE="$OSTYPE_SHELL"
+    export DUCT_OSTYPE="$OSTYPE_SHELL"
     __duct_msg d "$DUCT_OSTYPE (DUCT_OSTYPE)"
     return
   fi
@@ -341,7 +345,7 @@ __duct_ostype() {
     fi
   done
 
-  DUCT_OSTYPE="$OSTYPE_SHELL"
+  export DUCT_OSTYPE="$OSTYPE_SHELL"
   __duct_msg d "$DUCT_OSTYPE (DUCT_OSTYPE)"
 }
 readonly -f __duct_ostype
@@ -352,10 +356,10 @@ readonly -f __duct_ostype
 declare -g DUCT_UMASK="${DUCT_UMASK:-022}"
 
 # @fvar Directory mode from umask (set at run-time).
-declare -g -x DUCT_UMASK_DMODE=""
+declare -g DUCT_UMASK_DMODE="${DUCT_UMASK_DMODE:-}"
 
 # @fvar File mode from umask (set at run-time).
-declare -g -x DUCT_UMASK_FMODE=""
+declare -g DUCT_UMASK_FMODE="${DUCT_UMASK_FMODE:-}"
 
 # @desc Set a umask to work with.
 # @intl true
@@ -370,9 +374,11 @@ __duct_umask() {
 
   DUCT_UMASK_DMODE="$( printf '%#o' $(( 0777 & ~DUCT_UMASK )) )"
   __duct_msg d "$DUCT_UMASK_DMODE (DUCT_UMASK_DMODE)"
+  export DUCT_UMASK_DMODE
 
   DUCT_UMASK_FMODE="$( printf '%#o' $(( 0777 & ~0111 & ~DUCT_UMASK )) )"
   __duct_msg d "$DUCT_UMASK_FMODE (DUCT_UMASK_FMODE)"
+  export DUCT_UMASK_FMODE
 }
 readonly -f __duct_umask
 
