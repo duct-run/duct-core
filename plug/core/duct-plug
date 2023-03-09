@@ -58,6 +58,14 @@ __duct_plug_install() {
   local PLUG_INSTALL_NAME
   local PLUG_INSTALL_TAG
   local PLUG_INSTALL_URL
+  local PLUG_INSTALL_MSG_LEVEL
+
+  # store msg level
+  if [[ "$DUCT_PLUG_INSTALL_QUIET" == true ]]
+  then
+    PLUG_INSTALL_MSG_LEVEL="$DUCT_MSG_MAX_LEVEL"
+    DUCT_MSG_MAX_LEVEL=0
+  fi
 
   if [[ "$DUCT_PLUG_INSTALL_ENABLE" != true ]]
   then
@@ -110,13 +118,6 @@ __duct_plug_install() {
       PLUG_INSTALL_URL="${_DUCT_PLUG_INSTALL_HOSTING}/${PLUG_INSTALL_URL}"
     fi
 
-    # store
-    local _MSG_MAX_LEVEL="$DUCT_MSG_MAX_LEVEL"
-    if [[ "$DUCT_PLUG_INSTALL_QUIET" == true ]]
-    then
-      DUCT_MSG_MAX_LEVEL=0
-    fi
-
     # add .git to url
     if [[ ! "$PLUG_INSTALL_URL" =~ \.git$ ]]
     then
@@ -148,8 +149,11 @@ __duct_plug_install() {
       __duct_msg w "git not found!"
     fi
 
-    # restore
-    DUCT_MSG_MAX_LEVEL="$_MSG_MAX_LEVEL"
+    # restore msg level
+    if [[ "$DUCT_PLUG_INSTALL_QUIET" == true ]]
+    then
+      DUCT_MSG_MAX_LEVEL="$PLUG_INSTALL_MSG_LEVEL"
+    fi
   done
 }
 readonly -f __duct_plug_install
@@ -182,8 +186,16 @@ __duct_plug_load() {
   local PLUG_LOAD_CORE
   local PLUG_LOAD_INIT
   local PLUG_LOAD_ITEM
+  local PLUG_LOAD_MSG_LEVEL
   local PLUG_LOAD_NAME
   local PLUG_LOAD_SKIP
+
+  # store msg level
+  if [[ "$DUCT_PLUG_LOAD_QUIET" == true ]]
+  then
+    PLUG_LOAD_MSG_LEVEL="$DUCT_MSG_MAX_LEVEL"
+    DUCT_MSG_MAX_LEVEL=0
+  fi
 
   case "$PLUG_LOAD_TYPE"
   in
@@ -208,7 +220,7 @@ __duct_plug_load() {
     ;;
   esac
 
-  [[ "$DUCT_PLUG_LOAD_QUIET" != true ]] && __duct_msg d "$PLUG_LOAD_TYPE"
+  __duct_msg d "$PLUG_LOAD_TYPE"
 
   for PLUG_LOAD_ITEM in "${PLUG_LOAD_LIST[@]}"
   do
@@ -233,7 +245,7 @@ __duct_plug_load() {
 
     if [[ -f "$PLUG_LOAD_ITEM" ]] && [[ -s "$PLUG_LOAD_ITEM" ]]
     then
-      [[ "$DUCT_PLUG_LOAD_QUIET" != true ]] && __duct_msg d "$PLUG_LOAD_NAME"
+      __duct_msg d "$PLUG_LOAD_NAME"
 
       # shellcheck disable=SC1090
       source "$PLUG_LOAD_ITEM"
@@ -244,5 +256,11 @@ __duct_plug_load() {
       fi
     fi
   done
+
+  # restore msg level
+  if [[ "$DUCT_PLUG_LOAD_QUIET" == true ]]
+  then
+    DUCT_MSG_MAX_LEVEL="$PLUG_LOAD_MSG_LEVEL"
+  fi
 }
 readonly -f __duct_plug_load
