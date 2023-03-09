@@ -17,16 +17,27 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# duct-util
-# Collection of core utilities.
+# @plug duct-util
+# @desc Collection of core utilities.
 
-# util load
+# @func duct util load
+
+# @fvar Check util requirements.
+declare -r -a _DUCT_UTIL_LOAD_REQUIREMENTS=(
+  base64
+)
+
+# @desc
+# @intl true
+# @life core
+# @deps
+# @opts
 __duct_util_load() {
   local UTIL_LOAD_RC=0
 
   __duct_intl
 
-  __duct_bin_check base64 || UTIL_LOAD_RC=$?
+  __duct_bin_check "${_DUCT_UTIL_LOAD_REQUIREMENTS[@]}" || UTIL_LOAD_RC=$?
 
   return $UTIL_LOAD_RC
 }
@@ -912,7 +923,12 @@ __duct_sleep_random() {
 
   while [[ "$SLEEP_RANDOM" -lt "$SLEEP_RANDOM_MIN" ]]
   do
-    SLEEP_RANDOM="$(( RANDOM % SLEEP_RANDOM_MAX + 1 ))"
+    if [[ "$DUCT_BASH_SRANDOM" == true ]]
+    then
+      SLEEP_RANDOM="$(( SRANDOM % SLEEP_RANDOM_MAX + 1 ))"
+    else
+      SLEEP_RANDOM="$(( RANDOM % SLEEP_RANDOM_MAX + 1 ))"
+    fi
   done
 
   __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_RANDOM_MIN/$SLEEP_RANDOM_MAX second(s)"
