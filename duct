@@ -17,8 +17,6 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-set -eu
-
 if [[ "$0" == "${BASH_SOURCE[0]}" ]]
 then
   echo "Don't run $0 directly! Use the 'source', Luke..."
@@ -27,7 +25,7 @@ fi
 
 # dirs
 # shellcheck disable=SC2155
-declare -r DUCT_ROOT_DIR="$( cd "${BASH_SOURCE[0]%/*}" && echo "$PWD" )"
+declare -r DUCT_ROOT_DIR="$( test -d "${BASH_SOURCE[0]%/*}" && { cd "${BASH_SOURCE[0]%/*}" || exit; }; echo "$PWD" )"
 declare -r DUCT_PLUG_DIR="${DUCT_ROOT_DIR}/plug"
 
 # shellcheck disable=SC2034
