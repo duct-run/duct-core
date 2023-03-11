@@ -17,6 +17,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
+set -eu
+
 if [[ "$0" == "${BASH_SOURCE[0]}" ]]
 then
   echo "Don't run $0 directly! Use the 'source', Luke..."
