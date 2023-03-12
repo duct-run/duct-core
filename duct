@@ -19,9 +19,29 @@
 
 set -eu
 
+# initial checks
+if [[ -n "${ZSH_NAME+duct}" ]] || [[ -z "${BASH+x}" ]]
+then
+  printf "%b\n" "\033[0;31m[ERR] SORRY! DUCT IS A BASH ONLY FRAMEWORK!\033[0m"
+  exit 1
+fi
+
+if [[ -n "${POSIXLY_CORRECT+x}" ]]
+then
+  printf "%b\n" "\033[0;31m[ERR] UNSUPPORTED SHELL!\033[0m"
+  exit 1
+fi
+
+if [[ ${BASH_VERSINFO[0]} -lt 5 ]]
+then
+  printf "%b\n" "\033[0;31m[ERR] UNSUPPORTED BASH VERSION ${BASH_VERSION}!\033[0m"
+  printf "%b\n" "\033[0;33m[WRN] MINIMUM SUPPORTED BASH VERSION IS 5.0.0\033[0m"
+  exit 1
+fi
+
 if [[ "$0" == "${BASH_SOURCE[0]}" ]]
 then
-  echo "Don't run $0 directly! Use the 'source', Luke..."
+  printf "%b\n" "\033[0;31m[ERR] DON'T RUN DUCT DIRECTLY! USE THE 'source'!"
   exit 1
 fi
 
