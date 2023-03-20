@@ -1414,3 +1414,83 @@ __duct_git_check() {
   fi
 }
 readonly -f __duct_git_check
+
+# @func duct git changes
+
+# @fvar Options to pass to `git diff` (defaults).
+declare -r -a _DUCT_GIT_CHANGES_DIFF_OPTIONS=(
+  --name-status
+)
+
+# @fvar Git changes (set at run-time).
+declare -g -a DUCT_GIT_CHANGES=()
+
+# @fvar Options to pass to `git diff` (--name-only or --name-status).
+declare -g -a DUCT_GIT_CHANGES_DIFF_OPTIONS=( "${DUCT_GIT_CHANGES_DIFF_OPTIONS[@]:-${_DUCT_GIT_CHANGES_DIFF_OPTIONS[@]}}" )
+
+# @fvar Base SHA (can also be a file).
+declare -g DUCT_GIT_CHANGES_BASE="${DUCT_GIT_CHANGES_BASE:-}"
+
+# @fvar Last SHA (can also be a file).
+declare -g DUCT_GIT_CHANGES_LAST="${DUCT_GIT_CHANGES_LAST:-}"
+
+# @fvar Print changes to stdtout.
+declare -g DUCT_GIT_CHANGES_OUTPUT="${DUCT_GIT_CHANGES_OUTPUT:-false}"
+
+# @fvar Path to get changes from.
+declare -g DUCT_GIT_CHANGES_PATH="${DUCT_GIT_CHANGES_PATH:-$DUCT_GIT_WORKDIR}"
+
+# @desc Show `git diff` changes between 2 SHA hashes.
+# @intl false
+# @life core
+# @deps duct-msg duct-shell
+# @opts [base-sha|base-sha-file] [last-sha|last-sha-file]
+__duct_git_changes() {
+  local GIT_CHANGES_BASE="${1:-$DUCT_GIT_CHANGES_BASE}"
+  local GIT_CHANGES_LAST="${2:-$DUCT_GIT_CHANGES_LAST}"
+
+  # set base sha from file
+  if [[ -n "$GIT_CHANGES_BASE"  ]]
+  then
+    if [[ -s "$GIT_CHANGES_BASE" ]]
+    then
+      __duct_msg d "read base sha from $GIT_CHANGES_BASE"
+      GIT_CHANGES_BASE="$( __duct_cat "$GIT_CHANGES_BASE"  )"
+    fi
+  fi
+
+  if [[ -z "$GIT_CHANGES_BASE" || "$GIT_CHANGES_BASE" =~ ^([0]+)$ ]]
+  then
+    GIT_CHANGES_BASE="$( __duct_run git -C "$DUCT_GIT_CHANGES_PATH" show-branch --merge-base )"
+  fi
+
+  __duct_msg d "base: $GIT_CHANGES_BASE"
+
+  # set last sha
+  if [[ -n "$GIT_CHANGES_LAST" ]]
+  then
+    if [[ -s "$GIT_CHANGES_LAST" ]]
+    then
+      __duct_msg d "read last sha from $GIT_CHANGES_LAST"
+      GIT_CHANGES_LAST="$( __duct_cat "$GIT_CHANGES_LAST"  )"
+    fi
+  fi
+
+  if [[ -z "$GIT_CHANGES_LAST" ]]
+  then
+    GIT_CHANGES_LAST="$( __duct_run git -C "$DUCT_GIT_CHANGES_PATH" rev-parse --verify HEAD )"
+  fi
+
+  __duct_msg d "last: $GIT_CHANGES_LAST"
+
+  __duct_msg n "set DUCT_GIT_CHANGES"
+  readarray -t -n 0 DUCT_GIT_CHANGES < <(
+    __duct_run git -C "$DUCT_GIT_CHANGES_PATH" diff "${DUCT_GIT_CHANGES_DIFF_OPTIONS[@]}" "${GIT_CHANGES_BASE}..${GIT_CHANGES_LAST}"
+  )
+
+  if [[ "$DUCT_GIT_CHANGES_OUTPUT" == true ]]
+  then
+    printf "%b\n" "${DUCT_GIT_CHANGES[@]}"
+  fi
+}
+readonly -f __duct_git_changes
