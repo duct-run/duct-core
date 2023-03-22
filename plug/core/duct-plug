@@ -41,6 +41,9 @@ declare -g DUCT_PLUG_INSTALL_QUIET="${DUCT_PLUG_INSTALL_QUIET:-${DUCT_PLUG_QUIET
 # @fvar Enable/disable plugin install and update (not recommended!).
 declare -g DUCT_PLUG_INSTALL_ENABLE="${DUCT_PLUG_INSTALL_ENABLE:-true}"
 
+# @fvar Enable/disable plugin install and update warning.
+declare -g DUCT_PLUG_INSTALL_ENABLE_WARNING="${DUCT_PLUG_INSTALL_ENABLE_WARNING:-true}"
+
 # @desc The duct plugin installer and updater.
 # @intl true
 # @life core
@@ -69,7 +72,10 @@ __duct_plug_install() {
 
   if [[ "$DUCT_PLUG_INSTALL_ENABLE" != true ]]
   then
-    __duct_msg w "$PLUG_INSTALL_TYPE (disabled)"
+    if [[ "$DUCT_PLUG_INSTALL_ENABLE_WARNING" == true ]]
+    then
+      __duct_msg w "$PLUG_INSTALL_TYPE (disabled)"
+    fi
     return
   fi
 
@@ -172,6 +178,12 @@ declare -g DUCT_PLUG_LOAD_SKIP=( "${DUCT_PLUG_LOAD_SKIP[@]:-${_DUCT_PLUG_LOAD_SK
 # @fvar Run plugin inital load function.
 declare -g DUCT_PLUG_LOAD_INIT="${DUCT_PLUG_LOAD_INIT:-true}"
 
+# @fvar Enable/disable plugin load skip warning.
+declare -g DUCT_PLUG_LOAD_SKIP_WARNING="${DUCT_PLUG_LOAD_SKIP_WARNING:-true}"
+
+# @fvar Enable/disable plugin load warning instead of error
+declare -g DUCT_PLUG_LOAD_WARNING="${DUCT_PLUG_LOAD_WARNING:-true}"
+
 # @desc The duct plugin loader.
 # @intl true
 # @life core
@@ -239,7 +251,10 @@ __duct_plug_load() {
     # skip plugin
     if [[ "$PLUG_LOAD_NAME" =~ ^($PLUG_LOAD_SKIP)$ ]]
     then
-      __duct_msg w "skip $PLUG_LOAD_NAME"
+      if [[ "$DUCT_PLUG_LOAD_SKIP_WARNING" == true ]]
+      then
+        __duct_msg w "skip $PLUG_LOAD_NAME"
+      fi
       continue
     fi
 
