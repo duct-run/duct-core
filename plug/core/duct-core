@@ -541,6 +541,9 @@ declare -a _DUCT_BIN_CHECK_LIST=()
 # @fvar List of binaries to check.
 declare -g -a DUCT_BIN_CHECK_LIST=( ${DUCT_BIN_CHECK_LIST[@]:-${_DUCT_BIN_CHECK_LIST[@]}} )
 
+# @fvar Warning only if binaries not found.
+declare -g DUCT_BIN_CHECK_WARNING="${DUCT_BIN_CHECK_WARNING:-false}"
+
 # @desc Check a list of binaries/commands for availibility.
 # @intl false
 # @life core
@@ -578,8 +581,13 @@ __duct_bin_check() {
         ;;
       esac
     else
-      __duct_msg e "'$BIN_CMD' not found!"
-      (( BIN_RC+=1 ))
+      if [[ "$DUCT_BIN_CHECK_WARNING" == true ]]
+      then
+        __duct_msg w "'$BIN_CMD' not found!"
+      else
+        __duct_msg e "'$BIN_CMD' not found!"
+        (( BIN_RC+=1 ))
+      fi
     fi
   done
 
