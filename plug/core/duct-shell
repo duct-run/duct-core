@@ -44,6 +44,32 @@ __duct_basename() {
 }
 readonly -f __duct_basename
 
+# @func duct cd
+
+# @deps duct-msg
+# @intl false
+# @life core
+# @desc Change directory.
+# @opts <directory>
+__duct_cd() {
+  local CD_DIR="${1:-}"
+
+  if [[ -z "$CD_DIR" ]]
+  then
+    __duct_msg e "no directory! (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})"
+    return 1
+  fi
+
+  if [[ -d "$CD_DIR" ]]
+  then
+    __duct_run cd "$CD_DIR"
+  else
+    __duct_msg e "$CD_DIR directory not found! (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})"
+    return 1
+  fi
+}
+readonly -f __duct_cd
+
 # @func duct dirname
 
 # @deps duct-msg
