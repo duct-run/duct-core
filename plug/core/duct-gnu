@@ -40,7 +40,6 @@ __duct_gnu_load() {
     __duct_msg w "gnu tools incomplete!"
   fi
 }
-readonly -f __duct_gnu_load
 
 # @func gnu tools
 
@@ -117,7 +116,6 @@ __duct_gnu_tools() {
     return 1
   fi
 }
-readonly -f __duct_gnu_tools
 
 # @func gnu awk
 
@@ -136,7 +134,6 @@ __duct_gnu_awk() {
     command "${DUCT_GNU_TOOLS["awk"]}" "$@"
   fi
 }
-readonly -f __duct_gnu_awk
 
 # @func gnu grep
 
@@ -155,7 +152,6 @@ __duct_gnu_grep() {
     command "${DUCT_GNU_TOOLS["grep"]}" "$@"
   fi
 }
-readonly -f __duct_gnu_grep
 
 # @func gnu sed
 
@@ -174,7 +170,6 @@ __duct_gnu_sed() {
     command "${DUCT_GNU_TOOLS["sed"]}" "$@"
   fi
 }
-readonly -f __duct_gnu_sed
 
 # @func gnu tar
 
@@ -193,4 +188,3 @@ __duct_gnu_tar() {
     command "${DUCT_GNU_TOOLS["tar"]}" "$@"
   fi
 }
-readonly -f __duct_gnu_tar

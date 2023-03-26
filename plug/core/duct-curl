@@ -40,7 +40,6 @@ __duct_curl_load() {
 
   return $CURL_LOAD_RC
 }
-readonly -f __duct_curl_load
 
 # @func curl
 
@@ -75,4 +74,3 @@ __duct_curl() {
   __duct_run curl "${DUCT_CURL_OPTIONS[@]}" "${CURL_URL[@]}" || CURL_RC=$?
   return $CURL_RC
 }
-readonly -f __duct_curl

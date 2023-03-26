@@ -35,7 +35,6 @@ __duct_array_load() {
 
   return $ARRAY_LOAD_RC
 }
-readonly -f __duct_array_load
 
 # array add
 
@@ -56,7 +55,6 @@ __duct_array_add() {
 
   printf "%q\n" "${ARRAY[@]}"
 }
-readonly -f __duct_array_add
 
 # @func array add2
 
@@ -93,7 +91,6 @@ __duct_array_add2() {
     readarray -t -n 0 -O "${#ARRAY_NAME[@]}" "${!ARRAY_NAME}" <<< "$ARRAY_ADD"
   fi
 }
-readonly -f __duct_array_add2
 
 # array join
 
@@ -109,7 +106,6 @@ __duct_array_join() {
 
   echo "${ARRAY[*]}"
 }
-readonly -f __duct_array_join
 
 # array join2
 
@@ -149,7 +145,6 @@ __duct_array_join2() {
   echo "${ARRAY_NAME[*]}"
   unset IFS
 }
-readonly -f __duct_array_join2
 
 # array strip
 
@@ -173,7 +168,6 @@ __duct_array_strip() {
 
   printf "%q\n" "${ARRAY[@]}"
 }
-readonly -f __duct_array_strip
 
 # array strip2
 
@@ -220,7 +214,6 @@ __duct_array_strip2() {
     fi
   done
 }
-readonly -f __duct_array_strip2
 
 # array sort
 
@@ -238,7 +231,6 @@ __duct_array_sort() {
 
   printf "%q\n" "${ARRAY[@]}"
 }
-readonly -f __duct_array_sort
 
 # array sort2
 
@@ -273,7 +265,6 @@ __duct_array_sort2() {
   readarray -t -n 0 "${!ARRAY_NAME}" < <( sort -V <<< "${ARRAY_NAME[*]}" )
   unset IFS
 }
-readonly -f __duct_array_sort2
 
 # array unique
 
@@ -297,7 +288,6 @@ __duct_array_unique() {
 
   printf "%q\n" "${UNIQUE[@]}"
 }
-readonly -f __duct_array_unique
 
 # array unique2
 
@@ -342,7 +332,6 @@ __duct_array_unique2() {
   readarray -t -n 0 "${!ARRAY_NAME}" <<< "${ARRAY_UNIQUE[*]}"
   unset IFS
 }
-readonly -f __duct_array_unique2
 
 # array keyval
 
@@ -375,7 +364,6 @@ __duct_array_keyval() {
     printf "%b\n" "${ARRAY_KEY}=${ARRAY_NAME[$ARRAY_KEY]}"
   done
 }
-readonly -f __duct_array_keyval
 
 # array json
 
@@ -433,4 +421,3 @@ __duct_array_json() {
   # end json
   printf "%s\n" "}"
 }
-readonly -f __duct_array_json

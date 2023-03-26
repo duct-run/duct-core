@@ -242,4 +242,3 @@ __duct_msg() {
   >&2 printf "%b\n" "${MSG_COLOR}${MSG_DATE}[${MSG_DNAME}] ${MSG_BASH}:${MSG_CALL} ${_MSG_OUTPUT}${MSG_COLOR_NONE}"
   return $MSG_RC
 }
-readonly -f __duct_msg

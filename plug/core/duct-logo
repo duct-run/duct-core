@@ -53,4 +53,3 @@ __duct_logo() {
   fi
   printf "%b\n" " $DUCT_SELF_NAME $DUCT_VERSION (${DUCT_OSTYPE}-${DUCT_HOSTTYPE}) [$DUCT_URL]\n"
 }
-readonly -f __duct_logo

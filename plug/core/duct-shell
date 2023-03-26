@@ -68,7 +68,6 @@ __duct_cd() {
     return 1
   fi
 }
-readonly -f __duct_cd
 
 # @func duct dirname
 
@@ -88,7 +87,6 @@ __duct_dirname() {
 
   printf "%s\n" "${DIRNAME_PATHNAME%/*}"
 }
-readonly -f __duct_dirname
 
 # @func duct date
 
@@ -107,7 +105,6 @@ __duct_date() {
 
   printf "%($DATE_FORMAT)T\\n" "-1"
 }
-readonly -f __duct_date
 
 # @func duct find
 
@@ -161,7 +158,6 @@ __duct_find() {
 
   __duct_msg d "runtime: ${SECONDS}s"
 }
-readonly -f __duct_find
 
 # @func duct urlencode
 
@@ -197,7 +193,6 @@ __duct_urlencode() {
   done
   printf "\n"
 }
-readonly -f __duct_urlencode
 
 # @func duct urldecode
 
@@ -220,7 +215,6 @@ __duct_urldecode() {
   STR="${STR//+/ }"
   printf "%s\n" "${STR//%/\\x}"
 }
-readonly -f __duct_urldecode
 
 # @func duct realpath
 
@@ -268,7 +262,6 @@ __duct_realpath() {
 
   echo "$FILE"
 }
-readonly -f __duct_realpath
 
 # @func duct source
 
@@ -325,7 +318,6 @@ __duct_source() {
     __duct_msg w "$SRC_FILE is empty! (${DUCT_SCRIPT_NAME}:${BASH_LINENO[1]})"
   fi
 }
-readonly -f __duct_source
 
 # @func duct cat
 
@@ -355,7 +347,6 @@ __duct_cat() {
     done
   fi
 }
-readonly -f __duct_cat
 
 # @func duct head
 
@@ -385,7 +376,6 @@ __duct_head() {
     __duct_msg w "emtpy result!"
   fi
 }
-readonly -f __duct_head
 
 # @func duct tail
 
@@ -415,7 +405,6 @@ __duct_tail() {
     __duct_msg w "empty result!"
   fi
 }
-readonly -f __duct_tail
 
 # @func duct tee
 
@@ -446,4 +435,3 @@ __duct_tee() {
     printf "%s\n" "$TEE_LINE" >> "$TEE_FILE" 2>&1
   done
 }
-readonly -f __duct_tee

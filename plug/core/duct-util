@@ -41,7 +41,6 @@ __duct_util_load() {
 
   return $UTIL_LOAD_RC
 }
-readonly -f __duct_util_load
 
 # lower
 
@@ -55,7 +54,6 @@ __duct_lower() {
 
   printf "%s\n" "${LOWER_STRING,,}"
 }
-readonly -f __duct_lower
 
 # upper
 
@@ -69,7 +67,6 @@ __duct_upper() {
 
   printf "%s\n" "${UPPER_STRING^^}"
 }
-readonly -f __duct_upper
 
 # slug
 
@@ -86,7 +83,6 @@ __duct_slug() {
 
   printf "%s\n" "$SLUG_STRING"
 }
-readonly -f __duct_slug
 
 # trim
 
@@ -103,7 +99,6 @@ __duct_trim() {
 
   printf "%s\n" "$TRIM_STRING"
 }
-readonly -f __duct_trim
 
 # strip
 
@@ -135,7 +130,6 @@ __duct_strip() {
 
   printf "%s\n" "${STRIP_STRING[*]}"
 }
-readonly -f __duct_strip
 
 # debase64
 
@@ -176,7 +170,6 @@ __duct_debase64() {
     fi
   fi
 }
-readonly -f __duct_debase64
 
 # sfile
 
@@ -251,7 +244,6 @@ __duct_sfile() {
     __duct_run chmod "$DUCT_SFILE_FILEMODE" "$FILE"
   fi
 }
-readonly -f __duct_sfile
 
 # cleanup
 
@@ -300,7 +292,6 @@ __duct_cleanup() {
     fi
   done
 }
-readonly -f __duct_cleanup
 
 # random
 
@@ -353,7 +344,6 @@ __duct_random() {
 
   printf "%s\n" "$RANDOM_STRING"
 }
-readonly -f __duct_random
 
 # tmpgen
 
@@ -388,7 +378,6 @@ __duct_tmpgen() {
 
   printf "%s\n" "$TMPGEN_OUTPUT"
 }
-readonly -f __duct_tmpgen
 
 # mktmpdir
 
@@ -418,7 +407,6 @@ __duct_mktmpdir() {
   printf "%s\n" "$MKTMPDIR_DIR"
   return $MKTMPDIR_RC
 }
-readonly -f __duct_mktmpdir
 
 # mktmpfile
 
@@ -451,7 +439,6 @@ __duct_mktmpfile() {
   printf "%s\n" "$MKTMPFILE_FILE"
   return $MKTMPFILE_RC
 }
-readonly -f __duct_mktmpfile
 
 # find count
 
@@ -487,7 +474,6 @@ __duct_find_count() {
   done
   echo "$COUNT"
 }
-readonly -f __duct_find_count
 
 # textract
 
@@ -566,7 +552,6 @@ __duct_textract() {
     fi
   done
 }
-readonly -f __duct_textract
 
 # textinject
 
@@ -668,7 +653,6 @@ __duct_textinject() {
   __duct_msg d "writing file: $TEXT_FILE"
   printf "%s\n" "${TEXT_ALL[@]}" > "$TEXT_FILE"
 }
-readonly -f __duct_textinject
 
 # compversion
 
@@ -734,7 +718,6 @@ __duct_compversion() {
   echo "${VERSION_1_PREFIX}${VERSION_1[*]}"
   return
 }
-readonly -f __duct_compversion
 
 # urlinfo
 
@@ -777,7 +760,6 @@ __duct_urlinfo() {
   __duct_msg d "set path: '$URL_PATH'"
   DUCT_URLINFO["path"]="$URL_PATH"
 }
-readonly -f __duct_urlinfo
 
 # urlsplit
 
@@ -800,7 +782,6 @@ __duct_urlsplit() {
 
   IFS=" " read -r -a DUCT_URLSPLIT <<< "${URL//\// }"
 }
-readonly -f __duct_urlsplit
 
 # unpack
 
@@ -878,7 +859,6 @@ __duct_unpack() {
 
   __duct_run rm -f "${ARCHIVE:?}"
 }
-readonly -f __duct_unpack
 
 # sleep
 
@@ -906,7 +886,6 @@ __duct_sleep() {
     read -r -t "$SLEEP" -u "$DUCT_SLEEP_FD" || :
   fi
 }
-readonly -f __duct_sleep
 
 # sleep random
 
@@ -934,7 +913,6 @@ __duct_sleep_random() {
   __duct_msg d "sleep $SLEEP_RANDOM of $SLEEP_RANDOM_MIN/$SLEEP_RANDOM_MAX second(s)"
   __duct_sleep "$SLEEP_RANDOM"
 }
-readonly -f __duct_sleep_random
 
 # sgrep
 
@@ -989,7 +967,6 @@ __duct_sgrep() {
       fi
     done
   }
-  readonly -f ___duct_sgrep
 
   if [[ "${#SGREP_FILES[@]}" -lt 1 ]]
   then
@@ -1008,7 +985,6 @@ __duct_sgrep() {
     printf "%b\n" "${SGREP_FOUND[@]}"
   fi
 }
-readonly -f __duct_sgrep
 
 # grep
 
@@ -1021,7 +997,6 @@ __duct_grep() {
   __duct_msg w "use 'duct gnu grep' instead!"
   __duct_gnu_grep "$@"
 }
-readonly -f __duct_grep
 
 # sed
 
@@ -1034,4 +1009,3 @@ __duct_sed() {
   __duct_msg w "use 'duct gnu sed' instead!"
   __duct_gnu_sed "$@"
 }
-readonly -f __duct_sed

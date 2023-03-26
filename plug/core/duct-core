@@ -50,7 +50,6 @@ __duct_intl() {
     return 1
   fi
 }
-readonly -f __duct_intl
 
 # @func duct env
 
@@ -103,7 +102,6 @@ __duct_env() {
     fi
   done
 }
-readonly -f __duct_env
 
 # @func duct conf
 
@@ -217,7 +215,6 @@ __duct_conf() {
   done
   return
 }
-readonly -f __duct_conf
 
 # @func hosttype
 
@@ -284,7 +281,6 @@ __duct_hosttype() {
   __duct_msg d "$DUCT_HOSTTYPE (DUCT_HOSTTYPE)"
   export DUCT_HOSTTYPE
 }
-readonly -f __duct_hosttype
 
 # @func ostype
 
@@ -348,7 +344,6 @@ __duct_ostype() {
   export DUCT_OSTYPE="$OSTYPE_SHELL"
   __duct_msg d "$DUCT_OSTYPE (DUCT_OSTYPE)"
 }
-readonly -f __duct_ostype
 
 # @func umask
 
@@ -380,7 +375,6 @@ __duct_umask() {
   __duct_msg d "$DUCT_UMASK_FMODE (DUCT_UMASK_FMODE)"
   export DUCT_UMASK_FMODE
 }
-readonly -f __duct_umask
 
 # @func duct init
 
@@ -429,7 +423,6 @@ __duct_init() {
     DUCT_MSG_MAX_LEVEL="$INIT_MSG_LEVEL"
   fi
 }
-readonly -f __duct_init
 
 # @func duct
 
@@ -530,7 +523,6 @@ duct() {
     "$DUCT_FUNC" "${DUCT_OPTS[@]}"
   fi
 }
-readonly -f duct
 
 # @func duct bin check
 
@@ -598,7 +590,6 @@ __duct_bin_check() {
     return 0
   fi
 }
-readonly -f __duct_bin_check
 
 # @func duct var check
 
@@ -642,7 +633,6 @@ __duct_var_check() {
     return 1
   fi
 }
-readonly -f __duct_var_check
 
 # @func duct ver check
 
@@ -699,4 +689,3 @@ __duct_ver_check() {
     __duct_msg d "$VER_CMD version $VER_VERSION"
   fi
 }
-readonly -f __duct_ver_check

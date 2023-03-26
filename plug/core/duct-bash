@@ -51,7 +51,6 @@ __duct_bash() {
   readonly DUCT_BASH_EPOCH
   readonly DUCT_BASH_SRANDOM
 }
-readonly -f __duct_bash
 
 # @func duct bash shopt
 
@@ -95,4 +94,3 @@ __duct_bash_shopt() {
     done
   fi
 }
-readonly -f __duct_bash_shopt

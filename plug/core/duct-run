@@ -151,7 +151,6 @@ __duct_run() {
     return $RUN_RC
   fi
 }
-readonly -f __duct_run
 
 # run rc
 
@@ -181,4 +180,3 @@ __duct_run_rc() {
     __duct_msg w "duct run store rc is disabled!"
   fi
 }
-readonly -f __duct_run_rc

@@ -162,7 +162,6 @@ __duct_plug_install() {
     fi
   done
 }
-readonly -f __duct_plug_install
 
 # @func duct plug load
 
@@ -185,8 +184,11 @@ __duct_plug_load() {
 
   local PLUG_LOAD_TYPE="${1:-}"
 
+  local -a PLUG_LOAD_FUNC
   local -a PLUG_LOAD_LIST
   local PLUG_LOAD_CORE
+  local PLUG_LOAD_FUNC_FLAG
+  local PLUG_LOAD_FUNC_NAME
   local PLUG_LOAD_INIT
   local PLUG_LOAD_ITEM
   local PLUG_LOAD_MSG_LEVEL
@@ -262,10 +264,26 @@ __duct_plug_load() {
     fi
   done
 
+  readarray -t -n 0 PLUG_LOAD_FUNC < <( declare -F )
+
+  for PLUG_LOAD_ITEM in "${PLUG_LOAD_FUNC[@]}"
+  do
+    if [[ "$PLUG_LOAD_ITEM" =~ ^(declare -([fr]+) (__duct_.*|___duct_.*|duct)) ]]
+    then
+      PLUG_LOAD_FUNC_FLAG="${BASH_REMATCH[2]}"
+      PLUG_LOAD_FUNC_NAME="${BASH_REMATCH[3]}"
+
+      if [[ "$PLUG_LOAD_FUNC_FLAG" != "fr" ]]
+      then
+        __duct_msg w "set readonly $PLUG_LOAD_FUNC_NAME"
+        readonly -f "$PLUG_LOAD_FUNC_NAME"
+      fi
+    fi
+  done
+
   # restore msg level
   if [[ "$DUCT_PLUG_LOAD_QUIET" == true ]]
   then
     DUCT_MSG_MAX_LEVEL="$PLUG_LOAD_MSG_LEVEL"
   fi
 }
-readonly -f __duct_plug_load

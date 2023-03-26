@@ -76,7 +76,6 @@ __duct_git_local_head() {
     return 1
   fi
 }
-readonly -f __duct_git_local_head
 
 # git local branch
 
@@ -91,7 +90,6 @@ __duct_git_local_branch() {
 
   __duct_msg d "${DUCT_GIT_LOCAL_BRANCH_LIST[*]}"
 }
-readonly -f __duct_git_local_branch
 
 # git remote branch
 
@@ -106,7 +104,6 @@ __duct_git_remote_branch() {
 
   __duct_msg d "${DUCT_GIT_REMOTE_BRANCH_LIST[*]}"
 }
-readonly -f __duct_git_remote_branch
 
 # git remote head
 
@@ -143,7 +140,6 @@ __duct_git_remote_head() {
     return 1
   fi
 }
-readonly -f __duct_git_remote_head
 
 # git config
 
@@ -256,7 +252,6 @@ __duct_git_config() {
 
   # TODO: DUCT_GIT_CONFIG_CUSTOM
 }
-readonly -f __duct_git_config
 
 # git credential
 
@@ -329,7 +324,6 @@ __duct_git_credential() {
   DUCT_SFILE_FILEMODE=0600 \
   __duct_sfile "$GIT_CREDENTIAL_FILE" "$_GIT_AUTH"
 }
-readonly -f __duct_git_credential
 
 # git fetch
 
@@ -362,7 +356,6 @@ __duct_git_fetch() {
     return 1
   fi
 }
-readonly -f __duct_git_fetch
 
 # git checkout
 
@@ -428,7 +421,6 @@ __duct_git_checkout() {
     return 1
   fi
 }
-readonly -f __duct_git_checkout
 
 # git clone
 
@@ -526,7 +518,6 @@ __duct_git_clone() {
     fi
   fi
 }
-readonly -f __duct_git_clone
 
 # git pull
 
@@ -623,7 +614,6 @@ __duct_git_pull() {
     __duct_msg e "'$DUCT_GIT_PULL_PATH' not a git repository!"
   fi
 }
-readonly -f __duct_git_pull
 
 # git commit
 
@@ -755,7 +745,6 @@ __duct_git_commit() {
     __duct_msg n "nothing to commit"
   fi
 }
-readonly -f __duct_git_commit
 
 # git tag
 
@@ -825,7 +814,6 @@ __duct_git_tag() {
 
   __duct_run git -C "$DUCT_GIT_TAG_PATH" tag "${GIT_OPTS[@]}" "$GIT_TAG"
 }
-readonly -f __duct_git_tag
 
 # git tag list
 
@@ -887,7 +875,6 @@ __duct_git_tag_list() {
     fi
   fi
 }
-readonly -f __duct_git_tag_list
 
 # git strip remote
 
@@ -918,7 +905,6 @@ __duct_git_strip_remote() {
   __duct_msg n "setting remote $DUCT_GIT_REMOTE to $GIT_REMOTE"
   __duct_run git remote set-url "$DUCT_GIT_REMOTE" "$GIT_REMOTE"
 }
-readonly -f __duct_git_strip_remote
 
 # git cvc check
 
@@ -1080,7 +1066,6 @@ __duct_git_cvc_check() {
     fi
   fi
 }
-readonly -f __duct_git_cvc_check
 
 # git refs cleanup
 
@@ -1202,7 +1187,6 @@ __duct_git_refs_cleanup() {
     fi
   done
 }
-readonly -f __duct_git_refs_cleanup
 
 # git check
 
@@ -1413,7 +1397,6 @@ __duct_git_check() {
     return 1
   fi
 }
-readonly -f __duct_git_check
 
 # @func duct git changes
 
