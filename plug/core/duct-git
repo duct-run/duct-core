@@ -1476,4 +1476,3 @@ __duct_git_changes() {
     printf "%b\n" "${DUCT_GIT_CHANGES[@]}"
   fi
 }
-readonly -f __duct_git_changes
