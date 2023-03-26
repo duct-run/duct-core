@@ -275,7 +275,6 @@ __duct_plug_load() {
 
       if [[ "$PLUG_LOAD_FUNC_FLAG" != "fr" ]]
       then
-        __duct_msg w "set readonly $PLUG_LOAD_FUNC_NAME"
         readonly -f "$PLUG_LOAD_FUNC_NAME"
       fi
     fi
