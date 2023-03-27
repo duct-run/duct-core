@@ -986,6 +986,46 @@ __duct_sgrep() {
   fi
 }
 
+# @func duct sort
+
+# @desc Bubble sort in pure Bash.
+# @intl false
+# @life core
+# @deps
+# @opts
+__duct_sort() {
+  local -a SORT_INPUT
+  local SORT_DONE=1
+  local SORT_I
+  local SORT_J
+  local SORT_TEMP
+
+  readarray -t -n 0 SORT_INPUT <<< "$@"
+
+  for (( SORT_I = 0; SORT_I < ( ${#SORT_INPUT[@]} - 1 ); SORT_I++ ))
+  do
+    SORT_DONE=0
+
+    for ((SORT_J = 0; SORT_J < ( ${#SORT_INPUT[@]} - 1 - SORT_I ); SORT_J++ ))
+    do
+      if [ "${SORT_INPUT[SORT_J]}" \> "${SORT_INPUT[SORT_J+1]}" ]
+      then
+        SORT_TEMP="${SORT_INPUT[SORT_J]}"
+        SORT_INPUT[SORT_J]="${SORT_INPUT[SORT_J+1]}"
+        SORT_INPUT[SORT_J+1]="$SORT_TEMP"
+        SORT_DONE=1
+      fi
+    done
+
+    if [[ "$SORT_DONE" -eq 0 ]]
+    then
+      break
+    fi
+  done
+
+  printf "%b\n" "${SORT_INPUT[@]}"
+}
+
 # grep
 
 # deps: duct-msg duct-gnu
