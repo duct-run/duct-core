@@ -20,50 +20,14 @@
 # @plug duct-array
 # @desc Collection of Bash array functions.
 
-# array load
-
-declare -r -a _DUCT_ARRAY_LOAD_REQUIREMENTS=(
-  sort
-)
-
-__duct_array_load() {
-  local ARRAY_LOAD_RC=0
-
-  __duct_intl
-
-  __duct_bin_check "${_DUCT_ARRAY_LOAD_REQUIREMENTS[@]}" || ARRAY_LOAD_RC=$?
-
-  return $ARRAY_LOAD_RC
-}
-
-# array add
-
-# deps:
-# intl: false
-# life: core
-# desc: Add element to array if not present.
-# opts: <element> <array@>
-__duct_array_add() {
-  local ELEMENT="${1:-}"
-  shift || :
-  local -a ARRAY=( "$@" )
-
-  if [[ ! "${ARRAY[*]}" =~ $ELEMENT ]]
-  then
-    ARRAY+=( "$ELEMENT" )
-  fi
-
-  printf "%q\n" "${ARRAY[@]}"
-}
-
-# @func array add2
+# @func array add
 
 # @deps duct-msg
 # @intl false
 # @life core
 # @desc Add to an array if not present.
 # @opts <array-name> <add>
-__duct_array_add2() {
+__duct_array_add() {
   local -n ARRAY_NAME="${1:-DUCT_NULL}"
   local ARRAY_ADD="${2:-}"
 
@@ -92,29 +56,14 @@ __duct_array_add2() {
   fi
 }
 
-# array join
+# @func duct array join
 
-# deps:
-# intl: false
-# life: core
-# desc: Join an array with given string.
-# opts: <join-string> <array@>
+# @desc Join array values with given string.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <array-name> <join-string>
 __duct_array_join() {
-  local IFS="${1:-}"
-  shift || :
-  local -a ARRAY=( "$@" )
-
-  echo "${ARRAY[*]}"
-}
-
-# array join2
-
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Join array values with given string.
-# opts: <array-name> <join-string>
-__duct_array_join2() {
   local -n ARRAY_NAME="${1:-DUCT_NULL}"
   local IFS="${2:-}"
 
@@ -146,37 +95,14 @@ __duct_array_join2() {
   unset IFS
 }
 
-# array strip
+# @func duct array strip
 
-# deps:
-# intl: false
-# life: core
-# desc: Strip a regex match from an array.
-# opts: <strip-regex> <array[@]>
+# @desc Strip a regex match from an array.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <array-name> <strip-regex>
 __duct_array_strip() {
-  local STRIP="${1:-}"
-  shift || :
-  local -a ARRAY=( "$@" )
-
-  for _I in "${!ARRAY[@]}"
-  do
-    if [[ "${ARRAY[$_I]}" =~ $STRIP ]]
-    then
-      unset "ARRAY[$_I]"
-    fi
-  done
-
-  printf "%q\n" "${ARRAY[@]}"
-}
-
-# array strip2
-
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Strip a regex match from an array.
-# opts: <array-name> <strip-regex>
-__duct_array_strip2() {
   local -n ARRAY_NAME="${1:-DUCT_NULL}"
   local ARRAY_STRIP="${2:-}"
 
@@ -215,31 +141,14 @@ __duct_array_strip2() {
   done
 }
 
-# array sort
+# @func duct array sort
 
-# deps:
-# intl: false
-# life: core
-# desc: Sort an array (version sort).
-# opts: <array[@]>
+# @desc Sort an array (version sort).
+# @intl false
+# @life core
+# @deps duct-msg duct-util
+# @opts <array-name>
 __duct_array_sort() {
-  local -a ARRAY=( "$@" )
-
-  local IFS=$'\n'
-
-  readarray -t ARRAY < <( sort -V <<< "${ARRAY[*]}" )
-
-  printf "%q\n" "${ARRAY[@]}"
-}
-
-# array sort2
-
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Sort an array (version sort).
-# opts: <array-name>
-__duct_array_sort2() {
   local -n ARRAY_NAME="${1:-DUCT_NULL}"
 
   local IFS=$'\n'
@@ -262,41 +171,18 @@ __duct_array_sort2() {
     return 0
   fi
 
-  readarray -t -n 0 "${!ARRAY_NAME}" < <( sort -V <<< "${ARRAY_NAME[*]}" )
+  readarray -t -n 0 "${!ARRAY_NAME}" < <( __duct_sort "${ARRAY_NAME[*]}" )
   unset IFS
 }
 
-# array unique
+# @func duct array unique
 
-# deps:
-# intl: false
-# life: core
-# desc: Unique an array without sorting.
-# opts: <array[@]>
+# @desc Remove duplicate values from an array without sorting.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <array-name>
 __duct_array_unique() {
-  local -a ARRAY=( "$@" )
-
-  local -a UNIQUE=()
-
-  for _E in "${ARRAY[@]}"
-  do
-    if [[ ! "${UNIQUE[*]}" =~ $_E ]]
-    then
-      UNIQUE+=( "$_E" )
-    fi
-  done
-
-  printf "%q\n" "${UNIQUE[@]}"
-}
-
-# array unique2
-
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Remove duplicate values from an array without sorting.
-# opts: <array-name>
-__duct_array_unique2() {
   local -n ARRAY_NAME="${1:-DUCT_NULL}"
 
   local -a ARRAY_UNIQUE=()
@@ -333,13 +219,13 @@ __duct_array_unique2() {
   unset IFS
 }
 
-# array keyval
+# @func duct array keyval
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Print array key=value (mostly for debug).
-# opts: <array-name>
+# @desc Print array key=value (mostly for debug).
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <array-name>
 __duct_array_keyval() {
   local -n ARRAY_NAME="${1:-DUCT_NULL}"
 
@@ -365,13 +251,13 @@ __duct_array_keyval() {
   done
 }
 
-# array json
+# @func duct array json
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Generate a simple JSON from an formated array.
-# opts: <array-name>
+# @desc Generate a simple JSON from an formated array.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <array-name>
 __duct_array_json() {
   local -n ARRAY_NAME="${1:-DUCT_NULL}"
 
