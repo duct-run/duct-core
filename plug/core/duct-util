@@ -1023,7 +1023,7 @@ __duct_sort() {
     fi
   done
 
-  printf "%b\n" "${SORT_INPUT[@]}"
+  printf "%q\n" "${SORT_INPUT[@]}"
 }
 
 # grep
