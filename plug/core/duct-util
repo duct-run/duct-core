@@ -654,68 +654,66 @@ __duct_textinject() {
   printf "%s\n" "${TEXT_ALL[@]}" > "$TEXT_FILE"
 }
 
-# compversion
+# @func duct compare version
 
-# deps:
-# intl: false
-# life:
-# desc: Compare two semantic versions, return newer or equal.
-# opts: <version1> <version2>
-__duct_compversion() {
-  local VERSION_1="${1:-}"
-  local VERSION_2="${2:-}"
+# @fvar Strip version 'v' prefix.
+declare -g DUCT_COMPARE_VERSION_STRIP="${DUCT_COMPARE_VERSION_STRIP:-true}"
 
-  local VERSION_1_PREFIX=""
-  local VERSION_2_PREFIX=""
+# @desc Compare two semantic versions, return newer or equal.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <version1> <version2>
+__duct_compare_version() {
+  local -a COMPARE_VERSION_INPUT=( "$@" )
 
-  local IFS=.
-  local I
+  local -a COMPARE_VERSION_0
+  local -a COMPARE_VERSION_1
+  local COMPARE_VERSION_0_PREFIX=""
+  local COMPARE_VERSION_1_PREFIX=""
 
-  if [[ "$VERSION_1" =~ ^v ]]
-  then
-    VERSION_1="${VERSION_1//v}"
-    VERSION_1_PREFIX="v"
-  fi
+  local ITEM
+  local IFS="."
 
-  if [[ "$VERSION_2" =~ ^v ]]
-  then
-    VERSION_2="${VERSION_2//v}"
-    VERSION_2_PREFIX="v"
-  fi
-
-  # to array
-  read -ra VERSION_1 <<< "$VERSION_1"
-  read -ra VERSION_2 <<< "$VERSION_2"
-
-  for ((I=${#VERSION_1[@]}; I<${#VERSION_2[@]}; I++))
+  for ITEM in "${!COMPARE_VERSION_INPUT[@]}"
   do
-    VERSION_1[I]=0
+    if [[ "${COMPARE_VERSION_INPUT[ITEM]}" =~ ^v && "$DUCT_COMPARE_VERSION_STRIP" != true ]]
+    then
+      declare "COMPARE_VERSION_${ITEM}_PREFIX"="v"
+    fi
+    COMPARE_VERSION_INPUT[ITEM]="${COMPARE_VERSION_INPUT[ITEM]#v}"
+
+    read -r -a "COMPARE_VERSION_${ITEM}" <<< "${COMPARE_VERSION_INPUT[ITEM]}"
   done
 
-  for ((I=0; I<${#VERSION_1[@]}; I++))
+  for (( ITEM=${#COMPARE_VERSION_0[@]}; ITEM<${#COMPARE_VERSION_1[@]}; ITEM++ ))
   do
-    if [[ -z ${VERSION_2[I]} ]]
+    COMPARE_VERSION_0[ITEM]=0
+  done
+
+  for (( ITEM=0; ITEM<${#COMPARE_VERSION_0[@]}; ITEM++ ))
+  do
+    if [[ -z ${COMPARE_VERSION_1[ITEM]} ]]
     then
-      VERSION_2[I]=0
+      COMPARE_VERSION_1[ITEM]=0
     fi
 
-    if ((10#${VERSION_1[I]} > 10#${VERSION_2[I]}))
+    if (( 10#${COMPARE_VERSION_0[ITEM]} > 10#${COMPARE_VERSION_1[ITEM]} ))
     then
-      __duct_msg d "${VERSION_1_PREFIX}${VERSION_1[*]} > ${VERSION_2_PREFIX}${VERSION_2[*]}"
-      echo "${VERSION_1_PREFIX}${VERSION_1[*]}"
+      __duct_msg d "${COMPARE_VERSION_0_PREFIX}${COMPARE_VERSION_0[*]} > ${COMPARE_VERSION_1_PREFIX}${COMPARE_VERSION_1[*]}"
+      printf "%s\n" "${COMPARE_VERSION_0_PREFIX}${COMPARE_VERSION_0[*]}"
       return
-    fi
 
-    if ((10#${VERSION_1[I]} < 10#${VERSION_2[I]}))
+    elif (( 10#${COMPARE_VERSION_0[ITEM]} < 10#${COMPARE_VERSION_1[ITEM]} ))
     then
-      __duct_msg d "${VERSION_1_PREFIX}${VERSION_1[*]} < ${VERSION_2_PREFIX}${VERSION_2[*]}"
-      echo "${VERSION_2_PREFIX}${VERSION_2[*]}"
+      __duct_msg d "${COMPARE_VERSION_0_PREFIX}${COMPARE_VERSION_0[*]} < ${COMPARE_VERSION_1_PREFIX}${COMPARE_VERSION_1[*]}"
+      printf "%s\n" "${COMPARE_VERSION_1_PREFIX}${COMPARE_VERSION_1[*]}"
       return
     fi
   done
 
-  __duct_msg d "${VERSION_1_PREFIX}${VERSION_1[*]} = ${VERSION_2_PREFIX}${VERSION_2[*]}"
-  echo "${VERSION_1_PREFIX}${VERSION_1[*]}"
+  __duct_msg d "${COMPARE_VERSION_0_PREFIX}${COMPARE_VERSION_0[*]} = ${COMPARE_VERSION_1_PREFIX}${COMPARE_VERSION_1[*]}"
+  printf "%s\n" "${COMPARE_VERSION_0_PREFIX}${COMPARE_VERSION_0[*]}"
   return
 }
 
@@ -1026,25 +1024,37 @@ __duct_sort() {
   printf "%b\n" "${SORT_INPUT[@]}"
 }
 
-# grep
+# @func duct compversion
 
-# deps: duct-msg duct-gnu
-# intl: false
-# life: deprecated
-# desc: Alias of `duct gnu grep`.
-# opts: <grep-options>
+# @desc Alias of `duct compare version`.
+# @intl false
+# @life deprecated
+# @deps duct-msg
+# @opts <version1> <version2>
+__duct_compversion() {
+  __duct_msg w "use 'duct compare version' instead!"
+  __duct_compare_version "$@"
+}
+
+# @func duct grep
+
+# @desc Alias of `duct gnu grep`.
+# @intl false
+# @life deprecated
+# @deps duct-msg duct-gnu
+# @opts <grep-options>
 __duct_grep() {
   __duct_msg w "use 'duct gnu grep' instead!"
   __duct_gnu_grep "$@"
 }
 
-# sed
+# @func duct sed
 
-# deps: duct-msg duct-gnu
-# intl: false
-# life: deprecated
-# desc: Alias of `duct gnu sed`.
-# opts: <sed-options>
+# @desc Alias of `duct gnu sed`.
+# @intl false
+# @life deprecated
+# @deps duct-msg duct-gnu
+# @opts <sed-options>
 __duct_sed() {
   __duct_msg w "use 'duct gnu sed' instead!"
   __duct_gnu_sed "$@"
