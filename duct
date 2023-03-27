@@ -83,6 +83,7 @@ declare -r DUCT_VERSION="$( < "${DUCT_ROOT_DIR}/.duct-version" )"
 # core plugins
 declare -r -a DUCT_PLUG_CORE=(
   duct-bash
+  duct-bugs
   duct-core
   duct-logo
   duct-msg
