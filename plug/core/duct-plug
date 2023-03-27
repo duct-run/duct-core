@@ -172,7 +172,7 @@ declare -g DUCT_PLUG_LOAD_QUIET="${DUCT_PLUG_LOAD_QUIET:-${DUCT_PLUG_QUIET}}"
 declare -g DUCT_PLUG_LOAD_INIT="${DUCT_PLUG_LOAD_INIT:-true}"
 
 # @fvar Plugin initial load warning instead of error.
-declare -g DUCT_PLUG_LOAD_INIT_WARNING="${DUCT_PLUG_LOAD_INIT_WARNING:-false}"
+declare -g DUCT_PLUG_LOAD_INIT_WARNING="${DUCT_PLUG_LOAD_INIT_WARNING:-true}"
 
 # @desc The duct plugin loader.
 # @intl true
