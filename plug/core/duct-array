@@ -151,8 +151,6 @@ __duct_array_strip() {
 __duct_array_sort() {
   local -n ARRAY_NAME="${1:-DUCT_NULL}"
 
-  local IFS=$'\n'
-
   if [[ "${!ARRAY_NAME}" == "DUCT_NULL" ]]
   then
     __duct_msg e "no array name! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
@@ -171,8 +169,7 @@ __duct_array_sort() {
     return 0
   fi
 
-  readarray -t -n 0 "${!ARRAY_NAME}" < <( __duct_sort "${ARRAY_NAME[*]}" )
-  unset IFS
+  readarray -t -n 0 "${!ARRAY_NAME}" < <( __duct_sort "${ARRAY_NAME[@]}" )
 }
 
 # @func duct array unique

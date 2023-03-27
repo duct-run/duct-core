@@ -1000,7 +1000,7 @@ __duct_sort() {
   local SORT_J
   local SORT_TEMP
 
-  readarray -t -n 0 SORT_INPUT <<< "$@"
+  IFS=" " read -r -a SORT_INPUT <<< "$@"
 
   for (( SORT_I = 0; SORT_I < ( ${#SORT_INPUT[@]} - 1 ); SORT_I++ ))
   do
@@ -1023,7 +1023,7 @@ __duct_sort() {
     fi
   done
 
-  printf "%q\n" "${SORT_INPUT[@]}"
+  printf "%b\n" "${SORT_INPUT[@]}"
 }
 
 # grep
