@@ -22,41 +22,41 @@
 
 # @func duct run
 
-# Enable/disable running hooks.
+# @fvar Enable/disable running hooks.
 declare -g DUCT_RUN_HOOK="${DUCT_RUN_HOOK:-false}"
 
-# Associative array of hook scripts to handle return codes of command.
+# @fvar Associative array of hook scripts to handle return codes of command.
 declare -g -A DUCT_RUN_HOOK_SCRIPTS=()
 
-# Enable/disable masking of secrets in messages (WARNING!).
+# @fvar Enable/disable masking of secrets in messages (WARNING!).
 declare -g DUCT_RUN_MASK_ENABLE="${DUCT_RUN_MASK_ENABLE:-true}"
 
-# Bash regex match to mask.
+# @fvar Bash regex match to mask.
 declare -g DUCT_RUN_MASK_MATCH="${DUCT_RUN_MASK_MATCH:-}"
 
-# Bash rematch index to mask.
+# @fvar Bash rematch index to mask.
 declare -g -i DUCT_RUN_MASK_INDEX="${DUCT_RUN_MASK_INDEX:-0}"
 
-# String to mask secrets with.
+# @fvar String to mask secrets with.
 declare -g DUCT_RUN_MASK_STRING="${DUCT_RUN_MASK_STRING:-"[MASKED]"}"
 
-# File to log output to.
+# @fvar File to log output to.
 declare -g DUCT_RUN_OUTPUT="${DUCT_RUN_OUTPUT:-"${DUCT_TMP_DIR}/duct-run"}"
 
-# Enable/disable simulation mode.
+# @fvar Enable/disable simulation mode.
 declare -g DUCT_RUN_SIMULATE="${DUCT_RUN_SIMULATE:-true}"
 
-# Return with return code.
+# @fvar Return with return code.
 declare -g DUCT_RUN_RETURN="${DUCT_RUN_RETURN:-true}"
 
-# Store return code (see: duct run rc).
+# @fvar Store return code (see: duct run rc).
 declare -g DUCT_RUN_STORE_RC="${DUCT_RUN_STORE_RC:-false}"
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Run a command with optional simulation or log output.
-# opts: <command> | output <command>
+# @desc Run a command with optional simulation or log output.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <command> | output <command>
 __duct_run() {
   local -a RUN=( "$@" )
 
@@ -152,19 +152,19 @@ __duct_run() {
   fi
 }
 
-# run rc
+# @func duct run rc
 
-# Run return code (set at runtime).
+# @fvar Run return code (set at runtime).
 declare -g -i DUCT_RUN_RC=0
 
-# Return code file.
+# @fvar Return code file.
 declare -g DUCT_RUN_RC_FILE="${DUCT_RUN_RC_FILE:-"${DUCT_TMP_DIR}/duct-run.rc"}"
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Read return code file and set `DUCT_RUN_RC`.
-# opts:
+# @desc Read return code file and set `DUCT_RUN_RC`.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts
 __duct_run_rc() {
   if [[ "$DUCT_RUN_STORE_RC" == true ]]
   then
