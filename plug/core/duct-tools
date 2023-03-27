@@ -17,29 +17,29 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# @plug duct-util
-# @desc Collection of core utilities.
+# @plug duct-tools
+# @desc Collection of core tools.
 
-# @func duct util load
+# @func duct tools load
 
-# @fvar List of duct-util requirements.
-declare -r -a _DUCT_UTIL_LOAD_REQUIREMENTS=(
+# @fvar List of duct-tools requirements.
+declare -r -a _DUCT_TOOLS_LOAD_REQUIREMENTS=(
   base64
 )
 
-# @desc Check duct-util requirements.
+# @desc Check duct-tools requirements.
 # @intl true
 # @life core
 # @deps
 # @opts
-__duct_util_load() {
+__duct_tools_load() {
   __duct_intl
 
-  local UTIL_LOAD_RC=0
+  local TOOLS_LOAD_RC=0
 
-  __duct_bin_check "${_DUCT_UTIL_LOAD_REQUIREMENTS[@]}" || UTIL_LOAD_RC=$?
+  __duct_bin_check "${_DUCT_TOOLS_LOAD_REQUIREMENTS[@]}" || TOOLS_LOAD_RC=$?
 
-  return $UTIL_LOAD_RC
+  return $TOOLS_LOAD_RC
 }
 
 # @func duct lower
