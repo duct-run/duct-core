@@ -22,59 +22,59 @@
 
 # @func duct util load
 
-# @fvar Check util requirements.
+# @fvar List of duct-util requirements.
 declare -r -a _DUCT_UTIL_LOAD_REQUIREMENTS=(
   base64
 )
 
-# @desc
+# @desc Check duct-util requirements.
 # @intl true
 # @life core
 # @deps
 # @opts
 __duct_util_load() {
-  local UTIL_LOAD_RC=0
-
   __duct_intl
+
+  local UTIL_LOAD_RC=0
 
   __duct_bin_check "${_DUCT_UTIL_LOAD_REQUIREMENTS[@]}" || UTIL_LOAD_RC=$?
 
   return $UTIL_LOAD_RC
 }
 
-# lower
+# @func duct lower
 
-# deps:
-# intl: false
-# life: core
-# desc: Return string to lower.
-# opts: <string>
+# @desc Return string to lower.
+# @intl false
+# @life core
+# @deps
+# @opts <string>
 __duct_lower() {
   local LOWER_STRING="$1"
 
   printf "%s\n" "${LOWER_STRING,,}"
 }
 
-# upper
+# @func duct upper
 
-# deps:
-# intl: false
-# life: core
-# desc: Return string to upper.
-# opts: <string>
+# @desc Return string to upper.
+# @intl false
+# @life core
+# @deps
+# @opts <string>
 __duct_upper() {
   local UPPER_STRING="$1"
 
   printf "%s\n" "${UPPER_STRING^^}"
 }
 
-# slug
+# @func duct slug
 
-# deps:
-# intl: false
-# life: core
-# desc: Slugify a string.
-# opts: <string>
+# @desc Slugify a string.
+# @intl false
+# @life core
+# @deps
+# @opts <string>
 __duct_slug() {
   local SLUG_STRING="$1"
 
@@ -84,13 +84,13 @@ __duct_slug() {
   printf "%s\n" "$SLUG_STRING"
 }
 
-# trim
+# @func duct trim
 
-# deps:
-# intl: false
-# life: core
-# desc: Remove leading and trailing whitespaces from string.
-# opts: <string>
+# @desc Remove leading and trailing whitespaces from string.
+# @intl false
+# @life core
+# @deps
+# @opts <string>
 __duct_trim() {
   local TRIM_STRING="$1"
 
@@ -100,13 +100,13 @@ __duct_trim() {
   printf "%s\n" "$TRIM_STRING"
 }
 
-# strip
+# @func duct strip
 
-# deps:
-# intl: false
-# life: core
-# desc: Strip elements from a string.
-# opts: <string> <element>
+# @desc Strip elements from a string.
+# @intl false
+# @life core
+# @deps
+# @opts <string> <element>
 __duct_strip() {
   local -a STRIP_ELEMENT
   local -a STRIP_STRING
@@ -131,13 +131,13 @@ __duct_strip() {
   printf "%s\n" "${STRIP_STRING[*]}"
 }
 
-# debase64
+# @func duct debase64
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Decode a base64 string to plain-text, or simply output the plain-text input value.
-# opts: <string>
+# @desc Decode a base64 string to plain-text, or simply output the plain-text input value.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <string>
 __duct_debase64() {
   local DEBASE64_STRING="${1:-}"
 
@@ -171,31 +171,31 @@ __duct_debase64() {
   fi
 }
 
-# sfile
+# @func duct sfile
 
-# Enable/disable masking of content (WARNING!).
+# @fvar Enable/disable masking of content (WARNING!).
 declare -g DUCT_SFILE_MASK=${DUCT_SFILE_MASK:-true}
 
-# String used to mask the content.
+# @fvar String used to mask the content.
 declare -g DUCT_SFILE_MASK_STRING=${DUCT_SFILE_MASK_STRING:-"[SECRET]"}
 
-# Enable/disable overwriting the file.
+# @fvar Enable/disable overwriting the file.
 declare -g DUCT_SFILE_OVERWRITE=${DUCT_SFILE_OVERWRITE:-false}
 
-# Filename to use.
+# @fvar Filename to use.
 declare -g DUCT_SFILE_FILENAME=${DUCT_SFILE_FILENAME:-}
 
-# Default file mode.
+# @fvar Default file mode.
 declare -g DUCT_SFILE_FILEMODE=${DUCT_SFILE_FILEMODE:-0600}
 
-# File content.
+# @fvar File content.
 declare -g DUCT_SFILE_CONTENT=${DUCT_SFILE_CONTENT:-}
 
-# deps: duct-msg duct-run
-# intl: false
-# life: core
-# desc: Write a file masking the content from messages.
-# opts: [filename] [content]
+# @desc Write a file masking the content from messages.
+# @intl false
+# @life core
+# @deps duct-msg duct-run
+# @opts [filename] [content]
 __duct_sfile() {
   local FILE="${1:-"${DUCT_SFILE_FILENAME}"}"
   local CONT="${2:-"${DUCT_SFILE_CONTENT}"}"
@@ -245,20 +245,20 @@ __duct_sfile() {
   fi
 }
 
-# cleanup
+# @func duct cleanup
 
-# List of directories and files to cleanup (defaults).
+# @fvar List of directories and files to cleanup (defaults).
 declare -a -r _DUCT_CLEANUP_LIST=()
 
 # shellcheck disable=SC2206
-# List of directories and files to cleanup.
+# @fvar List of directories and files to cleanup.
 declare -g -a DUCT_CLEANUP_LIST=( ${DUCT_CLEANUP_LIST[@]:-${_DUCT_CLEANUP_LIST[@]}} )
 
-# deps: duct-msg duct-run
-# intl: false
-# life:
-# desc: Cleanup and remove a list of directories and files.
-# opts: [cleanup-list[@]]
+# @desc Cleanup and remove a list of directories and files.
+# @intl false
+# @life
+# @deps duct-msg duct-run
+# @opts [cleanup-list[@]]
 __duct_cleanup() {
   # shellcheck disable=SC2206
   local CLEANUP_LIST=( ${@:-${DUCT_CLEANUP_LIST[@]}}  )
@@ -293,9 +293,9 @@ __duct_cleanup() {
   done
 }
 
-# random
+# @func duct random
 
-# Random character list (defaults).
+# @fvar Random character list (defaults).
 declare -r -a _DUCT_RANDOM_CHARS=(
   "ABCDEFGHJKLMNPQRSTUVWX"
   "abcdefghijkmnpqrstuvwx"
@@ -303,17 +303,17 @@ declare -r -a _DUCT_RANDOM_CHARS=(
   "!$%,."
 )
 
-# Random character list.
+# @fvar Random character list.
 declare -g -a DUCT_RANDOM_CHARS=( "${DUCT_RANDOM_CHARS[@]:-${_DUCT_RANDOM_CHARS[@]}}" )
 
-# Random string length.
+# @fvar Random string length.
 declare -g -i DUCT_RANDOM_LENGTH=${DUCT_RANDOM_LENGTH:-16}
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Create a random string from given character list.
-# opts: [length]
+# @desc Create a random string from given character list.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts [length]
 __duct_random() {
   local -i RANDOM_LENGTH="${1:-${DUCT_RANDOM_LENGTH}}"
 
@@ -345,22 +345,22 @@ __duct_random() {
   printf "%s\n" "$RANDOM_STRING"
 }
 
-# tmpgen
+# @func duct tmpgen
 
-# Prefix of tmp.
+# @fvar Prefix of tmp.
 declare -g DUCT_TMPGEN_PREFIX="${DUCT_TMPGEN_PREFIX:-"duct-"}"
 
-# Tmp directory.
+# @fvar Tmp directory.
 declare -g DUCT_TMPGEN_PATH="${DUCT_TMPGEN_PATH:-${TMPDIR:-"/tmp"}}"
 
-# Length of random part.
+# @fvar Length of random part.
 declare -g DUCT_TMPGEN_LENGTH="${DUCT_TMPGEN_LENGTH:-9}"
 
-# deps:
-# intl: false
-# life: core
-# desc: Generate a temporary path, without creating it.
-# opts: [prefix] [path]
+# @desc Generate a temporary path, without creating it.
+# @intl false
+# @life core
+# @deps
+# @opts [prefix] [path]
 __duct_tmpgen() {
   local TMPGEN_PREFIX="${1:-"$DUCT_TMPGEN_PREFIX"}"
   local TMPGEN_PATH="${2:-"$DUCT_TMPGEN_PATH"}"
@@ -379,22 +379,22 @@ __duct_tmpgen() {
   printf "%s\n" "$TMPGEN_OUTPUT"
 }
 
-# mktmpdir
+# @func duct mktmpdir
 
-# Prefix.
+# @fvar Prefix.
 declare -g DUCT_MKTMPDIR_PREFIX="${DUCT_MKTMPDIR_PREFIX:-"duct-"}"
 
-# Tmp path.
+# @fvar Tmp path.
 declare -g DUCT_MKTMPDIR_PATH="${DUCT_MKTMPDIR_PATH:-${TMPDIR:-"/tmp"}}"
 
-# Mode of directory.
+# @fvar Mode of directory.
 declare -g DUCT_MKTMPDIR_MODE="${DUCT_MKTMPDIR_MODE:-0700}"
 
-# deps: duct-msg duct-run
-# intl: false
-# life: core
-# desc: Create a temporary directory using `duct tmpgen`.
-# opts: [prefix] [path]
+# @desc Create a temporary directory using `duct tmpgen`.
+# @intl false
+# @life core
+# @deps duct-msg duct-run
+# @opts [prefix] [path]
 __duct_mktmpdir() {
   local MKTMPDIR_PREFIX="${1:-"$DUCT_MKTMPDIR_PREFIX"}"
   local MKTMPDIR_PATH="${2:-"$DUCT_MKTMPDIR_PATH"}"
@@ -408,22 +408,22 @@ __duct_mktmpdir() {
   return $MKTMPDIR_RC
 }
 
-# mktmpfile
+# @func duct mktmpfile
 
-# Prefix
+# @fvar Prefix
 declare -g DUCT_MKTMPFILE_PREFIX="${DUCT_MKTMPDIR_PREFIX:-"duct-"}"
 
-# Tmp path.
+# @fvar Tmp path.
 declare -g DUCT_MKTMPFILE_PATH="${DUCT_MKTMPFILE_PATH:-${TMPDIR:-"/tmp"}}"
 
-# Mode of file
+# @fvar Mode of file
 declare -g DUCT_MKTMPFILE_MODE="${DUCT_MKTMPFILE_MODE:-0600}"
 
-# deps: duct-msg duct-run
-# intl: false
-# life: core
-# desc: Create a temporay file using `duct tmpgen`.
-# opts: [prefix] [path]
+# @desc Create a temporay file using `duct tmpgen`.
+# @intl false
+# @life core
+# @deps duct-msg duct-run
+# @opts [prefix] [path]
 __duct_mktmpfile() {
   local MKTMPFILE_PREFIX="${1:-"$DUCT_MKTMPFILE_PREFIX"}"
   local MKTMPFILE_PATH="${2:-"$DUCT_MKTMPFILE_PATH"}"
@@ -440,13 +440,13 @@ __duct_mktmpfile() {
   return $MKTMPFILE_RC
 }
 
-# find count
+# @func duct find count
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Find files and directories returning count.
-# opts: <path> <@file-directory>
+# @desc Find files and directories returning count.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <path> <@file-directory>
 __duct_find_count() {
   local COUNT_ROOT="${1:-$PWD}"
   shift
@@ -475,22 +475,22 @@ __duct_find_count() {
   echo "$COUNT"
 }
 
-# textract
+# @func duct textract
 
-# Filename to extract text from.
+# @fvar Filename to extract text from.
 declare -g DUCT_TEXTRACT_FILENAME=""
 
-# Marker begin.
+# @fvar Marker begin.
 declare -g DUCT_TEXTRACT_MARKER_BEGIN=""
 
-# Marker end.
+# @fvar Marker end.
 declare -g DUCT_TEXTRACT_MARKER_END=""
 
-# deps: duct-msg
-# intl: false
-# life:
-# desc: Extract text between two markers.
-# opts: [filename] [marker-begin] [marker-end]
+# @desc Extract text between two markers.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts [filename] [marker-begin] [marker-end]
 __duct_textract() {
   local TEXT_FILE="${1:-"$DUCT_TEXTRACT_FILENAME"}"
   local TEXT_BEGIN="${2:-"$DUCT_TEXTRACT_MARKER_BEGIN"}"
@@ -553,25 +553,25 @@ __duct_textract() {
   done
 }
 
-# textinject
+# @func duct textinject
 
-# Filename to extract text from.
+# @fvar Filename to extract text from.
 declare -g DUCT_TEXTINJECT_FILENAME=""
 
-# Marker begin.
+# @fvar Marker begin.
 declare -g DUCT_TEXTINJECT_MARKER_BEGIN=""
 
-# Marker end.
+# @fvar Marker end.
 declare -g DUCT_TEXTINJECT_MARKER_END=""
 
-# Text to inject.
+# @fvar Text to inject.
 declare -g DUCT_TEXTINJECT_TEXT=""
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Extract text between two markers.
-# opts: [filename] [marker-begin] [marker-end]
+# @desc Extract text between two markers.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts [filename] [marker-begin] [marker-end]
 __duct_textinject() {
   local TEXT_FILE="${1:-"$DUCT_TEXTINJECT_FILENAME"}"
   local TEXT_BEGIN="${2:-"$DUCT_TEXTINJECT_MARKER_BEGIN"}"
@@ -717,16 +717,16 @@ __duct_compare_version() {
   return
 }
 
-# urlinfo
+# @func duct urlinfo
 
-# desc: Associative array of URL parts.
+# @fvar Associative array of URL parts.
 declare -g -x -A DUCT_URLINFO=()
 
-# deps: duct-msg
-# intl: false
-# life: beta
-# desc: Explode a URL into parts and set `DUCT_URLINFO` (`scheme`, `host`, and `path` is supported).
-# opts: <url>
+# @desc Explode a URL into parts and set `DUCT_URLINFO` (`scheme`, `host`, and `path` is supported).
+# @intl false
+# @life beta
+# @deps duct-msg
+# @opts <url>
 __duct_urlinfo() {
   local URL="${1:-""}"
 
@@ -759,16 +759,16 @@ __duct_urlinfo() {
   DUCT_URLINFO["path"]="$URL_PATH"
 }
 
-# urlsplit
+# @func duct urlsplit
 
-# Array of URL splits.
+# @fvar Array of URL splits.
 declare -g -x -a DUCT_URLSPLIT=()
 
-# deps: duct-msg
-# intl: false
-# life: beta
-# desc: Split a URL into parts and set `DUCT_URLSPLIT`.
-# opts: <url>
+# @desc Split a URL into parts and set `DUCT_URLSPLIT`.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <url>
 __duct_urlsplit() {
   local URL="${1:-}"
 
@@ -781,13 +781,13 @@ __duct_urlsplit() {
   IFS=" " read -r -a DUCT_URLSPLIT <<< "${URL//\// }"
 }
 
-# unpack
+# @func duct unpack
 
-# deps: duct-gnu duct-msg duct-run
-# intl: false
-# life:
-# desc: Unpack files from an archive.
-# opts:
+# @desc Unpack files from an archive.
+# @intl false
+# @life devel
+# @deps duct-gnu duct-msg duct-run
+# @opts
 __duct_unpack() {
   local ARCHIVE="$1"
   shift
@@ -858,16 +858,16 @@ __duct_unpack() {
   __duct_run rm -f "${ARCHIVE:?}"
 }
 
-# sleep
+# @func duct sleep
 
-# File descriptor for sleep (set at run-time).
+# @fvar File descriptor for sleep (set at run-time).
 declare -g DUCT_SLEEP_FD="${DUCT_SLEEP_FD:-}"
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Sleep seconds (default 5).
-# opts: [sleep-seconds]
+# @desc Sleep seconds (default 5).
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts [sleep-seconds]
 __duct_sleep() {
   local SLEEP="${1:-5}"
 
@@ -885,13 +885,13 @@ __duct_sleep() {
   fi
 }
 
-# sleep random
+# @func duct sleep random
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Sleep random seconds (default max 5, min 1 second).
-# opts: [sleep-max] [sleep-min]
+# @desc Sleep random seconds (default max 5, min 1 second).
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts [sleep-max] [sleep-min]
 __duct_sleep_random() {
   local SLEEP_RANDOM_MAX="${1:-5}"
   local SLEEP_RANDOM_MIN="${2:-1}"
@@ -912,26 +912,26 @@ __duct_sleep_random() {
   __duct_sleep "$SLEEP_RANDOM"
 }
 
-# sgrep
+# @func duct sgrep
 
-# List of files to use (defaults).
+# @fvar List of files to use (defaults).
 declare -r -a _DUCT_SGREP_FILES=()
 
-# Bash regex compatible match.
+# @fvar Bash regex compatible match.
 declare -g DUCT_SGREP_MATCH="${DUCT_SGREP_MATCH:-}"
 
 # shellcheck disable=SC2206
-# List of files to use (if empty stdin is used).
+# @fvar List of files to use (if empty stdin is used).
 declare -g -a DUCT_SGREP_FILES=( ${DUCT_SGREP_FILES[@]:-${_DUCT_SGREP_FILES[@]}} )
 
-# Return value 'match' or 'line' number.
+# @fvar Return value 'match' or 'line' number.
 declare -g DUCT_SGREP_RETURN="${DUCT_SGREP_RETURN:-"match"}"
 
-# deps: duct-msg
-# intl: false
-# life: core
-# desc: Simple grep in pure Bash.
-# opts: <match> [file(s)]
+# @desc Simple grep in pure Bash.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <match> [file(s)]
 __duct_sgrep() {
   local SGREP_MATCH="${1:-$DUCT_SGREP_MATCH}"
   shift || :
