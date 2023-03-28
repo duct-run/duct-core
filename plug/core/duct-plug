@@ -165,6 +165,9 @@ __duct_plug_install() {
 
 # @func duct plug load
 
+# @fvar List of plugins to skip from load (defaults).
+declare -r -a _DUCT_PLUG_LOAD_SKIP=( duct-none )
+
 # @fvar Quiet plugin load messages.
 declare -g DUCT_PLUG_LOAD_QUIET="${DUCT_PLUG_LOAD_QUIET:-${DUCT_PLUG_QUIET}}"
 
@@ -173,6 +176,12 @@ declare -g DUCT_PLUG_LOAD_INIT="${DUCT_PLUG_LOAD_INIT:-true}"
 
 # @fvar Plugin initial load warning instead of error.
 declare -g DUCT_PLUG_LOAD_INIT_WARNING="${DUCT_PLUG_LOAD_INIT_WARNING:-true}"
+
+# @fvar List of plugins to skip from load.
+declare -g -a DUCT_PLUG_LOAD_SKIP=( "${DUCT_PLUG_LOAD_SKIP[@]:-${_DUCT_PLUG_LOAD_SKIP[@]}}" )
+
+# @fvar Enable/disable skip load warning.
+declare -g DUCT_PLUG_LOAD_SKIP_WARNING="${DUCT_PLUG_LOAD_SKIP_WARNING:-true}"
 
 # @desc The duct plugin loader.
 # @intl true
@@ -194,6 +203,7 @@ __duct_plug_load() {
   local PLUG_LOAD_MSG_LEVEL
   local PLUG_LOAD_NAME
   local PLUG_LOAD_RC=0
+  local PLUG_LOAD_SKIP
 
   # store msg level
   if [[ "$DUCT_PLUG_LOAD_QUIET" == true ]]
@@ -234,8 +244,20 @@ __duct_plug_load() {
 
     PLUG_LOAD_CORE="$( IFS="|"; printf "%s" "${DUCT_PLUG_CORE[*]}" )"
 
-    if [[ ! "$PLUG_LOAD_NAME" =~ ^duct-[a-z]+$ ]] || [[ "$PLUG_LOAD_NAME" =~ ^($PLUG_LOAD_CORE)$ ]]
+    if [[ ! "$PLUG_LOAD_NAME" =~ ^duct-[a-z]+$ || "$PLUG_LOAD_NAME" =~ ^($PLUG_LOAD_CORE)$ ]]
     then
+      continue
+    fi
+
+    # to regex
+    PLUG_LOAD_SKIP="$( IFS="|"; printf "%s" "${DUCT_PLUG_LOAD_SKIP[*]}" )"
+
+    if [[ "$PLUG_LOAD_NAME" =~ ^($PLUG_LOAD_SKIP)$ ]]
+    then
+      if [[ "$DUCT_PLUG_LOAD_SKIP_WARNING" == true ]]
+      then
+        __duct_msg w "skip $PLUG_LOAD_NAME"
+      fi
       continue
     fi
 
