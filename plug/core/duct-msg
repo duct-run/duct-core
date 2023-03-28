@@ -101,6 +101,7 @@ __duct_msg() {
   shift || :
   local -a MSG_OUTPUT=( "$@" )
 
+  local IFS=" "
   local MSG
   local MSG_RC=0
 
