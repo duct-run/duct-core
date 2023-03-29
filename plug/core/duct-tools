@@ -990,7 +990,7 @@ __duct_sgrep() {
 # @intl false
 # @life core
 # @deps
-# @opts
+# @opts <input>
 __duct_sort() {
   local -a SORT_INPUT
   local SORT_DONE=1
@@ -1006,12 +1006,23 @@ __duct_sort() {
 
     for ((SORT_J = 0; SORT_J < ( ${#SORT_INPUT[@]} - 1 - SORT_I ); SORT_J++ ))
     do
-      if [ "${SORT_INPUT[SORT_J]}" \> "${SORT_INPUT[SORT_J+1]}" ]
+      if [[ "${SORT_INPUT[SORT_J]}" =~ ^[0-9]+$ && "${SORT_INPUT[SORT_J+1]}" =~ ^[0-9]+$ ]]
       then
-        SORT_TEMP="${SORT_INPUT[SORT_J]}"
-        SORT_INPUT[SORT_J]="${SORT_INPUT[SORT_J+1]}"
-        SORT_INPUT[SORT_J+1]="$SORT_TEMP"
-        SORT_DONE=1
+        if (( "${SORT_INPUT[SORT_J]}" > "${SORT_INPUT[SORT_J+1]}" ))
+        then
+          SORT_TEMP="${SORT_INPUT[SORT_J]}"
+          SORT_INPUT[SORT_J]="${SORT_INPUT[SORT_J+1]}"
+          SORT_INPUT[SORT_J+1]="$SORT_TEMP"
+          SORT_DONE=1
+        fi
+      else
+        if [ "${SORT_INPUT[SORT_J]}" \> "${SORT_INPUT[SORT_J+1]}" ]
+        then
+          SORT_TEMP="${SORT_INPUT[SORT_J]}"
+          SORT_INPUT[SORT_J]="${SORT_INPUT[SORT_J+1]}"
+          SORT_INPUT[SORT_J+1]="$SORT_TEMP"
+          SORT_DONE=1
+        fi
       fi
     done
 
