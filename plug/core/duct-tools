@@ -20,28 +20,6 @@
 # @plug duct-tools
 # @desc Collection of core tools.
 
-# @func duct tools load
-
-# @fvar List of duct-tools requirements.
-declare -r -a _DUCT_TOOLS_LOAD_REQUIREMENTS=(
-  base64
-)
-
-# @desc Check duct-tools requirements.
-# @intl true
-# @life core
-# @deps
-# @opts
-__duct_tools_load() {
-  __duct_intl
-
-  local TOOLS_LOAD_RC=0
-
-  __duct_bin_check "${_DUCT_TOOLS_LOAD_REQUIREMENTS[@]}" || TOOLS_LOAD_RC=$?
-
-  return $TOOLS_LOAD_RC
-}
-
 # @func duct lower
 
 # @desc Return string to lower.
@@ -133,6 +111,9 @@ __duct_strip() {
 
 # @func duct debase64
 
+# @fvar Binary of base64 to decode with.
+declare -g DUCT_DEBASE64_BIN="${DUCT_DEBASE64_BIN:-"base64"}"
+
 # @desc Decode a base64 string to plain-text, or simply output the plain-text input value.
 # @intl false
 # @life core
@@ -151,7 +132,7 @@ __duct_debase64() {
   fi
 
   set +e
-  DEBASE64_OUTPUT="$( base64 -d <<< "$DEBASE64_STRING" 2>/dev/null )"
+  DEBASE64_OUTPUT="$( "$DUCT_DEBASE64_BIN" -d <<< "$DEBASE64_STRING" 2>/dev/null )"
   DEBASE64_RC=$?
   set -e
 
@@ -1069,4 +1050,26 @@ __duct_grep() {
 __duct_sed() {
   __duct_msg w "use 'duct gnu sed' instead!"
   __duct_gnu_sed "$@"
+}
+
+# @func duct tools load
+
+# @fvar List of duct-tools requirements.
+declare -r -a _DUCT_TOOLS_LOAD_REQUIREMENTS=(
+  "$DUCT_DEBASE64_BIN"
+)
+
+# @desc Check duct-tools requirements.
+# @intl true
+# @life core
+# @deps
+# @opts
+__duct_tools_load() {
+  __duct_intl
+
+  local TOOLS_LOAD_RC=0
+
+  __duct_bin_check "${_DUCT_TOOLS_LOAD_REQUIREMENTS[@]}" || TOOLS_LOAD_RC=$?
+
+  return $TOOLS_LOAD_RC
 }
