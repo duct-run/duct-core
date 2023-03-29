@@ -112,7 +112,7 @@ __duct_strip() {
 # @func duct debase64
 
 # @fvar Binary of base64 to decode with.
-declare -g DUCT_DEBASE64_BIN="${DUCT_DEBASE64_BIN:-"base64"}"
+declare -g DUCT_DEBASE64_BINARY="${DUCT_DEBASE64_BINARY:-"base64"}"
 
 # @desc Decode a base64 string to plain-text, or simply output the plain-text input value.
 # @intl false
@@ -132,7 +132,7 @@ __duct_debase64() {
   fi
 
   set +e
-  DEBASE64_OUTPUT="$( "$DUCT_DEBASE64_BIN" -d <<< "$DEBASE64_STRING" 2>/dev/null )"
+  DEBASE64_OUTPUT="$( "$DUCT_DEBASE64_BINARY" -d <<< "$DEBASE64_STRING" 2>/dev/null )"
   DEBASE64_RC=$?
   set -e
 
@@ -1056,7 +1056,7 @@ __duct_sed() {
 
 # @fvar List of duct-tools requirements.
 declare -r -a _DUCT_TOOLS_LOAD_REQUIREMENTS=(
-  "$DUCT_DEBASE64_BIN"
+  "$DUCT_DEBASE64_BINARY"
 )
 
 # @desc Check duct-tools requirements.
