@@ -895,29 +895,24 @@ __duct_sleep_random() {
 
 # @func duct sgrep
 
-# @fvar List of files to use (defaults).
-declare -r -a _DUCT_SGREP_FILES=()
+# @fvar BASH_REMATCH compatible array (set at run-time).
+declare -g -a DUCT_SGREP_REMATCH=()
 
-# @fvar Bash regex compatible match.
-declare -g DUCT_SGREP_MATCH="${DUCT_SGREP_MATCH:-}"
+# @fvar File line of matches (set at run-time).
+declare -g -a DUCT_SGREP_LINE=()
 
-# shellcheck disable=SC2206
-# @fvar List of files to use (if empty stdin is used).
-declare -g -a DUCT_SGREP_FILES=( ${DUCT_SGREP_FILES[@]:-${_DUCT_SGREP_FILES[@]}} )
-
-# @fvar Return value 'match' or 'line' number.
+# @fvar Print value 'match', 'line' number, or 'none'.
 declare -g DUCT_SGREP_RETURN="${DUCT_SGREP_RETURN:-"match"}"
 
 # @desc Simple grep in pure Bash.
 # @intl false
 # @life core
 # @deps duct-msg
-# @opts <match> [file(s)]
+# @opts <match> <file(s)>
 __duct_sgrep() {
-  local SGREP_MATCH="${1:-$DUCT_SGREP_MATCH}"
-  shift || :
-  # shellcheck disable=SC2206
-  local -a SGREP_FILES=( ${@:-${DUCT_SGREP_FILES[@]}} )
+  local SGREP_MATCH="${1:-}"
+  shift
+  local -a SGREP_FILES=( "$@" )
 
   if [[ -z "$SGREP_MATCH" ]]
   then
@@ -935,13 +930,21 @@ __duct_sgrep() {
     do
       if [[ "${SGREP_DATA[$SGREP_LINE]}" =~ $SGREP_MATCH ]]
       then
+        # shellcheck disable=SC2034
+        DUCT_SGREP_REMATCH+=( "${BASH_REMATCH[@]}" )
+        DUCT_SGREP_LINE+=( "$(( SGREP_LINE + 1  ))" )
+
         if [[ "$DUCT_SGREP_RETURN" == "match" ]]
         then
-          SGREP_FOUND+=( "${SGREP_DATA[$SGREP_LINE]}" )
+          SGREP_FOUND+=( "${SGREP_DATA[SGREP_LINE]}" )
 
         elif [[ "$DUCT_SGREP_RETURN" == "line" ]]
         then
-          SGREP_FOUND+=( "$(( SGREP_LINE + 1 ))" )
+          SGREP_FOUND+=( "${DUCT_SGREP_LINE[@]}" )
+
+        elif [[ "$DUCT_SGREP_RETURN" == "none" ]]
+        then
+          SGREP_FOUND=()
         fi
       fi
     done
