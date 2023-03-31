@@ -925,6 +925,10 @@ __duct_sgrep() {
   local SGREP_FILE
   local SGREP_LINE
 
+  # reset
+  DUCT_SGREP_REMATCH=()
+  DUCT_SGREP_LINE=()
+
   ___duct_sgrep() {
     for SGREP_LINE in "${!SGREP_DATA[@]}"
     do
