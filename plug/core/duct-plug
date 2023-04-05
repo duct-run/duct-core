@@ -76,6 +76,12 @@ __duct_plug_install() {
     then
       __duct_msg w "$PLUG_INSTALL_TYPE (disabled)"
     fi
+
+    # restore msg level
+    if [[ "$DUCT_PLUG_INSTALL_QUIET" == true ]]
+    then
+      DUCT_MSG_MAX_LEVEL="$PLUG_INSTALL_MSG_LEVEL"
+    fi
     return
   fi
 
@@ -224,6 +230,12 @@ __duct_plug_load() {
       # skip vendor load
       if [[ "${#DUCT_PLUG_INSTALL_VENDOR[@]}" -lt 1 ]]
       then
+
+        # restore msg level
+        if [[ "$DUCT_PLUG_LOAD_QUIET" == true ]]
+        then
+          DUCT_MSG_MAX_LEVEL="$PLUG_LOAD_MSG_LEVEL"
+        fi
         return
       fi
 
