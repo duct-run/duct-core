@@ -160,13 +160,13 @@ __duct_plug_install() {
     else
       __duct_msg w "git not found!"
     fi
-
-    # restore msg level
-    if [[ "$DUCT_PLUG_INSTALL_QUIET" == true ]]
-    then
-      DUCT_MSG_MAX_LEVEL="$PLUG_INSTALL_MSG_LEVEL"
-    fi
   done
+
+  # restore msg level
+  if [[ "$DUCT_PLUG_INSTALL_QUIET" == true ]]
+  then
+    DUCT_MSG_MAX_LEVEL="$PLUG_INSTALL_MSG_LEVEL"
+  fi
 }
 
 # @func duct plug load
