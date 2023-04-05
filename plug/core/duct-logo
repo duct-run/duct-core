@@ -50,6 +50,6 @@ __duct_logo() {
     else
       printf "%b" "$_DUCT_LOGO_MAIN" | base64 -d
     fi
+    printf "%b\n" " $DUCT_SELF_NAME $DUCT_VERSION (${DUCT_OSTYPE}-${DUCT_HOSTTYPE}) [$DUCT_URL]\n"
   fi
-  printf "%b\n" " $DUCT_SELF_NAME $DUCT_VERSION (${DUCT_OSTYPE}-${DUCT_HOSTTYPE}) [$DUCT_URL]\n"
 }
