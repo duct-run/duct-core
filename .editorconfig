@@ -23,4 +23,4 @@ indent_size = 8
 indent_style = tab
 
 [duct-*]
-max_line_length = off
+max_line_length = 160
