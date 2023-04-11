@@ -689,3 +689,47 @@ __duct_ver_check() {
     __duct_msg d "$VER_CMD version $VER_VERSION"
   fi
 }
+
+# @func duct file check
+
+# @fvar List of files to check (defaults).
+declare -r -a _DUCT_FILE_CHECK_LIST=()
+
+# @fvar List of files to check.
+declare -g -a DUCT_FILE_CHECK_LIST=( "${DUCT_FILE_CHECK_LIST[@]:-${_DUCT_FILE_CHECK_LIST[@]}}" )
+
+# @desc Check list of files, symlinks, or directories.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts [list@]
+__duct_file_check() {
+  local -a FILE_CHECK_LIST=( "${@:-${DUCT_FILE_CHECK_LIST[@]}}" )
+
+  local FILE_CHECK_ITEM
+  local FILE_CHECK_RC=0
+
+  for FILE_CHECK_ITEM in "${FILE_CHECK_LIST[@]}"
+  do
+    if [[ -L "$FILE_CHECK_ITEM" ]]
+    then
+      __duct_msg n "symlink '$FILE_CHECK_ITEM' found"
+
+    elif [[ -d "$FILE_CHECK_ITEM" ]]
+    then
+      __duct_msg n "directory '$FILE_CHECK_ITEM' found"
+
+    elif [[ -f "$FILE_CHECK_ITEM" ]]
+    then
+      __duct_msg n "file '$FILE_CHECK_ITEM' found"
+    else
+      __duct_msg e "'$FILE_CHECK_ITEM' not found!"
+      (( FILE_CHECK_RC+=1 ))
+    fi
+  done
+
+  if [[ "$FILE_CHECK_RC" -gt 0 ]]
+  then
+    return 1
+  fi
+}
