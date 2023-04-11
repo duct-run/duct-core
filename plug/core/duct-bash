@@ -60,6 +60,7 @@ declare -g -r -a DUCT_BASH_SHOPT_SET=(
   extglob
   globstar
   lastpipe
+  nullglob
   shift_verbose
 )
 
