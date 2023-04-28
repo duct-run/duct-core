@@ -524,6 +524,45 @@ duct() {
   fi
 }
 
+# @func duct bool check
+
+# @desc Check a variable name for bool value, and set yes,no to true,false.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts [bin-check-list[@]]
+__duct_bool_check() {
+  local -n BOOL_CHECK="$1"
+  local BOOL_MATCH
+
+  if [[ "${BOOL_CHECK,,}" =~ ^(yes|no|true|false) ]]
+  then
+    BOOL_MATCH="${BASH_REMATCH[1]}"
+
+    case "$BOOL_MATCH"
+    in
+      yes)
+        __duct_msg d "set ${!BOOL_CHECK}=${BOOL_CHECK} to ${!BOOL_CHECK}=true"
+        BOOL_CHECK=true
+      ;;
+      no)
+        __duct_msg d "set ${!BOOL_CHECK}=${BOOL_CHECK} to ${!BOOL_CHECK}=false"
+        BOOL_CHECK=false
+      ;;
+      *)
+        if [[ "$BOOL_CHECK" != "$BOOL_MATCH" ]]
+        then
+          __duct_msg d "set ${!BOOL_CHECK}=${BOOL_CHECK} to ${!BOOL_CHECK}=${BOOL_MATCH}"
+          BOOL_CHECK="$BOOL_MATCH"
+        fi
+      ;;
+    esac
+  else
+    __duct_msg e "fail: ${!BOOL_CHECK}=${BOOL_CHECK}"
+    return 1
+  fi
+}
+
 # @func duct bin check
 
 # @fvar List of binaries to check (defaults).
