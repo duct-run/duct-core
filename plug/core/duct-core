@@ -530,7 +530,7 @@ duct() {
 # @intl false
 # @life core
 # @deps duct-msg
-# @opts [bin-check-list[@]]
+# @opts <variable-name>
 __duct_bool_check() {
   local -n BOOL_CHECK="$1"
   local BOOL_MATCH
