@@ -141,13 +141,13 @@ __duct_debase64() {
     __duct_msg d "plain string"
     printf "%s\n" "$DEBASE64_STRING"
   else
-    if [[ ! "$DEBASE64_OUTPUT" =~ [[:alpha:]] ]]
+    if [[ "$DEBASE64_OUTPUT" =~ ^([[:alpha:]]+) ]]
     then
-      __duct_msg d "plain string"
-      printf "%s\n" "$DEBASE64_STRING"
-    else
       __duct_msg d "base64 string"
       printf "%s\n" "$DEBASE64_OUTPUT"
+    else
+      __duct_msg d "plain string"
+      printf "%s\n" "$DEBASE64_STRING"
     fi
   fi
 }
