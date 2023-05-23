@@ -417,7 +417,7 @@ __duct_tee() {
   local TEE_FILE="${1:-}"
   local TEE_APPEND="${2:-false}"
 
-  local -a TEE_DATA
+  local TEE_DATA
 
   if [[ -z "$TEE_FILE" ]]
   then
@@ -430,8 +430,9 @@ __duct_tee() {
     : > "$TEE_FILE"
   fi
 
-  readarray -t -n 0 TEE_DATA
-
-  printf "%b\n" "${TEE_DATA[@]}"
-  printf "%b\n" "${TEE_DATA[@]}" >> "$TEE_FILE" 2>&1
+  while IFS="" read -r -e TEE_DATA
+  do
+    printf "%b\n" "$TEE_DATA"
+    printf "%b\n" "$TEE_DATA" >> "$TEE_FILE" 2>&1
+  done
 }
