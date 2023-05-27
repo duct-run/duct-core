@@ -93,8 +93,10 @@ declare -r -a DUCT_PLUG_CORE=(
 
 for DUCT_ITEM in "${DUCT_PLUG_CORE[@]}"
 do
+  declare -u -n DUCT_PLUG_VAR="__${DUCT_ITEM//-/_}"
+
   # shellcheck disable=SC1090
-  source "${DUCT_PLUG_DIR}/core/$DUCT_ITEM"
+  source "${DUCT_PLUG_DIR}/core/$DUCT_ITEM" && export DUCT_PLUG_VAR=true
 done
 unset DUCT_ITEM
 

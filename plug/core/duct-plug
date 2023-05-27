@@ -273,6 +273,9 @@ __duct_plug_load() {
       continue
     fi
 
+    declare -u -n PLUG_LOAD_VAR="__${PLUG_LOAD_NAME//-/_}"
+    export PLUG_LOAD_VAR=false
+
     if [[ -f "$PLUG_LOAD_ITEM" ]] && [[ -s "$PLUG_LOAD_ITEM" ]]
     then
       __duct_msg d "$PLUG_LOAD_NAME"
@@ -288,12 +291,18 @@ __duct_plug_load() {
         then
           __duct_msg w "$PLUG_LOAD_NAME incomplete!"
           PLUG_LOAD_RC=0
+          PLUG_LOAD_VAR=false
 
         elif [[ "$PLUG_LOAD_RC" -gt 0 ]]
         then
           __duct_msg e "$PLUG_LOAD_NAME failed!"
+          PLUG_LOAD_VAR=false
           return $PLUG_LOAD_RC
+        else
+          PLUG_LOAD_VAR=true
         fi
+      else
+        PLUG_LOAD_VAR=true
       fi
     fi
   done
