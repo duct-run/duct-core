@@ -51,6 +51,39 @@ __duct_intl() {
   fi
 }
 
+# @func duct deps
+
+# @fvar Fail on missing dependencies.
+declare -g DUCT_DEPS_MISSING_FAIL="${DUCT_DEPS_MISSING_FAIL:-false}"
+
+# @desc Check duct dependencies.
+# @intl true
+# @life core
+# @deps duct-msg
+# @opts
+__duct_deps() {
+  local -a DEPS=( "$@" )
+
+  local DEPS_ITEM
+  local DEPS_RC=0
+
+  for DEPS_ITEM in "${DEPS[@]}"
+  do
+    local -n -u DEPS_VAR="__${DEPS_ITEM//-/_}"
+
+    if [[ ! "${DEPS_VAR+x}" || "$DEPS_VAR" != true ]]
+    then
+      __duct_msg w "$DEPS_ITEM missing!"
+      (( DEPS_RC+=1 ))
+    fi
+  done
+
+  if [[ "$DUCT_DEPS_MISSING_FAIL" == true && "$DEPS_RC" -gt 0 ]]
+  then
+    return 1
+  fi
+}
+
 # @func duct env
 
 # @fvar Enable/disbale environment processing.
