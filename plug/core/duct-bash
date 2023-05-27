@@ -50,9 +50,9 @@ __duct_bash() {
 
   export DUCT_BASH_VERSION="${BASH_VERSION}-${MACHTYPE}"
 
-  __duct_msg d "$DUCT_BASH_VERSION (DUCT_BASH_VERSION)"
-  __duct_msg d "$DUCT_BASH_EPOCH (DUCT_BASH_EPOCH)"
-  __duct_msg d "$DUCT_BASH_SRANDOM (DUCT_BASH_SRANDOM)"
+  __duct_msg d "DUCT_BASH_VERSION=$DUCT_BASH_VERSION"
+  __duct_msg d "DUCT_BASH_EPOCH=$DUCT_BASH_EPOCH"
+  __duct_msg d "DUCT_BASH_SRANDOM=$DUCT_BASH_SRANDOM"
 
   readonly DUCT_BASH_VERSION
   readonly DUCT_BASH_EPOCH
