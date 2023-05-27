@@ -259,7 +259,7 @@ __duct_hosttype() {
   if [[ "${#DUCT_HOSTTYPE_MAP[@]}" -eq 0 ]]
   then
     DUCT_HOSTTYPE="$HOSTTYPE_SHELL"
-    __duct_msg d "$DUCT_HOSTTYPE (DUCT_HOSTTYPE)"
+    __duct_msg d "DUCT_HOSTTYPE=$DUCT_HOSTTYPE"
     export DUCT_HOSTTYPE
     return
   fi
@@ -278,7 +278,7 @@ __duct_hosttype() {
   done
 
   DUCT_HOSTTYPE="$HOSTTYPE_SHELL"
-  __duct_msg d "$DUCT_HOSTTYPE (DUCT_HOSTTYPE)"
+  __duct_msg d "DUCT_HOSTTYPE=$DUCT_HOSTTYPE"
   export DUCT_HOSTTYPE
 }
 
@@ -324,7 +324,7 @@ __duct_ostype() {
   if [[ "${#DUCT_OSTYPE_MAP[@]}" -eq 0 ]]
   then
     export DUCT_OSTYPE="$OSTYPE_SHELL"
-    __duct_msg d "$DUCT_OSTYPE (DUCT_OSTYPE)"
+    __duct_msg d "DUCT_OSTYPE=$DUCT_OSTYPE"
     return
   fi
 
@@ -342,7 +342,7 @@ __duct_ostype() {
   done
 
   export DUCT_OSTYPE="$OSTYPE_SHELL"
-  __duct_msg d "$DUCT_OSTYPE (DUCT_OSTYPE)"
+  __duct_msg d "DUCT_OSTYPE=$DUCT_OSTYPE"
 }
 
 # @func umask
@@ -364,15 +364,15 @@ declare -g DUCT_UMASK_FMODE="${DUCT_UMASK_FMODE:-}"
 __duct_umask() {
   __duct_intl
 
-  __duct_msg d "$DUCT_UMASK (DUCT_UMASK)"
+  __duct_msg d "DUCT_UMASK=$DUCT_UMASK"
   umask "$DUCT_UMASK"
 
   DUCT_UMASK_DMODE="$( printf '%#o' $(( 0777 & ~DUCT_UMASK )) )"
-  __duct_msg d "$DUCT_UMASK_DMODE (DUCT_UMASK_DMODE)"
+  __duct_msg d "DUCT_UMASK_DMODE=$DUCT_UMASK_DMODE"
   export DUCT_UMASK_DMODE
 
   DUCT_UMASK_FMODE="$( printf '%#o' $(( 0777 & ~0111 & ~DUCT_UMASK )) )"
-  __duct_msg d "$DUCT_UMASK_FMODE (DUCT_UMASK_FMODE)"
+  __duct_msg d "DUCT_UMASK_FMODE=$DUCT_UMASK_FMODE"
   export DUCT_UMASK_FMODE
 }
 
