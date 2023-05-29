@@ -20,22 +20,16 @@
 set -eu
 
 # initial checks
-if [[ -n "${ZSH_NAME+duct}" ]] || [[ -z "${BASH+x}" ]]
-then
-  printf "%b\n" "\033[0;31m[ERR] SORRY! DUCT IS A BASH ONLY FRAMEWORK!\033[0m"
-  exit 1
-fi
-
-if [[ -n "${POSIXLY_CORRECT+x}" ]]
-then
-  printf "%b\n" "\033[0;31m[ERR] UNSUPPORTED SHELL!\033[0m"
-  exit 1
-fi
-
 if [[ ${BASH_VERSINFO[0]} -lt 4 ]]
 then
   printf "%b\n" "\033[0;31m[ERR] UNSUPPORTED BASH VERSION ${BASH_VERSION}!\033[0m"
   printf "%b\n" "\033[0;33m[WRN] MINIMUM SUPPORTED BASH VERSION IS 4.4.0\033[0m"
+  exit 1
+fi
+
+if [[ ! -v BASH || -v ZSH_NAME || -v POSIXLY_CORRECT ]]
+then
+  printf "%b\n" "\033[0;31m[ERR] SORRY! DUCT IS A BASH ONLY FRAMEWORK!\033[0m"
   exit 1
 fi
 
