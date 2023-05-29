@@ -52,7 +52,7 @@ declare DUCT_TERM_PROGRAM="${DUCT_TERM_PROGRAM:-${TERM_PROGRAM:-"none"}}"
 
 # self
 # shellcheck disable=SC2034
-if [[ -n "${BASH_SOURCE[0]+x}" ]]
+if [[ -v BASH_SOURCE[0] ]]
 then
   declare -r DUCT_SELF_FILE="${BASH_SOURCE[0]:?}"
   declare -r DUCT_SELF_NAME="${DUCT_SELF_FILE##*/}"
@@ -61,7 +61,7 @@ fi
 
 # script
 # shellcheck disable=SC2034
-if [[ -n "${BASH_SOURCE[1]+x}" ]]
+if [[ -v BASH_SOURCE[1] ]]
 then
   declare -r DUCT_SCRIPT_FILE="${BASH_SOURCE[1]:?}"
   declare -r DUCT_SCRIPT_NAME="${DUCT_SCRIPT_FILE##*/}"
