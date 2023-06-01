@@ -360,9 +360,7 @@ __duct_ostype() {
 
   case "$OSTYPE_SHELL"
   in
-    darwin)
-      DUCT_OSTYPE_COMMON+=( "macos" )
-    ;;
+    darwin) DUCT_OSTYPE_COMMON+=( "macos" ) ;;
   esac
 
   DUCT_OSTYPE_COMMON+=( "$OSTYPE_SHELL" )
