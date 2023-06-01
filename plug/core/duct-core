@@ -330,6 +330,10 @@ declare -g DUCT_OSTYPE_EXTRA="${DUCT_OSTYPE_EXTRA:-}"
 # @fvar Mapping of ostype source=destination.
 declare -g -a DUCT_OSTYPE_MAP=( ${DUCT_OSTYPE_MAP[@]:-${_DUCT_OSTYPE_MAP[@]}} )
 
+# shellcheck disable=SC2206
+# @fvar Exported ostype common variants.
+declare -g -a DUCT_OSTYPE_COMMON=( ${DUCT_OSTYPE_COMMON[@]:-} )
+
 # @desc Process ostype mapping and set matching ostype to `DUCT_OSTYPE`.
 # @intl false
 # @life core
@@ -353,6 +357,16 @@ __duct_ostype() {
     export DUCT_OSTYPE_EXTRA="${BASH_REMATCH[-1]}"
     OSTYPE_SHELL="${BASH_REMATCH[-2]}"
   fi
+
+  case "$OSTYPE_SHELL"
+  in
+    darwin)
+      DUCT_OSTYPE_COMMON+=( "macos" )
+    ;;
+  esac
+
+  DUCT_OSTYPE_COMMON+=( "$OSTYPE_SHELL" )
+  export DUCT_OSTYPE_COMMON
 
   if [[ "${#DUCT_OSTYPE_MAP[@]}" -eq 0 ]]
   then
