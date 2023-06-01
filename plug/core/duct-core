@@ -279,9 +279,9 @@ __duct_hosttype() {
   case "$HOSTTYPE_SHELL"
   in
     aarch64)  DUCT_HOSTTYPE_COMMON+=( "arm64" ) ;;
-    amd64)    DUCT_HOSTTYPE_COMMON+=( "x86_64" ) ;;
+    amd64)    DUCT_HOSTTYPE_COMMON+=( "x86_64" "64bit" ) ;;
     arm64)    DUCT_HOSTTYPE_COMMON+=( "aarch64" ) ;;
-    x86_64)   DUCT_HOSTTYPE_COMMON+=( "amd64" ) ;;
+    x86_64)   DUCT_HOSTTYPE_COMMON+=( "amd64" "64bit" ) ;;
 
     arm*)     DUCT_HOSTTYPE_COMMON+=( "arm" ) ;;
   esac
