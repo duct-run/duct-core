@@ -898,6 +898,9 @@ __duct_sleep_random() {
 # @fvar BASH_REMATCH compatible array (set at run-time).
 declare -g -a DUCT_SGREP_REMATCH=()
 
+# @fvar File name (set at run-time).
+declare -g -a DUCT_SGREP_FILE=()
+
 # @fvar File line of matches (set at run-time).
 declare -g -a DUCT_SGREP_LINE=()
 
@@ -930,6 +933,8 @@ __duct_sgrep() {
   DUCT_SGREP_LINE=()
 
   ___duct_sgrep() {
+    local SGREP_RC=1
+
     for SGREP_LINE in "${!SGREP_DATA[@]}"
     do
       if [[ "${SGREP_DATA[$SGREP_LINE]}" =~ $SGREP_MATCH ]]
@@ -937,6 +942,8 @@ __duct_sgrep() {
         # shellcheck disable=SC2034
         DUCT_SGREP_REMATCH+=( "${BASH_REMATCH[@]}" )
         DUCT_SGREP_LINE+=( "$(( SGREP_LINE + 1  ))" )
+
+        SGREP_RC=0
 
         if [[ "$DUCT_SGREP_RETURN" == "match" ]]
         then
@@ -952,6 +959,8 @@ __duct_sgrep() {
         fi
       fi
     done
+
+    return $SGREP_RC
   }
 
   if [[ "${#SGREP_FILES[@]}" -lt 1 ]]
@@ -962,7 +971,7 @@ __duct_sgrep() {
     for SGREP_FILE in "${SGREP_FILES[@]}"
     do
       mapfile -t -n 0 SGREP_DATA < "$SGREP_FILE"
-      ___duct_sgrep
+      ___duct_sgrep && DUCT_SGREP_FILE+=( "$SGREP_FILE"  )
     done
   fi
 
