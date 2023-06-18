@@ -930,6 +930,7 @@ __duct_sgrep() {
 
   # reset
   DUCT_SGREP_REMATCH=()
+  DUCT_SGREP_FILE=()
   DUCT_SGREP_LINE=()
 
   ___duct_sgrep() {
