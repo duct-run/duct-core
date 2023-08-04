@@ -147,10 +147,7 @@ declare -g DUCT_CONF_QUIET="${DUCT_CONF_QUIET:-false}"
 # @fvar Configuration file search list (internal).
 declare -r -a _DUCT_CONF_FILES=(
   "${HOME}/.config/duct/config"
-  "${HOME}/.config/duct/env"
-  "${HOME}/.ductconfig"
-  "${HOME}/.ductconf"
-  "${HOME}/.ductenv"
+  "${HOME}/.ductrc"
 )
 
 # @desc Read and process duct environment configuration.
