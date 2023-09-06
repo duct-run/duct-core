@@ -123,7 +123,6 @@ __duct_debase64() {
   local DEBASE64_STRING="${1:-}"
 
   local DEBASE64_OUTPUT
-  local DEBASE64_RC=0
 
   if [[ -z "$DEBASE64_STRING" ]]
   then
@@ -132,23 +131,16 @@ __duct_debase64() {
   fi
 
   set +e
-  DEBASE64_OUTPUT="$( printf "%b" "$DEBASE64_STRING" | "$DUCT_DEBASE64_BINARY" -d 2>/dev/null )"
-  DEBASE64_RC=$?
+  IFS= read -r DEBASE64_OUTPUT < <( "$DUCT_DEBASE64_BINARY" -d <<< "$DEBASE64_STRING" )
   set -e
 
-  if [[ "$DEBASE64_RC" -gt 0 ]]
+  if [[ "$DEBASE64_OUTPUT" =~ ^([[:alnum:][:punct:]]+)$ ]]
   then
+    __duct_msg d "base64 string"
+    printf "%s\n" "$DEBASE64_OUTPUT"
+  else
     __duct_msg d "plain string"
     printf "%s\n" "$DEBASE64_STRING"
-  else
-    if [[ "$DEBASE64_OUTPUT" =~ ^([[:alnum:]]+)$ ]]
-    then
-      __duct_msg d "base64 string"
-      printf "%s\n" "$DEBASE64_OUTPUT"
-    else
-      __duct_msg d "plain string"
-      printf "%s\n" "$DEBASE64_STRING"
-    fi
   fi
 }
 
