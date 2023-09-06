@@ -42,6 +42,7 @@ fi
 # dirs
 # shellcheck disable=SC2155
 declare -r DUCT_ROOT_DIR="$( test -d "${BASH_SOURCE[0]%/*}" && { cd "${BASH_SOURCE[0]%/*}" || exit; }; echo "$PWD" )"
+declare -r DUCT_LOGO_DIR="${DUCT_ROOT_DIR}/logo"
 declare -r DUCT_PLUG_DIR="${DUCT_ROOT_DIR}/plug"
 
 # shellcheck disable=SC2034
