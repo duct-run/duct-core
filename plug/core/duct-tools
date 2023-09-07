@@ -131,7 +131,7 @@ __duct_debase64() {
   fi
 
   set +e
-  IFS= read -r DEBASE64_OUTPUT < <( "$DUCT_DEBASE64_BINARY" -d <<< "$DEBASE64_STRING" )
+  IFS= read -r DEBASE64_OUTPUT < <( "$DUCT_DEBASE64_BINARY" -d <<< "$DEBASE64_STRING" 2>/dev/null )
   set -e
 
   if [[ "$DEBASE64_OUTPUT" =~ ^([[:alnum:][:punct:]]+)$ ]]
