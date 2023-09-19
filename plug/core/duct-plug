@@ -111,7 +111,7 @@ __duct_plug_install() {
 
     if [[ "$PLUG_INSTALL_TAG" == "$PLUG_INSTALL_URL" ]]
     then
-      PLUG_INSTALL_TAG="devel" # TODO: change to stable before release!
+      PLUG_INSTALL_TAG="stable" # TODO: change to stable before release!
     fi
 
     PLUG_INSTALL_NAME="${PLUG_INSTALL_URL##*/}"
