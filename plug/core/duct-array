@@ -237,7 +237,7 @@ __duct_array_trim() {
 
   for ARRAY_ITEM in "${ARRAY_NAME[@]}"
   do
-    ARRAY_TRIM+=( "$(__duct_trim "$ARRAY_ITEM")" )
+    ARRAY_TRIM+=( "$( __duct_trim "$ARRAY_ITEM" )" )
   done
 
   local IFS=$'\n'
