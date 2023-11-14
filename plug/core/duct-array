@@ -216,6 +216,35 @@ __duct_array_unique() {
   unset IFS
 }
 
+# @func duct array trim
+
+# @desc Remove leading and trailing whitespaces from array.
+# @intl false
+# @life core
+# @deps duct-msg
+# @opts <array-name>
+__duct_array_trim() {
+  local -n ARRAY_NAME="${1:-DUCT_NULL}"
+
+  local -a ARRAY_TRIM
+  local ARRAY_ITEM
+
+  if [[ "${!ARRAY_NAME}" == "DUCT_NULL" ]]
+  then
+    __duct_msg e "no array name! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    return 1
+  fi
+
+  for ARRAY_ITEM in "${ARRAY_NAME[@]}"
+  do
+    ARRAY_TRIM+=( "$(__duct_trim "$ARRAY_ITEM")" )
+  done
+
+  local IFS=$'\n'
+  readarray -t -n 0 "${!ARRAY_NAME}" <<< "${ARRAY_TRIM[*]}"
+  unset IFS
+}
+
 # @func duct array keyval
 
 # @desc Print array key=value (mostly for debug).
