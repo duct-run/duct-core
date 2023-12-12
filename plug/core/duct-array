@@ -172,6 +172,37 @@ __duct_array_sort() {
   readarray -t -n 0 "${!ARRAY_NAME}" < <( __duct_sort "${ARRAY_NAME[@]}" )
 }
 
+# @func duct array rsort
+
+# @desc Reverse sort an array (version sort).
+# @intl false
+# @life core
+# @deps duct-msg duct-util
+# @opts <array-name>
+__duct_array_rsort() {
+  local -n ARRAY_NAME="${1:-DUCT_NULL}"
+
+  if [[ "${!ARRAY_NAME}" == "DUCT_NULL" ]]
+  then
+    __duct_msg e "no array name! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    return 1
+  fi
+
+  if ! declare -p "${!ARRAY_NAME}" >/dev/null 2>&1
+  then
+    __duct_msg e "${!ARRAY_NAME} not found! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    return 1
+  fi
+
+  if [[ "${#ARRAY_NAME[@]}" -eq 0 ]]
+  then
+    __duct_msg w "${!ARRAY_NAME} is empty! ${DUCT_SCRIPT_FILE}:${BASH_LINENO[1]}"
+    return 0
+  fi
+
+  readarray -t -n 0 "${!ARRAY_NAME}" < <( __duct_rsort "${ARRAY_NAME[@]}" )
+}
+
 # @func duct array unique
 
 # @desc Remove duplicate values from an array without sorting.
