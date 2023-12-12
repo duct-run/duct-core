@@ -1025,6 +1025,57 @@ __duct_sort() {
   printf "%b\n" "${SORT_INPUT[@]}"
 }
 
+# @func duct rsort
+
+# @desc Bubble reverse sort in pure Bash.
+# @intl false
+# @life core
+# @deps
+# @opts <input>
+__duct_rsort() {
+  local -a SORT_INPUT
+  local SORT_DONE=1
+  local SORT_I
+  local SORT_J
+  local SORT_TEMP
+
+  IFS=" " read -r -a SORT_INPUT <<< "$@"
+
+  for (( SORT_I = 0; SORT_I < ( ${#SORT_INPUT[@]} - 1 ); SORT_I++ ))
+  do
+    SORT_DONE=0
+
+    for ((SORT_J = 0; SORT_J < ( ${#SORT_INPUT[@]} - 1 - SORT_I ); SORT_J++ ))
+    do
+      if [[ "${SORT_INPUT[SORT_J]}" =~ ^[0-9]+$ && "${SORT_INPUT[SORT_J+1]}" =~ ^[0-9]+$ ]]
+      then
+        if (( "${SORT_INPUT[SORT_J]}" < "${SORT_INPUT[SORT_J+1]}" ))
+        then
+          SORT_TEMP="${SORT_INPUT[SORT_J]}"
+          SORT_INPUT[SORT_J]="${SORT_INPUT[SORT_J+1]}"
+          SORT_INPUT[SORT_J+1]="$SORT_TEMP"
+          SORT_DONE=1
+        fi
+      else
+        if [ "${SORT_INPUT[SORT_J]}" \< "${SORT_INPUT[SORT_J+1]}" ]
+        then
+          SORT_TEMP="${SORT_INPUT[SORT_J]}"
+          SORT_INPUT[SORT_J]="${SORT_INPUT[SORT_J+1]}"
+          SORT_INPUT[SORT_J+1]="$SORT_TEMP"
+          SORT_DONE=1
+        fi
+      fi
+    done
+
+    if [[ "$SORT_DONE" -eq 0 ]]
+    then
+      break
+    fi
+  done
+
+  printf "%b\n" "${SORT_INPUT[@]}"
+}
+
 # @func duct compversion
 
 # @desc Alias of `duct compare version`.
