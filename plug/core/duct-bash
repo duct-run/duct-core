@@ -61,6 +61,9 @@ __duct_bash() {
 
 # @func duct bash enable
 
+# @fvar Bash builtin enable (set at runtime).
+declare -g -a DUCT_BASH_ENABLE=()
+
 # @fvar Bash builtins to enable.
 declare -g -r -a DUCT_BASH_ENABLE_SET=(
   stat
@@ -83,6 +86,7 @@ __duct_bash_enable() {
   then
     for BASH_ENABLE in "${DUCT_BASH_ENABLE_SET[@]}"
     do
+      DUCT_BASH_ENABLE+=( "+$BASH_ENABLE" )
       enable "$BASH_ENABLE" 2>/dev/null || __duct_msg w "builtin: $BASH_ENABLE not available!"
     done
   fi
@@ -91,12 +95,18 @@ __duct_bash_enable() {
   then
     for BASH_ENABLE in "${DUCT_BASH_ENABLE_UNSET[@]}"
     do
+      DUCT_BASH_ENABLE+=( "-$BASH_ENABLE" )
       enable -n "$BASH_ENABLE" 2>/dev/null || __duct_msg w "builtin: $BASH_ENABLE not available!"
     done
   fi
+
+  __duct_msg d "DUCT_BASH_ENABLE=${DUCT_BASH_ENABLE[*]}"
 }
 
 # @func duct bash shopt
+
+# @fvar Bash shopt (set at runtime).
+declare -g -a DUCT_BASH_SHOPT=()
 
 # @fvar Bash options to set.
 declare -g -r -a DUCT_BASH_SHOPT_SET=(
@@ -127,7 +137,8 @@ __duct_bash_shopt() {
   then
     for BASH_SHOPT in "${DUCT_BASH_SHOPT_SET[@]}"
     do
-      shopt -s "$BASH_SHOPT" 2>/dev/null || __duct_msg w "set: $BASH_SHOPT not available!"
+      DUCT_BASH_SHOPT+=( "+$BASH_SHOPT" )
+      shopt -s "$BASH_SHOPT" 2>/dev/null || __duct_msg w "shopt: $BASH_SHOPT not available!"
     done
   fi
 
@@ -135,7 +146,10 @@ __duct_bash_shopt() {
   then
     for BASH_SHOPT in "${DUCT_BASH_SHOPT_UNSET[@]}"
     do
-      shopt -u "$BASH_SHOPT" 2>/dev/null || __duct_msg w "unset: $BASH_SHOPT not available!"
+      DUCT_BASH_SHOPT+=( "-$BASH_SHOPT" )
+      shopt -u "$BASH_SHOPT" 2>/dev/null || __duct_msg w "shopt: $BASH_SHOPT not available!"
     done
   fi
+
+  __duct_msg d "DUCT_BASH_SHOPT=${DUCT_BASH_SHOPT[*]}"
 }
