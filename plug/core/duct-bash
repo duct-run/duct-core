@@ -59,6 +59,43 @@ __duct_bash() {
   readonly DUCT_BASH_SRANDOM
 }
 
+# @func duct bash enable
+
+# @fvar Bash builtins to enable.
+declare -g -r -a DUCT_BASH_ENABLE_SET=(
+  stat
+)
+
+# @fvar Bash builtins to disable.
+declare -g -r -a DUCT_BASH_ENABLE_UNSET=()
+
+# @deps duct-msg
+# @intl true
+# @life core
+# @desc Enable/disable Bash builtins.
+# @opts
+__duct_bash_enable() {
+  __duct_intl
+
+  local BASH_ENABLE
+
+  if [[ "${#DUCT_BASH_ENABLE_SET[@]}" -ge 1 ]]
+  then
+    for BASH_ENABLE in "${DUCT_BASH_ENABLE_SET[@]}"
+    do
+      enable "$BASH_ENABLE" 2>/dev/null || __duct_msg w "builtin: $BASH_ENABLE not available!"
+    done
+  fi
+
+  if [[ "${#DUCT_BASH_ENABLE_UNSET[@]}" -ge 1 ]]
+  then
+    for BASH_ENABLE in "${DUCT_BASH_ENABLE_UNSET[@]}"
+    do
+      enable -n "$BASH_ENABLE" 2>/dev/null || __duct_msg w "builtin: $BASH_ENABLE not available!"
+    done
+  fi
+}
+
 # @func duct bash shopt
 
 # @fvar Bash options to set.
