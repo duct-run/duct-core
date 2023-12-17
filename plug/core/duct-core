@@ -448,6 +448,7 @@ __duct_init() {
 
   # bash
   __duct_bash
+  __duct_bash_enable
   __duct_bash_shopt
 
   # os type
