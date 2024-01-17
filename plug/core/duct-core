@@ -440,12 +440,6 @@ __duct_init() {
     DUCT_MSG_MAX_LEVEL=0
   fi
 
-  # env
-  __duct_env
-
-  # conf
-  __duct_conf
-
   # bash
   __duct_bash
   __duct_bash_enable

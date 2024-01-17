@@ -93,6 +93,12 @@ do
 
   # shellcheck disable=SC1090
   source "${DUCT_PLUG_DIR}/core/$DUCT_ITEM" && export DUCT_PLUG_VAR=true
+
+  if [[ "$DUCT_ITEM" == "duct-core" ]]
+  then
+    __duct_env
+    __duct_conf
+  fi
 done
 unset DUCT_ITEM
 
