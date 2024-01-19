@@ -145,10 +145,13 @@ declare -g DUCT_CONF_ENABLE="${DUCT_CONF_ENABLE:-true}"
 declare -g DUCT_CONF_QUIET="${DUCT_CONF_QUIET:-false}"
 
 # @fvar Configuration file search list (internal).
-declare -r -a _DUCT_CONF_FILES=(
+declare -a _DUCT_CONF_FILES=(
   "${HOME}/.config/duct/config"
   "${HOME}/.ductrc"
 )
+
+# @fvar Configuration file
+declare -g DUCT_CONF_FILE="${DUCT_CONF_FILE:-}"
 
 # @desc Read and process duct environment configuration.
 # @intl true
@@ -171,6 +174,11 @@ __duct_conf() {
   if [[ "$DUCT_CONF_ENABLE" != true ]]
   then
     return
+  fi
+
+  if [[ -n "$DUCT_CONF_FILE" ]]
+  then
+    _DUCT_CONF_FILES=( "$DUCT_CONF_FILE" )
   fi
 
   for CONF_FILE in "${_DUCT_CONF_FILES[@]}"
