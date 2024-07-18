@@ -93,7 +93,7 @@ __duct_bash_enable() {
   local BASH_ENABLE
 
   local BASH_PATH="${SHELL%/*}"
-  local BASH_LOADABLES_PATH="${BASH_PATH//bin/lib}/bash"
+  local BASH_LOADABLES_PATH="${BASH_PATH//bin/lib}/bash:/usr/local/lib/bash:/usr/lib/bash:/opt/local/lib/bash:/usr/pkg/lib/bash:/opt/pkg/lib/bash:."
 
   if [[ "${#DUCT_BASH_ENABLE_SET[@]}" -ge 1 ]]
   then
