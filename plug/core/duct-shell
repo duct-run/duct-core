@@ -213,7 +213,7 @@ __duct_urldecode() {
   fi
 
   STR="${STR//+/ }"
-  printf "%s\n" "${STR//%/\\x}"
+  printf "%b\n" "${STR//%/\\x}"
 }
 
 # @func duct realpath
